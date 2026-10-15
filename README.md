@@ -68,3 +68,24 @@ request. Every change bumps `version` in the manifest and adds a
 extension from source, signs the package, and publishes it to the Gallery;
 you do not need a signing certificate. Binaries must be built from the source
 in the folder, and an extension must not download and run other programs.
+
+## Releasing
+
+Merging to `main` publishes every extension whose manifest version has no
+release yet (`.github/workflows/release.yml`, `tools/release.sh`):
+
+1. It builds the extension from the merged commit and, for `prism.*`, signs the
+   binary with Prism's Developer ID when one is configured.
+2. `prism-extension pack` writes `<id>-<version>.prismextension`: the manifest,
+   README, changelog, icons, scripts, and built executable (moved to `bin/`),
+   without sources, tests, or build output.
+3. The package is attached to the GitHub release `<id>@<version>`, with that
+   version's changelog entry as its notes.
+4. `prism-extension index add` updates `index.json` on the `gh-pages` branch
+   and `index sign` signs it. Prism installs nothing the signature does not
+   cover, and checks each package's size and SHA-256 against the index.
+
+The `gallery` environment holds `GALLERY_SIGNING_KEY` (and optionally
+`DEVELOPER_ID_P12` / `DEVELOPER_ID_P12_PASSWORD`); the `GALLERY_KEY_ID`
+variable names the key. Without the signing key nothing is published.
+`bash tools/release.sh --site /tmp/site --dry-run` shows what would ship.

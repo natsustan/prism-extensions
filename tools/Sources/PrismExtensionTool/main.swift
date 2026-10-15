@@ -3,35 +3,73 @@ import Foundation
 import PrismExtensionProtocol
 
 /// `prism-extension lint <folder>...` checks folders the way Prism and the
-/// Gallery do; `prism-extension smoke <folder>...` runs each extension once
-/// over the protocol. CI runs both on every extension a change touches.
+/// Gallery do; `smoke` runs each extension once over the protocol; `pack`
+/// builds the `.prismextension` the Gallery publishes; `index` maintains and
+/// signs the Gallery's `index.json`.
 let usage = """
 Usage:
   prism-extension lint <folder>...    check manifest, executable, and repository rules
   prism-extension smoke <folder>...   start the extension, run a protocol round trip, and stop it
+  prism-extension pack <folder> --output <dir>
+                                      write <id>-<version>.prismextension and print its entry as JSON
+  prism-extension index add --index <index.json> --package <file> --url <download URL>
+                                      [--source <URL>] [--notes <file>]
+                                      put a package's entry into the index (created if missing)
+  prism-extension index sign --index <index.json> --key-id <id>
+                                      write <index.json>.sig with the key in PRISM_GALLERY_SIGNING_KEY
+  prism-extension keygen              print a new signing key pair
 """
 
 let arguments = Array(CommandLine.arguments.dropFirst())
-guard let command = arguments.first, ["lint", "smoke"].contains(command), arguments.count > 1 else {
-    FileHandle.standardError.write(Data((usage + "\n").utf8))
-    exit(2)
+
+func fail(_ message: String) -> Never {
+    FileHandle.standardError.write(Data((message + "\n").utf8))
+    exit(1)
 }
 
-var failed = false
-for path in arguments.dropFirst() {
-    let folder = URL(fileURLWithPath: path).standardizedFileURL
-    do {
-        switch command {
-        case "lint": try Lint.check(folder)
-        default: try Smoke.run(folder)
-        }
-        print("✓ \(command) \(path)")
-    } catch {
-        failed = true
-        print("✗ \(command) \(path): \(error)")
-    }
+func option(_ name: String, in arguments: [String]) -> String? {
+    guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count else { return nil }
+    return arguments[index + 1]
 }
-exit(failed ? 1 : 0)
+
+switch arguments.first {
+case "lint", "smoke":
+    guard arguments.count > 1 else { fail(usage) }
+    var failed = false
+    for path in arguments.dropFirst() {
+        let folder = URL(fileURLWithPath: path).standardizedFileURL
+        do {
+            if arguments[0] == "lint" { try Lint.check(folder) } else { try Smoke.run(folder) }
+            print("✓ \(arguments[0]) \(path)")
+        } catch {
+            failed = true
+            print("✗ \(arguments[0]) \(path): \(error)")
+        }
+    }
+    exit(failed ? 1 : 0)
+case "pack":
+    guard arguments.count > 1, let output = option("--output", in: arguments) else { fail(usage) }
+    do {
+        let result = try Pack.run(
+            URL(fileURLWithPath: arguments[1]).standardizedFileURL,
+            output: URL(fileURLWithPath: output).standardizedFileURL
+        )
+        print(result)
+    } catch {
+        fail("✗ pack \(arguments[1]): \(error)")
+    }
+case "index":
+    do {
+        try GalleryIndexTool.run(Array(arguments.dropFirst()))
+    } catch {
+        fail("✗ index: \(error)")
+    }
+case "keygen":
+    let keys = ExtensionGallerySigning.makeKeyPair()
+    print("private: \(keys.privateKey)\npublic: \(keys.publicKey)")
+default:
+    fail(usage)
+}
 
 struct ToolFailure: Error, CustomStringConvertible {
     let description: String
