@@ -112,7 +112,9 @@ struct AgentUsageFormatTests {
 
     @Test("reset time is relative while far out, absolute once close")
     func resetText() {
-        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        // 6 a.m. wherever the tests run, so five hours later is still today.
+        let now = Calendar.current.startOfDay(for: Date(timeIntervalSince1970: 1_700_000_000))
+            .addingTimeInterval(6 * 3_600)
         #expect(AgentUsageFormat.resetText(
             resetsAt: now.addingTimeInterval(3 * 86_400 + 4 * 3_600), now: now) == "Resets in 3d 4h")
         #expect(AgentUsageFormat.resetText(resetsAt: now.addingTimeInterval(30), now: now) == "Resets soon")
