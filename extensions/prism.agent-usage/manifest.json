@@ -1,0 +1,26 @@
+{
+  "protocol": 1,
+  "id": "prism.agent-usage",
+  "name": "Agent Usage",
+  "version": "1.1.0",
+  "author": "Prism",
+  "description": "Quotas for your AI coding agents — Codex, Claude, Grok, Amp, Antigravity, Devin, and Z.ai — in the launcher and in widgets.",
+  "icon": { "symbol": "gauge.with.needle", "tint": "indigo" },
+  "executable": ".build/release/AgentUsage",
+  "commands": [
+    { "id": "usage", "title": "Agent Usage", "subtitle": "AI quota", "mode": "list", "keywords": ["ai", "usage", "quota", "limits", "codex", "claude", "grok"] }
+  ],
+  "preferences": [
+    { "id": "agents", "type": "orderedList", "title": "Shown Agents", "section": "Agents", "caption": "Drag to reorder. Widgets show the first enabled agent or the first two. Configured means a login or key for that agent is already on this Mac; the others sign in through their own CLI." },
+    { "id": "showsRemaining", "type": "bool", "title": "Show remaining quota", "section": "Display", "caption": "Off shows how much of each window has been used instead.", "default": true },
+    { "id": "zaiKey", "type": "secret", "title": "API Key", "section": "Z.ai", "caption": "Sent only to Z.ai. Leave blank to use ZAI_API_KEY, ~/.config/zai/key.json, or a Claude Code token pointed at z.ai." }
+  ],
+  "widgets": [
+    { "id": "numbers", "title": "AI Usage Numbers", "subtitle": "Two agents' quotas as figures", "template": "quotaNumbers" },
+    { "id": "rings", "title": "AI Usage Rings", "subtitle": "Two agents' quotas as rings", "template": "quotaRings" },
+    { "id": "bars", "title": "AI Usage Bars", "subtitle": "Two agents' quotas as labelled bars", "template": "quotaBars" },
+    { "id": "singleNumber", "title": "AI Usage Number", "subtitle": "The first agent's quota", "template": "quotaNumber" },
+    { "id": "singleRing", "title": "AI Usage Ring", "subtitle": "The first agent's quota as a ring", "template": "quotaRing" }
+  ],
+  "capabilities": ["network", "readHomeFiles", "keychainRead", "spawnProcesses"]
+}
