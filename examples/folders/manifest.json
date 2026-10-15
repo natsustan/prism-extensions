@@ -1,0 +1,13 @@
+{
+  "protocol": 1,
+  "id": "example.folders",
+  "name": "Folders",
+  "version": "0.1.0",
+  "author": "example",
+  "description": "A sample shell extension with a list: your usual folders, grouped, with open, reveal, and copy actions.",
+  "icon": { "symbol": "folder.fill", "tint": "blue" },
+  "executable": "bin/folders",
+  "commands": [
+    { "id": "browse", "title": "Browse Folders", "mode": "list", "keywords": ["folder", "finder"] }
+  ]
+}

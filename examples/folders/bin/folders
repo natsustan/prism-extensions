@@ -1,0 +1,75 @@
+#!/bin/sh
+# Folders: a list command in plain sh (protocol v1). Prism filters the list
+# itself as the user types, so `list.load` always answers with every item.
+# plutil, which ships with macOS, reads fields; replies are JSON templates.
+
+field() { printf '%s' "$1" | /usr/bin/plutil -extract "$2" raw -o - - 2>/dev/null; }
+# Escapes a string for use inside JSON quotes.
+json() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'; }
+
+# Folder IDs are stable across reloads; Prism keeps the selection by ID.
+path_of() {
+    case "$1" in
+    desktop) printf '%s' "$HOME/Desktop" ;;
+    documents) printf '%s' "$HOME/Documents" ;;
+    downloads) printf '%s' "$HOME/Downloads" ;;
+    pictures) printf '%s' "$HOME/Pictures" ;;
+    applications) printf '%s' "/Applications" ;;
+    utilities) printf '%s' "/Applications/Utilities" ;;
+    esac
+}
+
+# item ID TITLE SECTION SYMBOL. It never lists a folder's contents: reading
+# Desktop, Documents, or Downloads would ask the user for permission.
+item() {
+    path=$(path_of "$1")
+    escaped=$(json "$path")
+    short=$(printf '%s' "$escaped" | sed "s|^$HOME|~|")
+    url=$(printf '%s' "$escaped" | sed 's/ /%20/g')
+    printf '{"id":"%s","title":"%s","section":"%s","icon":{"symbol":"%s","tint":"blue"},' "$1" "$2" "$3" "$4"
+    printf '"accessories":[{"text":"%s"}],"keywords":["%s"],' "$short" "$escaped"
+    printf '"detail":{"markdown":"# %s\\n\\nReturn opens it in Finder; **Reveal in Finder** selects it in its parent folder.",' "$2"
+    printf '"metadata":[{"label":"Path","value":"%s"},{"label":"Group","value":"%s"}]},' "$escaped" "$3"
+    printf '"actions":[{"id":"open","title":"Open","kind":"open","url":"file://%s"},' "$url"
+    printf '{"id":"reveal","title":"Reveal in Finder","symbol":"magnifyingglass","shortcut":"cmd+return"},'
+    printf '{"id":"copy","title":"Copy Path","kind":"copy","text":"%s","shortcut":"cmd+shift+c"}]}' "$escaped"
+}
+
+list() {
+    printf '{"id":%s,"result":{"items":[' "$1"
+    item desktop Desktop Home desktopcomputer; printf ','
+    item documents Documents Home doc.text; printf ','
+    item downloads Downloads Home arrow.down.circle; printf ','
+    item pictures Pictures Home photo; printf ','
+    item applications Applications System square.grid.3x3; printf ','
+    item utilities Utilities System wrench.and.screwdriver
+    printf '],"searchPlaceholder":"Filter folders…","fetchedAt":%s}}\n' "$(date +%s)"
+}
+
+while IFS= read -r line; do
+    id=$(field "$line" id)
+    method=$(field "$line" method)
+    case "$method" in
+    initialize)
+        printf '{"id":%s,"result":{}}\n' "$id"
+        ;;
+    list.load)
+        list "$id"
+        ;;
+    action.perform)
+        path=$(path_of "$(field "$line" params.itemID)")
+        if [ "$(field "$line" params.actionID)" = reveal ] && [ -n "$path" ] && /usr/bin/open -R "$path"; then
+            # Finder takes focus, so the launcher should not hand it back.
+            printf '{"id":%s,"result":{"kind":"completed","restoreFocus":false}}\n' "$id"
+        else
+            printf '{"id":%s,"result":{"kind":"failed","message":"Could not reveal that folder."}}\n' "$id"
+        fi
+        ;;
+    willTerminate)
+        exit 0
+        ;;
+    *)
+        [ -n "$id" ] && printf '{"id":%s,"error":{"message":"Unsupported method."}}\n' "$id"
+        ;;
+    esac
+done

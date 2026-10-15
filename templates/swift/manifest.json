@@ -1,0 +1,18 @@
+{
+  "protocol": 1,
+  "id": "example.hello-swift",
+  "name": "Hello Swift",
+  "version": "0.1.0",
+  "author": "example",
+  "description": "A starting point for Prism extensions written in Swift.",
+  "icon": { "symbol": "swift", "tint": "orange" },
+  "executable": ".build/release/HelloSwift",
+  "commands": [
+    { "id": "greet", "title": "Say Hello", "mode": "no-view", "keywords": ["hello", "swift"] },
+    { "id": "reset", "title": "Reset Greetings", "mode": "no-view", "keywords": ["hello"] },
+    { "id": "greetings", "title": "Greeting Count", "mode": "no-view", "keywords": ["hello"], "liveStatus": true }
+  ],
+  "preferences": [
+    { "id": "excited", "type": "bool", "title": "Excited", "caption": "End the greeting with an exclamation mark.", "default": false }
+  ]
+}

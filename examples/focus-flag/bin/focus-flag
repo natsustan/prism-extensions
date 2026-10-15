@@ -1,0 +1,71 @@
+#!/bin/sh
+# Focus Flag: a Prism extension in plain sh. Prism sends one JSON message per
+# line on stdin and reads one per line on stdout (protocol v1). plutil, which
+# ships with macOS, extracts fields; replies are fixed JSON templates.
+
+field() { printf '%s' "$1" | /usr/bin/plutil -extract "$2" raw -o - - 2>/dev/null; }
+
+flag=off
+announce=true
+session=
+
+status_update() {
+    [ -n "$session" ] || return 0
+    if [ "$flag" = on ]; then
+        printf '{"method":"status.update","params":{"session":"%s","status":{"text":"Focused","symbol":"flag.fill","isLive":true}}}\n' "$session"
+    else
+        printf '{"method":"status.update","params":{"session":"%s","status":{"text":"Not focused","isLive":true}}}\n' "$session"
+    fi
+}
+
+while IFS= read -r line; do
+    id=$(field "$line" id)
+    method=$(field "$line" method)
+    case "$method" in
+    initialize)
+        flag=$(field "$line" params.state.flag)
+        [ -n "$flag" ] || flag=off
+        announce=$(field "$line" params.preferences.announce)
+        printf '{"id":%s,"result":{}}\n' "$id"
+        ;;
+    command.run)
+        case $(field "$line" params.commandID) in
+        toggle)
+            if [ "$flag" = on ]; then flag=off; else flag=on; fi
+            # Writes name the request that caused them.
+            printf '{"method":"state.write","params":{"requestID":%s,"key":"flag","value":"%s"}}\n' "$id" "$flag"
+            status_update
+            if [ "$announce" = true ]; then
+                printf '{"id":%s,"result":{"kind":"keepOpen","message":"Focus flag is %s."}}\n' "$id" "$flag"
+            else
+                printf '{"id":%s,"result":{"kind":"completed","restoreFocus":true}}\n' "$id"
+            fi
+            ;;
+        status)
+            printf '{"id":%s,"result":{"kind":"keepOpen","message":"Focus flag is %s."}}\n' "$id" "$flag"
+            ;;
+        *)
+            printf '{"id":%s,"error":{"message":"Unknown command."}}\n' "$id"
+            ;;
+        esac
+        ;;
+    status.subscribe)
+        session=$(field "$line" params.session)
+        printf '{"id":%s,"result":{}}\n' "$id"
+        status_update
+        ;;
+    status.unsubscribe)
+        session=
+        ;;
+    widget.load)
+        if [ "$flag" = on ]; then state=On; on=true; else state=Off; on=false; fi
+        printf '{"id":%s,"result":{"template":"toggleCard","title":"Focus","status":"%s","symbol":"flag.fill","tint":"orange","isOn":%s,"toggleCommandID":"toggle"}}\n' "$id" "$state" "$on"
+        ;;
+    willTerminate)
+        exit 0
+        ;;
+    *)
+        [ -n "$id" ] && printf '{"id":%s,"error":{"message":"Unsupported method."}}\n' "$id"
+        ;;
+    esac
+done

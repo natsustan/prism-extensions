@@ -1,0 +1,26 @@
+name: Check
+
+# Pull requests run with a read-only token and no secrets; fork code never
+# runs with repository permissions (no pull_request_target).
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check changed extensions
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            bash tools/check.sh --changed "origin/${{ github.base_ref }}"
+          else
+            bash tools/check.sh --changed "${{ github.event.before }}"
+          fi

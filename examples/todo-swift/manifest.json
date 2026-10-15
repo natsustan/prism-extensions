@@ -1,0 +1,13 @@
+{
+  "protocol": 1,
+  "id": "example.todo-swift",
+  "name": "To-Do (Swift)",
+  "version": "0.1.0",
+  "author": "example",
+  "description": "A sample list extension in Swift: type to search or add a to-do, finish it with a confirmation.",
+  "icon": { "symbol": "checklist", "tint": "green" },
+  "executable": ".build/release/TodoSwift",
+  "commands": [
+    { "id": "todos", "title": "To-Do List", "mode": "list", "keywords": ["todo", "task"] }
+  ]
+}

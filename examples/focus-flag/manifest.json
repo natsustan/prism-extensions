@@ -1,0 +1,20 @@
+{
+  "protocol": 1,
+  "id": "example.focus-flag",
+  "name": "Focus Flag",
+  "version": "0.1.0",
+  "author": "example",
+  "description": "A sample shell extension: a flag you toggle from the launcher, a hotkey, or a widget.",
+  "icon": { "symbol": "flag.fill", "tint": "orange" },
+  "executable": "bin/focus-flag",
+  "commands": [
+    { "id": "toggle", "title": "Toggle Focus Flag", "mode": "no-view", "keywords": ["focus", "flag"] },
+    { "id": "status", "title": "Focus Flag Status", "mode": "no-view", "keywords": ["focus", "flag"], "liveStatus": true }
+  ],
+  "preferences": [
+    { "id": "announce", "type": "bool", "title": "Announce Changes", "caption": "Keep the launcher open with a message after toggling.", "default": true }
+  ],
+  "widgets": [
+    { "id": "flag", "title": "Focus Flag", "subtitle": "Toggle the focus flag", "template": "toggleCard" }
+  ]
+}
