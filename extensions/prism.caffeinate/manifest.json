@@ -1,0 +1,26 @@
+{
+  "protocol": 1,
+  "id": "prism.caffeinate",
+  "name": "Caffeinate",
+  "version": "1.1.0",
+  "author": "Prism",
+  "description": "Keep your Mac awake from the launcher, a hotkey, or a widget.",
+  "icon": { "symbol": "cup.and.saucer.fill", "tint": "brown" },
+  "executable": ".build/release/Caffeinate",
+  "commands": [
+    { "id": "caffeinate", "title": "Caffeinate", "subtitle": "Coffee", "mode": "no-view", "keywords": ["keep awake", "prevent sleep", "coffee"] },
+    { "id": "caffeinate-status", "title": "Caffeinate Status", "subtitle": "Coffee", "mode": "no-view", "keywords": ["awake", "sleep", "coffee"], "liveStatus": true },
+    { "id": "decaffeinate", "title": "Decaffeinate", "subtitle": "Coffee", "mode": "no-view", "keywords": ["allow sleep", "stop caffeinate", "coffee"] },
+    { "id": "toggle-caffeinate", "title": "Toggle Caffeinate", "subtitle": "Coffee", "mode": "no-view", "keywords": ["keep awake", "allow sleep", "coffee"] }
+  ],
+  "preferences": [
+    { "id": "preventDiskSleep", "type": "bool", "title": "Prevent Disk Sleep", "caption": "Prevents the disk from idle sleeping the next time Caffeinate starts. It does not prevent screen locking or lid-close sleep.", "default": false }
+  ],
+  "widgets": [
+    { "id": "toggle", "title": "Caffeinate", "subtitle": "Keep your Mac awake", "template": "toggleCard" }
+  ],
+  "tasks": [
+    { "id": "caffeinate", "executable": "/usr/bin/caffeinate", "survivesHost": true }
+  ],
+  "capabilities": ["hostTasks", "inspectProcesses"]
+}
