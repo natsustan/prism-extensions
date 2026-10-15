@@ -21,6 +21,9 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             bash tools/check.sh --changed "origin/${{ github.base_ref }}"
+          elif [[ "${{ github.event.before }}" =~ ^0+$ ]]; then
+            # A new branch has no previous commit to compare with.
+            bash tools/check.sh --all
           else
             bash tools/check.sh --changed "${{ github.event.before }}"
           fi
