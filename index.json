@@ -1,0 +1,231 @@
+{
+  "extensions" : [
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
+          "network",
+          "readHomeFiles",
+          "keychainRead",
+          "spawnProcesses"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "usage",
+            "keywords" : [
+              "ai",
+              "usage",
+              "quota",
+              "limits",
+              "codex",
+              "claude",
+              "grok"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "subtitle" : "AI quota",
+            "title" : "Agent Usage"
+          }
+        ],
+        "description" : "Quotas for your AI coding agents — Codex, Claude, Grok, Amp, Antigravity, Devin, and Z.ai — in the launcher and in widgets.",
+        "executable" : "bin/AgentUsage",
+        "icon" : {
+          "symbol" : "gauge.with.needle",
+          "tint" : "indigo"
+        },
+        "id" : "prism.agent-usage",
+        "name" : "Agent Usage",
+        "preferences" : [
+          {
+            "caption" : "Drag to reorder. Widgets show the first enabled agent or the first two. Configured means a login or key for that agent is already on this Mac; the others sign in through their own CLI.",
+            "id" : "agents",
+            "section" : "Agents",
+            "title" : "Shown Agents",
+            "type" : "orderedList"
+          },
+          {
+            "caption" : "Off shows how much of each window has been used instead.",
+            "default" : true,
+            "id" : "showsRemaining",
+            "section" : "Display",
+            "title" : "Show remaining quota",
+            "type" : "bool"
+          },
+          {
+            "caption" : "Sent only to Z.ai. Leave blank to use ZAI_API_KEY, ~/.config/zai/key.json, or a Claude Code token pointed at z.ai.",
+            "id" : "zaiKey",
+            "section" : "Z.ai",
+            "title" : "API Key",
+            "type" : "secret"
+          }
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.1.0",
+        "widgets" : [
+          {
+            "id" : "numbers",
+            "subtitle" : "Two agents' quotas as figures",
+            "template" : "quotaNumbers",
+            "title" : "AI Usage Numbers"
+          },
+          {
+            "id" : "rings",
+            "subtitle" : "Two agents' quotas as rings",
+            "template" : "quotaRings",
+            "title" : "AI Usage Rings"
+          },
+          {
+            "id" : "bars",
+            "subtitle" : "Two agents' quotas as labelled bars",
+            "template" : "quotaBars",
+            "title" : "AI Usage Bars"
+          },
+          {
+            "id" : "singleNumber",
+            "subtitle" : "The first agent's quota",
+            "template" : "quotaNumber",
+            "title" : "AI Usage Number"
+          },
+          {
+            "id" : "singleRing",
+            "subtitle" : "The first agent's quota as a ring",
+            "template" : "quotaRing",
+            "title" : "AI Usage Ring"
+          }
+        ]
+      },
+      "package" : {
+        "sha256" : "425e803de68bac2ddbc27f4795108de24630ddc2b8fcaf6c8ae09714166acf5d",
+        "size" : 880842,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.agent-usage%401.1.0/prism.agent-usage-1.1.0.prismextension"
+      },
+      "publishedAt" : 1792052364,
+      "releaseNotes" : "- Runs as its own process, built with PrismExtensionKit, instead of inside\n  Prism. The list, detail, widgets, and settings are unchanged.\n- Keeps the last results and the refresh throttle in its data folder, so a\n  restarted process shows them at once without fetching again.\n- Brand icons ship with the extension.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.agent-usage"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
+          "hostTasks",
+          "inspectProcesses"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "caffeinate",
+            "keywords" : [
+              "keep awake",
+              "prevent sleep",
+              "coffee"
+            ],
+            "liveStatus" : false,
+            "mode" : "no-view",
+            "subtitle" : "Coffee",
+            "title" : "Caffeinate"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "caffeinate-status",
+            "keywords" : [
+              "awake",
+              "sleep",
+              "coffee"
+            ],
+            "liveStatus" : true,
+            "mode" : "no-view",
+            "subtitle" : "Coffee",
+            "title" : "Caffeinate Status"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "decaffeinate",
+            "keywords" : [
+              "allow sleep",
+              "stop caffeinate",
+              "coffee"
+            ],
+            "liveStatus" : false,
+            "mode" : "no-view",
+            "subtitle" : "Coffee",
+            "title" : "Decaffeinate"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "toggle-caffeinate",
+            "keywords" : [
+              "keep awake",
+              "allow sleep",
+              "coffee"
+            ],
+            "liveStatus" : false,
+            "mode" : "no-view",
+            "subtitle" : "Coffee",
+            "title" : "Toggle Caffeinate"
+          }
+        ],
+        "description" : "Keep your Mac awake from the launcher, a hotkey, or a widget.",
+        "executable" : "bin/Caffeinate",
+        "icon" : {
+          "symbol" : "cup.and.saucer.fill",
+          "tint" : "brown"
+        },
+        "id" : "prism.caffeinate",
+        "name" : "Caffeinate",
+        "preferences" : [
+          {
+            "caption" : "Prevents the disk from idle sleeping the next time Caffeinate starts. It does not prevent screen locking or lid-close sleep.",
+            "default" : false,
+            "id" : "preventDiskSleep",
+            "title" : "Prevent Disk Sleep",
+            "type" : "bool"
+          }
+        ],
+        "protocol" : 1,
+        "tasks" : [
+          {
+            "executable" : "/usr/bin/caffeinate",
+            "id" : "caffeinate",
+            "survivesHost" : true
+          }
+        ],
+        "version" : "1.1.0",
+        "widgets" : [
+          {
+            "id" : "toggle",
+            "subtitle" : "Keep your Mac awake",
+            "template" : "toggleCard",
+            "title" : "Caffeinate"
+          }
+        ]
+      },
+      "package" : {
+        "sha256" : "651c0c301833609e219f19bb3814f5a11583553162ce62493756c4fb035e427f",
+        "size" : 427974,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.caffeinate%401.1.0/prism.caffeinate-1.1.0.prismextension"
+      },
+      "publishedAt" : 1792052393,
+      "releaseNotes" : "- Runs as its own process, built with PrismExtensionKit, instead of inside\n  Prism. Commands, the status row, the widget, and the preference are\n  unchanged.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.caffeinate"
+    }
+  ],
+  "format" : 1,
+  "generatedAt" : 1792052393,
+  "revoked" : [
+
+  ]
+}
