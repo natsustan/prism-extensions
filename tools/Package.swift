@@ -8,7 +8,7 @@ import PackageDescription
 //   PRISM_KIT_PATH=~/projects/prism/Packages/PrismExtensionKit swift build
 let kitPath = Context.environment["PRISM_KIT_PATH"]
 let kit: Package.Dependency = kitPath.map { .package(path: $0) }
-    ?? .package(url: "https://github.com/natsustan/prism-extension-kit.git", from: "0.1.0")
+    ?? .package(url: "https://github.com/natsustan/prism-extension-kit.git", from: "0.1.1")
 let kitPackage = kitPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "prism-extension-kit"
 
 let package = Package(
