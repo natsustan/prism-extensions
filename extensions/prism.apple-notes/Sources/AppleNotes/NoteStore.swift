@@ -41,12 +41,12 @@ struct NoteStore: Sendable {
 
     /// Notes that are not deleted, newest first. Notes in Recently Deleted are
     /// left out.
-    func notes(limit: Int) throws -> [Note] {
+    func notes() throws -> [Note] {
         try checkAccess()
         let database = try Database(url: url)
         var notes = [Note]()
         var indexes = [Int64: Int]()
-        try database.rows(Self.notesQuery, limit: limit) { row in
+        try database.rows(Self.notesQuery) { row in
             let pk = row.int(0)
             guard indexes[pk] == nil, let id = row.string(1), let title = row.string(2) else { return }
             indexes[pk] = notes.count
@@ -110,7 +110,6 @@ struct NoteStore: Sendable {
             AND COALESCE(folder.ZMARKEDFORDELETION, 0) != 1
             AND COALESCE(folder.ZFOLDERTYPE, 0) != 1
         ORDER BY note.ZMODIFICATIONDATE1 DESC
-        LIMIT ?
         """
 
     private static let tagsQuery = """
@@ -150,13 +149,12 @@ private final class Database {
         }
     }
 
-    func rows(_ sql: String, limit: Int? = nil, _ body: (Row) throws -> Void) throws {
+    func rows(_ sql: String, _ body: (Row) throws -> Void) throws {
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK, let statement else {
             throw NoteStoreError.unreadable(String(cString: sqlite3_errmsg(handle)))
         }
         defer { sqlite3_finalize(statement) }
-        if let limit { sqlite3_bind_int64(statement, 1, Int64(limit)) }
         while true {
             switch sqlite3_step(statement) {
             case SQLITE_ROW: try body(Row(statement: statement))

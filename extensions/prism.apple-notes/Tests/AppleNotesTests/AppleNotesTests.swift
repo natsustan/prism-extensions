@@ -137,7 +137,7 @@ struct AppleNotesTests {
 
         #expect(list.items.map(\.title) == ["Pinned", "Newest", "Older"])
         #expect(list.items.map(\.section) == ["Pinned", "Notes", "Notes"])
-        #expect(list.filtering == .prism)
+        #expect(list.filtering == .extension)
         #expect(list.showsDetail == false)
     }
 
@@ -162,47 +162,96 @@ struct AppleNotesTests {
         #expect(items[0].actions[2].kind == .copy(text: "Plan"))
     }
 
-    @Test("Keywords cover the folder, account, tags, and pinyin of Chinese text")
-    func keywords() async throws {
+    private func titles(_ prism: PrismTestHost, _ query: String) async throws -> [String] {
+        try await prism.list("search-notes", query: query).items.map(\.title)
+    }
+
+    @Test("Search covers title, snippet, folder, account, tags, and pinyin, every word required")
+    func searchFields() async throws {
         let fixture = try NotesFixture()
         let account = try fixture.account("iCloud")
         let home = try fixture.folder("家")
-        let note = try fixture.note("玄关", snippet: "玄关柜的电源改造", folder: home, account: account, modified: 1)
-        try fixture.tag("#装修", on: note)
-        try fixture.tag("#装修", on: note)
+        let work = try fixture.folder("Work")
+        let hallway = try fixture.note("玄关", snippet: "玄关柜的电源改造", folder: home, account: account, modified: 3)
+        try fixture.tag("#装修", on: hallway)
+        try fixture.note("Résumé draft", snippet: "Ｆｕｌｌ width text", folder: work, modified: 2)
+        try fixture.note("deepseek 改名为 deepseek flash", folder: work, modified: 1)
+        let prism = try await host(fixture.url)
 
-        let keywords = try await host(fixture.url).list("search-notes").items[0].keywords
-
-        #expect(keywords.contains("iCloud"))
-        #expect(keywords.contains("装修"))
-        #expect(keywords.filter { $0 == "装修" }.count == 1)
-        for word in ["xuanguan", "xg", "xuanguanguidedianyuangaizao", "xggddygz", "jia", "zhuangxiu", "zx"] {
-            #expect(keywords.contains(word), "missing \(word)")
-        }
+        #expect(try await titles(prism, "xuanguan") == ["玄关"])
+        #expect(try await titles(prism, "xg") == ["玄关"])
+        #expect(try await titles(prism, "dianyuan") == ["玄关"])
+        #expect(try await titles(prism, "zhuangxiu") == ["玄关"])
+        #expect(try await titles(prism, "#装修") == ["玄关"])
+        #expect(try await titles(prism, "jia icloud") == ["玄关"])
+        #expect(try await titles(prism, "resume full") == ["Résumé draft"])
+        #expect(try await titles(prism, "work") == ["Résumé draft", "deepseek 改名为 deepseek flash"])
+        #expect(try await titles(prism, "deepseek gaiming") == ["deepseek 改名为 deepseek flash"])
+        #expect(try await titles(prism, "work 玄关").isEmpty)
+        #expect(try await prism.list("search-notes", query: "nothing").emptyMessage?.title == "No Matching Notes")
     }
 
-    @Test("Pinyin is cached per note until its text changes, and dropped with the note")
+    @Test("Search reaches every note and returns the best matches up to the limit")
+    func searchBeyondLimit() async throws {
+        let fixture = try NotesFixture()
+        let notes = try fixture.folder("Notes")
+        try fixture.note("Ancient recipe", folder: notes, modified: 0)
+        for index in 1...AppleNotes.resultLimit + 20 {
+            try fixture.note("Note \(index)", snippet: "recipe ideas", folder: notes, modified: Double(index))
+        }
+        let prism = try await host(fixture.url)
+
+        let browsing = try await titles(prism, "")
+        #expect(browsing.count == AppleNotes.resultLimit)
+        #expect(browsing.first == "Note \(AppleNotes.resultLimit + 20)")
+        #expect(!browsing.contains("Ancient recipe"))
+
+        let found = try await titles(prism, "recipe")
+        #expect(found.count == AppleNotes.resultLimit)
+        #expect(found.first == "Ancient recipe")
+        #expect(try await titles(prism, "ancient") == ["Ancient recipe"])
+    }
+
+    @Test("Pinned notes stay first, and title matches rank above other matches")
+    func searchRanking() async throws {
+        let fixture = try NotesFixture()
+        let notes = try fixture.folder("Notes")
+        try fixture.note("Groceries", snippet: "budget for the week", folder: notes, modified: 4)
+        try fixture.note("Budget 2026", folder: notes, modified: 1)
+        try fixture.note("Ideas", snippet: "budget app", folder: notes, modified: 3, pinned: true)
+        try fixture.note("Budget pinned", folder: notes, modified: 2, pinned: true)
+
+        let items = try await host(fixture.url).list("search-notes", query: "budget").items
+
+        #expect(items.map(\.title) == ["Budget pinned", "Ideas", "Budget 2026", "Groceries"])
+        #expect(items.map(\.section) == ["Pinned", "Pinned", "Notes", "Notes"])
+    }
+
+    @Test("Pinyin is cached by text across loads and runs, and drops texts no note uses")
     func pinyinCache() async throws {
         let fixture = try NotesFixture()
         let notes = try fixture.folder("Notes")
         let first = try fixture.note("玄关", folder: notes, modified: 2)
         try fixture.note("书房", folder: notes, modified: 1)
         let data = fixture.folder.appendingPathComponent("data")
-        let prism = try await host(fixture.url, dataDirectory: data)
         let cacheFile = data.appendingPathComponent("pinyin.json")
+        let prism = try await host(fixture.url, dataDirectory: data)
 
         _ = try await prism.list("search-notes")
-        let cached = try JSONSerialization.jsonObject(with: Data(contentsOf: cacheFile)) as? [String: Any]
-        #expect(cached?.count == 2)
+        let cached = try JSONDecoder().decode([String: [String]].self, from: Data(contentsOf: cacheFile))
+        #expect(cached == ["玄关": ["xuanguan", "xg"], "书房": ["shufang", "sf"]])
 
         try fixture.execute("UPDATE ZICCLOUDSYNCINGOBJECT SET ZTITLE1 = '客厅' WHERE Z_PK = \(first)")
         try fixture.execute("DELETE FROM ZICCLOUDSYNCINGOBJECT WHERE ZTITLE1 = '书房'")
-        let items = try await prism.list("search-notes").items
+        #expect(try await titles(prism, "keting") == ["客厅"])
+        let pruned = try JSONDecoder().decode([String: [String]].self, from: Data(contentsOf: cacheFile))
+        #expect(pruned == ["客厅": ["keting", "kt"]])
 
-        #expect(items[0].keywords.contains("keting"))
-        #expect(!items[0].keywords.contains("xuanguan"))
-        let pruned = try JSONSerialization.jsonObject(with: Data(contentsOf: cacheFile)) as? [String: Any]
-        #expect(pruned?.count == 1)
+        // A new process starts from the saved file.
+        try fixture.execute("UPDATE ZICCLOUDSYNCINGOBJECT SET ZTITLE1 = '玄关' WHERE Z_PK = \(first)")
+        try JSONEncoder().encode(["玄关": ["cached"]]).write(to: cacheFile)
+        let restarted = try await host(fixture.url, dataDirectory: data)
+        #expect(try await titles(restarted, "cached") == ["玄关"])
     }
 
     @Test("Pinyin keeps Latin words and skips text without Chinese")

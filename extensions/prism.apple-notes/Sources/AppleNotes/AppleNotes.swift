@@ -1,9 +1,10 @@
 import AppKit
 import PrismExtensionKit
 
-/// Searches Apple Notes from the launcher. The list is read from Notes' own
-/// database on every load, so it follows edits made in Notes; Prism filters it
-/// as the user types, matching titles, snippets, folders, tags, and pinyin.
+/// Searches Apple Notes from the launcher. Every load reads Notes' own
+/// database, so the list follows edits made in Notes, and searches all notes
+/// (`NoteSearch`) before cutting the results to `resultLimit`, as the Raycast
+/// extension does.
 @main
 struct AppleNotes: PrismExtension {
     enum CommandID {
@@ -22,7 +23,12 @@ struct AppleNotes: PrismExtension {
         string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"
     )!
 
+    /// Results per load. More would slow every keystroke for rows nobody
+    /// scrolls to; typing narrows the search instead.
+    static let resultLimit = 100
+
     let store: NoteStore
+    let pinyinCache = PinyinCache()
     /// The app that launched this extension, named in the permission prompt:
     /// macOS grants Full Disk Access to Prism, not to the extension.
     let hostName: @Sendable () -> String
@@ -48,26 +54,28 @@ struct AppleNotes: PrismExtension {
         }
         let notes: [Note]
         do {
-            notes = try store.notes(limit: ExtensionList.maximumItems)
+            notes = try store.notes()
         } catch NoteStoreError.accessDenied {
-            return ExtensionList(items: [fullDiskAccessItem()], searchPlaceholder: Self.searchPlaceholder)
+            return ExtensionList(items: [fullDiskAccessItem()], filtering: .extension, searchPlaceholder: Self.searchPlaceholder)
         } catch NoteStoreError.missing {
             notes = []
         } catch let NoteStoreError.unreadable(reason) {
             throw PrismExtensionError("Couldn’t read Apple Notes: \(reason)")
         }
-        let ordered = notes.filter(\.isPinned) + notes.filter { !$0.isPinned }
-        let pinyin = PinyinCache(directory: context.dataDirectory).keywords(
-            for: Dictionary(notes.map { ($0.id, Self.pinyinSources(of: $0)) }) { first, _ in first }
+        let search = NoteSearch(query: query)
+        let pinyin = pinyinCache.keywords(
+            for: Set(notes.flatMap(NoteSearch.pinyinSources)), directory: context.dataDirectory
         )
+        let results = search.results(in: notes, pinyin: pinyin, limit: Self.resultLimit)
         return ExtensionList(
-            items: ordered.map { Self.item(for: $0, pinyin: pinyin[$0.id] ?? []) },
+            items: results.map(Self.item(for:)),
+            filtering: .extension,
             searchPlaceholder: Self.searchPlaceholder,
-            emptyMessage: ExtensionListMessage(
-                title: "No Notes",
-                message: "Notes you write in Apple Notes appear here.",
-                symbol: "note.text"
-            ),
+            emptyMessage: search.words.isEmpty
+                ? ExtensionListMessage(
+                    title: "No Notes", message: "Notes you write in Apple Notes appear here.", symbol: "note.text"
+                )
+                : ExtensionListMessage(title: "No Matching Notes", symbol: "magnifyingglass"),
             fetchedAt: Date()
         )
     }
@@ -93,7 +101,7 @@ struct AppleNotes: PrismExtension {
     static let searchPlaceholder = "Search notes by title, folder, content, or tags…"
     static let noteIcon = ExtensionIcon(symbol: "note.text", tint: "gold")
 
-    static func item(for note: Note, pinyin: [String]) -> ExtensionListItem {
+    static func item(for note: Note) -> ExtensionListItem {
         let link = noteURL(note.id)?.absoluteString
         var actions = [ExtensionAction(id: ActionID.open, title: "Open in Notes", symbol: "note.text")]
         if let link {
@@ -112,7 +120,6 @@ struct AppleNotes: PrismExtension {
             subtitle: subtitle(note.snippet),
             icon: noteIcon,
             accessories: accessories(for: note),
-            keywords: keywords(for: note, pinyin: pinyin),
             section: note.isPinned ? "Pinned" : "Notes",
             actions: actions
         )
@@ -142,20 +149,6 @@ struct AppleNotes: PrismExtension {
             accessories.append(ExtensionListAccessory(text: note.folder, help: "Folder"))
         }
         return accessories
-    }
-
-    /// Prism already matches the title, subtitle, and section; these add the
-    /// folder, account, tags, and the pinyin of `pinyinSources`.
-    static func keywords(for note: Note, pinyin: [String]) -> [String] {
-        var words = [note.folder] + note.tags + pinyin
-        if let account = note.account { words.append(account) }
-        var seen = Set<String>()
-        return words.filter { !$0.isEmpty && seen.insert($0).inserted }
-    }
-
-    /// The texts whose Chinese also matches as pinyin.
-    static func pinyinSources(of note: Note) -> [String] {
-        [note.title, note.snippet ?? "", note.folder] + note.tags
     }
 
     /// The link Notes opens a note from (macOS 14 and later).
