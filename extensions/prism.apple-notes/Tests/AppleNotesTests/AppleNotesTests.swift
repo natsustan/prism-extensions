@@ -152,6 +152,7 @@ struct AppleNotesTests {
         let items = try await host(fixture.url).list("search-notes").items
 
         #expect(items[0].id == id)
+        #expect(items[0].icon?.app == "com.apple.Notes")
         #expect(items[0].subtitle == "first line second line")
         #expect(items[0].accessories.map(\.symbol) == ["lock.fill", "circle", nil])
         #expect(items[0].accessories.last?.text == "Work")

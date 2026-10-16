@@ -87,7 +87,8 @@ struct AppleNotes: PrismExtension {
     // MARK: - Items
 
     static let searchPlaceholder = "Search notes by title, folder, content, or tags…"
-    static let noteIcon = ExtensionIcon(symbol: "note.text", tint: "gold")
+    /// Notes' own icon; the gold tile where Notes is missing.
+    static let noteIcon = ExtensionIcon(symbol: "note.text", tint: "gold", app: "com.apple.Notes")
 
     static func item(for note: Note) -> ExtensionListItem {
         let link = noteURL(note.id)?.absoluteString
