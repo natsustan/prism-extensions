@@ -17,9 +17,9 @@ The list is read from Notes' own database
 read-only, on every search, so it follows edits made in Notes. Pinyin is
 computed once per text and kept in the extension's data directory.
 
-macOS keeps that database behind Full Disk Access. The extension runs as part
-of Prism, so turn on Full Disk Access for Prism (Prism Dev for development
-builds) in System Settings → Privacy & Security; the list offers to open that
-page when access is missing.
+macOS protects that folder. The first time, the list shows **Allow Access to
+Your Notes**; press Return and Prism opens a panel at the Notes folder — click
+**Allow**. That lets Prism, and the extensions it runs, read the folder from
+then on; Full Disk Access is not needed. Prism Dev and Prism each ask once.
 
 Capabilities: `readHomeFiles` (reads the Notes database).

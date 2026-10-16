@@ -113,7 +113,7 @@ struct AppleNotesTests {
         _ url: URL, opened: OpenedURLs = OpenedURLs(), dataDirectory: URL? = nil
     ) async throws -> PrismTestHost {
         try await PrismTestHost(
-            AppleNotes(store: NoteStore(url: url), hostName: { "Prism Dev" }, openURL: { opened.open($0) }),
+            AppleNotes(store: NoteStore(url: url), openURL: { opened.open($0) }),
             extensionID: "prism.apple-notes",
             dataDirectory: dataDirectory
         )
@@ -278,21 +278,24 @@ struct AppleNotesTests {
         #expect(opened.all.count == 1)
     }
 
-    @Test("Without Full Disk Access the list offers to open Privacy settings")
+    @Test("Without access the list asks Prism for the declared Notes folder")
     func accessDenied() async throws {
         let fixture = try NotesFixture()
         try fixture.note("Plan", folder: fixture.folder("Notes"), modified: 1)
         try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: fixture.url.path)
         defer { try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fixture.url.path) }
-        let opened = OpenedURLs()
-        let prism = try await host(fixture.url, opened: opened)
 
-        let list = try await prism.list("search-notes")
+        let list = try await host(fixture.url).list("search-notes", query: "plan")
 
-        #expect(list.items.map(\.id) == ["full-disk-access"])
-        #expect(list.items[0].title == "Allow Prism Dev to Read Your Notes")
-        #expect(try await prism.perform("open-privacy-settings", on: "full-disk-access", in: "search-notes") == .done)
-        #expect(opened.all == [AppleNotes.fullDiskAccessSettings])
+        #expect(list.items.map(\.id) == ["allow-access"])
+        #expect(list.items[0].primaryAction?.kind == .grantFolder(id: "notes"))
+        let manifest = try JSONDecoder().decode(
+            ExtensionManifest.self,
+            from: Data(contentsOf: URL(fileURLWithPath: #filePath)
+                .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+                .appendingPathComponent("manifest.json"))
+        )
+        #expect(manifest.folder(id: "notes")?.url().path == NoteStore.defaultURL.deletingLastPathComponent().path)
     }
 
     @Test("A Mac without a Notes library shows the empty state")

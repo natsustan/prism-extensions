@@ -15,13 +15,12 @@ struct AppleNotes: PrismExtension {
         static let open = "open"
         static let copyLink = "copy-link"
         static let copyTitle = "copy-title"
-        static let openPrivacySettings = "open-privacy-settings"
+        static let allowAccess = "allow-access"
     }
 
-    static let fullDiskAccessItemID = "full-disk-access"
-    static let fullDiskAccessSettings = URL(
-        string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"
-    )!
+    /// The manifest's folder for the Notes library.
+    static let notesFolderID = "notes"
+    static let allowAccessItemID = "allow-access"
 
     /// Results per load. More would slow every keystroke for rows nobody
     /// scrolls to; typing narrows the search instead.
@@ -29,22 +28,14 @@ struct AppleNotes: PrismExtension {
 
     let store: NoteStore
     let pinyinCache = PinyinCache()
-    /// The app that launched this extension, named in the permission prompt:
-    /// macOS grants Full Disk Access to Prism, not to the extension.
-    let hostName: @Sendable () -> String
     let openURL: @Sendable (URL) async throws -> Void
 
     init() {
-        self.init(store: NoteStore(), hostName: Self.parentAppName, openURL: Self.openWithWorkspace)
+        self.init(store: NoteStore(), openURL: Self.openWithWorkspace)
     }
 
-    init(
-        store: NoteStore,
-        hostName: @escaping @Sendable () -> String = { "Prism" },
-        openURL: @escaping @Sendable (URL) async throws -> Void
-    ) {
+    init(store: NoteStore, openURL: @escaping @Sendable (URL) async throws -> Void) {
         self.store = store
-        self.hostName = hostName
         self.openURL = openURL
     }
 
@@ -56,7 +47,7 @@ struct AppleNotes: PrismExtension {
         do {
             notes = try store.notes()
         } catch NoteStoreError.accessDenied {
-            return ExtensionList(items: [fullDiskAccessItem()], filtering: .extension, searchPlaceholder: Self.searchPlaceholder)
+            return ExtensionList(items: [Self.allowAccessItem], filtering: .extension, searchPlaceholder: Self.searchPlaceholder)
         } catch NoteStoreError.missing {
             notes = []
         } catch let NoteStoreError.unreadable(reason) {
@@ -87,9 +78,6 @@ struct AppleNotes: PrismExtension {
                 throw PrismExtensionError("This note can’t be opened.")
             }
             try await openURL(url)
-            return .done
-        case ActionID.openPrivacySettings:
-            try await openURL(Self.fullDiskAccessSettings)
             return .done
         default:
             throw PrismExtensionError("Apple Notes has no action “\(action)”.")
@@ -161,24 +149,21 @@ struct AppleNotes: PrismExtension {
         return components.url
     }
 
-    // MARK: - Full Disk Access
+    // MARK: - Access
 
-    func fullDiskAccessItem() -> ExtensionListItem {
-        let host = hostName()
-        return ExtensionListItem(
-            id: Self.fullDiskAccessItemID,
-            title: "Allow \(host) to Read Your Notes",
-            subtitle: "Turn on Full Disk Access for \(host) in System Settings",
-            icon: ExtensionIcon(symbol: "lock.shield", tint: "gray"),
-            actions: [ExtensionAction(
-                id: ActionID.openPrivacySettings, title: "Open Privacy Settings", symbol: "gear"
-            )]
-        )
-    }
-
-    private static func parentAppName() -> String {
-        NSRunningApplication(processIdentifier: getppid())?.localizedName ?? "Prism"
-    }
+    /// macOS protects the Notes library. Prism asks the user to choose the
+    /// folder declared in the manifest, which lets Prism, and this extension,
+    /// read it from then on; the list reloads afterwards.
+    static let allowAccessItem = ExtensionListItem(
+        id: allowAccessItemID,
+        title: "Allow Access to Your Notes",
+        subtitle: "Choose the Notes folder once, and Prism can search your notes",
+        icon: ExtensionIcon(symbol: "lock.open", tint: "gray"),
+        actions: [ExtensionAction(
+            id: ActionID.allowAccess, title: "Allow Access…", symbol: "folder.badge.plus",
+            kind: .grantFolder(id: notesFolderID)
+        )]
+    )
 
     private static func openWithWorkspace(_ url: URL) async throws {
         _ = try await NSWorkspace.shared.open(url, configuration: NSWorkspace.OpenConfiguration())

@@ -19,7 +19,7 @@ struct Note: Hashable, Sendable {
 }
 
 enum NoteStoreError: Error, Equatable {
-    /// macOS keeps the Notes library behind Full Disk Access.
+    /// macOS protects the Notes library until the user allows it.
     case accessDenied
     /// Notes has never run on this Mac, or its library moved.
     case missing

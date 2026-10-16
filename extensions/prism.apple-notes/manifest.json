@@ -10,5 +10,8 @@
   "commands": [
     { "id": "search-notes", "title": "Search Notes", "subtitle": "Apple Notes", "mode": "list", "keywords": ["notes", "apple notes", "find note", "memo", "备忘录", "笔记"] }
   ],
+  "folders": [
+    { "id": "notes", "path": "~/Library/Group Containers/group.com.apple.notes", "reason": "Apple Notes searches your notes in this folder and never changes them." }
+  ],
   "capabilities": ["readHomeFiles"]
 }
