@@ -17,8 +17,10 @@ Search your Apple Notes from the launcher.
 
 The list is read from Notes' own database
 (`~/Library/Group Containers/group.com.apple.notes/NoteStore.sqlite`),
-read-only, on every search, so it follows edits made in Notes. Pinyin is
-computed once per text and kept in the extension's data directory.
+read-only. Each search checks whether Notes changed it and rereads it only
+then, so the list follows edits made in Notes while typing compares only the
+query against notes prepared once. Pinyin is computed once per text and kept
+in the extension's data directory.
 
 macOS protects that folder. The first time, the list shows **Allow Access to
 Your Notes**; press Return and Prism opens a panel at the Notes folder — click

@@ -6,10 +6,11 @@ import Foundation
 /// notes whose title matches come before notes that match elsewhere, newest
 /// first.
 struct NoteSearch {
+    /// Folded like `SearchableNote`'s text.
     let words: [String]
 
     init(query: String) {
-        words = query.split(whereSeparator: \.isWhitespace).map(String.init)
+        words = query.split(whereSeparator: \.isWhitespace).map { Self.fold(String($0)) }
     }
 
     /// The texts whose Chinese also matches as pinyin.
@@ -17,10 +18,16 @@ struct NoteSearch {
         [note.title, note.snippet ?? "", note.folder] + note.tags
     }
 
+    /// Text compared without case, accents, or width, so matching is a plain
+    /// substring search.
+    static func fold(_ text: String) -> String {
+        text.folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: nil)
+    }
+
     /// Up to `limit` matching notes, best first. `notes` must be newest first.
-    func results(in notes: [Note], pinyin: [String: [String]], limit: Int) -> [Note] {
+    func results(in notes: [SearchableNote], limit: Int) -> [Note] {
         notes.enumerated()
-            .compactMap { offset, note in rank(of: note, pinyin: pinyin).map { (note, $0, offset) } }
+            .compactMap { offset, entry in rank(of: entry).map { (entry.note, $0, offset) } }
             .sorted { ($0.0.isPinned ? 0 : 1, $0.1, $0.2) < ($1.0.isPinned ? 0 : 1, $1.1, $1.2) }
             .prefix(limit)
             .map(\.0)
@@ -28,21 +35,31 @@ struct NoteSearch {
 
     /// 0 when the title matches, 1 when only other fields do, `nil` when the
     /// note does not match.
-    func rank(of note: Note, pinyin: [String: [String]]) -> Int? {
+    func rank(of entry: SearchableNote) -> Int? {
         guard !words.isEmpty else { return 0 }
-        let title = [note.title] + (pinyin[note.title] ?? [])
-        if matches(title) { return 0 }
-        var fields = title + [note.snippet ?? "", note.folder, note.account ?? ""] + note.tags.map { "#\($0)" }
-        for source in Self.pinyinSources(of: note).dropFirst() {
+        if words.allSatisfy(entry.title.contains) { return 0 }
+        return words.allSatisfy(entry.text.contains) ? 1 : nil
+    }
+}
+
+/// A note with its searchable text folded once, so a keystroke only compares
+/// substrings. Fields are joined by newlines, which a typed word never holds,
+/// so a word cannot match across two fields.
+struct SearchableNote: Sendable {
+    let note: Note
+    /// The title and its pinyin.
+    let title: String
+    /// Every searchable field, the title first.
+    let text: String
+
+    init(_ note: Note, pinyin: [String: [String]]) {
+        self.note = note
+        let titleFields = [note.title] + (pinyin[note.title] ?? [])
+        var fields = titleFields + [note.snippet ?? "", note.folder, note.account ?? ""] + note.tags.map { "#\($0)" }
+        for source in NoteSearch.pinyinSources(of: note).dropFirst() {
             fields += pinyin[source] ?? []
         }
-        return matches(fields) ? 1 : nil
-    }
-
-    private func matches(_ fields: [String]) -> Bool {
-        let haystack = fields.joined(separator: "\n")
-        return words.allSatisfy {
-            haystack.range(of: $0, options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive]) != nil
-        }
+        title = NoteSearch.fold(titleFields.joined(separator: "\n"))
+        text = NoteSearch.fold(fields.joined(separator: "\n"))
     }
 }

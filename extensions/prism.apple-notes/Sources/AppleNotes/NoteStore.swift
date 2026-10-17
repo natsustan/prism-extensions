@@ -71,6 +71,23 @@ struct NoteStore: Sendable {
         return notes
     }
 
+    /// Changes whenever Notes writes: the sizes and modification times of the
+    /// database and its write-ahead log. `nil` when the database can't be
+    /// examined, so nothing is reused.
+    func signature() -> String? {
+        var parts = [String]()
+        for path in [url.path, url.path + "-wal"] {
+            var info = stat()
+            guard stat(path, &info) == 0 else {
+                if path == url.path { return nil }
+                parts.append("none")
+                continue
+            }
+            parts.append("\(info.st_size)@\(info.st_mtimespec.tv_sec).\(info.st_mtimespec.tv_nsec)")
+        }
+        return parts.joined(separator: " ")
+    }
+
     /// SQLite reports a missing permission as a generic open failure, so the
     /// file is opened directly first to tell the cases apart.
     private func checkAccess() throws {

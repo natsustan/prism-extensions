@@ -255,6 +255,29 @@ struct AppleNotesTests {
         #expect(try await titles(restarted, "cached") == ["玄关"])
     }
 
+    @Test("The library reuses its notes while the database is unchanged and rereads it after a change")
+    func libraryReuse() throws {
+        let fixture = try NotesFixture()
+        let notes = try fixture.folder("Notes")
+        try fixture.note("First", folder: notes, modified: 1)
+        let library = NoteLibrary()
+        let store = NoteStore(url: fixture.url)
+        let pinyin = PinyinCache()
+        func titles() throws -> [String] {
+            try library.notes(from: store, pinyin: pinyin, directory: nil).map(\.note.title)
+        }
+        #expect(try titles() == ["First"])
+
+        // Unchanged, the database is not opened again, even when it can't be.
+        let path = fixture.url.path
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: path)
+        #expect(try titles() == ["First"])
+        try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: path)
+
+        try fixture.note("Second", folder: notes, modified: 2)
+        #expect(try titles() == ["Second", "First"])
+    }
+
     @Test("Pinyin keeps Latin words and skips text without Chinese")
     func pinyin() {
         #expect(PinyinKeywords.keywords(for: "deepseek 改名为 flash") == ["deepseekgaimingweiflash", "dgmwf"])

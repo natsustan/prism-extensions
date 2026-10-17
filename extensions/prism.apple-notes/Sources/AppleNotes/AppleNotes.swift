@@ -1,10 +1,10 @@
 import AppKit
 import PrismExtensionKit
 
-/// Searches Apple Notes from the launcher. Every load reads Notes' own
-/// database, so the list follows edits made in Notes, and searches all notes
-/// (`NoteSearch`) before cutting the results to `resultLimit`, as the Raycast
-/// extension does.
+/// Searches Apple Notes from the launcher. Every load checks Notes' own
+/// database and rereads it when it changed (`NoteLibrary`), so the list
+/// follows edits made in Notes, and searches all notes (`NoteSearch`) before
+/// cutting the results to `resultLimit`, as the Raycast extension does.
 @main
 struct AppleNotes: PrismExtension {
     enum CommandID {
@@ -28,6 +28,7 @@ struct AppleNotes: PrismExtension {
 
     let store: NoteStore
     let pinyinCache = PinyinCache()
+    let library = NoteLibrary()
     let openURL: @Sendable (URL) async throws -> Void
 
     init() {
@@ -43,9 +44,9 @@ struct AppleNotes: PrismExtension {
         guard command == CommandID.search else {
             throw PrismExtensionError("Apple Notes has no list “\(command)”.")
         }
-        let notes: [Note]
+        let notes: [SearchableNote]
         do {
-            notes = try store.notes()
+            notes = try library.notes(from: store, pinyin: pinyinCache, directory: context.dataDirectory)
         } catch NoteStoreError.accessDenied {
             return ExtensionList(items: [Self.allowAccessItem], filtering: .extension, searchPlaceholder: Self.searchPlaceholder)
         } catch NoteStoreError.missing {
@@ -54,10 +55,7 @@ struct AppleNotes: PrismExtension {
             throw PrismExtensionError("Couldn’t read Apple Notes: \(reason)")
         }
         let search = NoteSearch(query: query)
-        let pinyin = pinyinCache.keywords(
-            for: Set(notes.flatMap(NoteSearch.pinyinSources)), directory: context.dataDirectory
-        )
-        let results = search.results(in: notes, pinyin: pinyin, limit: Self.resultLimit)
+        let results = search.results(in: notes, limit: Self.resultLimit)
         return ExtensionList(
             items: results.map(Self.item(for:)),
             filtering: .extension,
