@@ -8,7 +8,7 @@
   "icon": { "symbol": "note.text", "tint": "gold", "app": "com.apple.Notes" },
   "executable": ".build/release/AppleNotes",
   "commands": [
-    { "id": "search-notes", "title": "Search Notes", "subtitle": "Apple Notes", "mode": "list", "keywords": ["notes", "apple notes", "find note", "memo", "备忘录", "笔记"] }
+    { "id": "search-notes", "title": "Search Notes", "subtitle": "Apple Notes", "mode": "list", "keywords": ["notes", "apple notes", "find note", "memo", "备忘录", "笔记"], "searchesApp": "com.apple.Notes" }
   ],
   "folders": [
     { "id": "notes", "path": "~/Library/Group Containers/group.com.apple.notes", "reason": "Apple Notes searches your notes in this folder and never changes them." }

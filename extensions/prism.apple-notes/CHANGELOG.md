@@ -4,3 +4,4 @@
 
 - Search Notes: search every note by title, content, folder, tags, or
   pinyin, title matches first, and open them in Notes.
+- Tab on Notes' own row in root search opens Search Notes.

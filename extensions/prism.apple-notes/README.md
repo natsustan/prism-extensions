@@ -11,6 +11,9 @@ Search your Apple Notes from the launcher.
 - Return opens the note in Notes. The action panel (⌘K) copies the note's
   link (⌘⇧C) or title (⌘⇧T).
 - Rows show the folder, and whether the note is locked or has a checklist.
+- Notes' own row in root search offers the search too: select Notes and
+  press Tab to search inside it, as in Spotlight; Backspace in the empty
+  search returns to Notes.
 
 The list is read from Notes' own database
 (`~/Library/Group Containers/group.com.apple.notes/NoteStore.sqlite`),
