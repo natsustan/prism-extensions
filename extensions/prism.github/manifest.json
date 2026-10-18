@@ -1,0 +1,21 @@
+{
+  "protocol": 1,
+  "id": "prism.github",
+  "name": "GitHub",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Your GitHub notifications, pull requests, issues, and repositories, on GitHub.com or GitHub Enterprise.",
+  "icon": { "symbol": "chevron.left.forwardslash.chevron.right", "tint": "gray", "image": "icons/github.svg" },
+  "executable": ".build/release/GitHub",
+  "commands": [
+    { "id": "notifications", "title": "GitHub Notifications", "subtitle": "GitHub", "mode": "list", "keywords": ["github", "notifications", "inbox", "unread"], "searchesApp": "com.github.GitHubClient" },
+    { "id": "pull-requests", "title": "My Pull Requests", "subtitle": "GitHub", "mode": "list", "keywords": ["github", "pull requests", "pr", "prs", "review"], "searchesApp": "com.github.GitHubClient" },
+    { "id": "issues", "title": "My Issues", "subtitle": "GitHub", "mode": "list", "keywords": ["github", "issues", "bugs"], "searchesApp": "com.github.GitHubClient" },
+    { "id": "repositories", "title": "GitHub Repositories", "subtitle": "GitHub", "mode": "list", "keywords": ["github", "repositories", "repos", "starred"], "searchesApp": "com.github.GitHubClient" }
+  ],
+  "preferences": [
+    { "id": "token", "type": "secret", "title": "Personal Access Token", "section": "Account", "caption": "A classic token with the repo, read:org, read:user, and notifications scopes. Sent only to your GitHub server." },
+    { "id": "server", "type": "text", "title": "Server", "section": "Account", "caption": "Leave as https://github.com, or enter your GitHub Enterprise Server address.", "default": "https://github.com" }
+  ],
+  "capabilities": ["network"]
+}
