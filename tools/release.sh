@@ -52,13 +52,21 @@ release_notes() {
 }
 
 published=0
+moved=0
 for folder in extensions/*/; do
     folder="${folder%/}"
     [[ -f "$folder/manifest.json" ]] || continue
     id="$(manifest_field "$folder" id)"
     version="$(manifest_field "$folder" version)"
     tag="$id@$version"
+    source_url="https://github.com/$repository/tree/main/$folder"
     if gh release view "$tag" --repo "$repository" >/dev/null 2>&1; then
+        # A released version keeps its entry, but its source link follows the
+        # folder when that moves.
+        if [[ -f "$site/index.json" ]] && [[ "$("$tool" index source --index "$site/index.json" \
+            --id "$id" --url "$source_url")" == Moved* ]]; then
+            moved=$((moved + 1))
+        fi
         continue
     fi
     echo "==> $tag"
@@ -87,15 +95,15 @@ for folder in extensions/*/; do
             --title "$(manifest_field "$folder" name) $version" --notes-file "$notes"
     fi
     "$tool" index add --index "$site/index.json" --package "$package" --url "$asset_url" \
-        --source "https://github.com/$repository/tree/main/$folder" --notes "$notes"
+        --source "$source_url" --notes "$notes"
     published=$((published + 1))
 done
 
-if [[ $published -eq 0 ]]; then
+if [[ $published -eq 0 && $moved -eq 0 ]]; then
     echo "Nothing new to publish."
     exit 0
 fi
 if [[ -n "${PRISM_GALLERY_SIGNING_KEY:-}" ]]; then
     "$tool" index sign --index "$site/index.json" --key-id "$PRISM_GALLERY_KEY_ID"
 fi
-echo "Published $published extension version(s)."
+echo "Published $published extension version(s); moved $moved source link(s)."

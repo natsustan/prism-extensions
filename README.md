@@ -86,6 +86,8 @@ release yet (`.github/workflows/release.yml`, `tools/release.sh`):
 4. `prism-extension index add` updates `index.json` on the `gh-pages` branch
    and `index sign` signs it. Prism installs nothing the signature does not
    cover, and checks each package's size and SHA-256 against the index.
+   Already released extensions keep their entries; `index source` only moves
+   their source links when a folder is renamed, and the index is re-signed.
 
 The `gallery` environment holds `GALLERY_SIGNING_KEY` (and optionally
 `DEVELOPER_ID_P12` / `DEVELOPER_ID_P12_PASSWORD`); the `GALLERY_KEY_ID`

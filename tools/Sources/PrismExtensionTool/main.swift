@@ -15,6 +15,8 @@ Usage:
   prism-extension index add --index <index.json> --package <file> --url <download URL>
                                       [--source <URL>] [--notes <file>]
                                       put a package's entry into the index (created if missing)
+  prism-extension index source --index <index.json> --id <id> --url <source URL>
+                                      point an entry's source link at a moved folder
   prism-extension index sign --index <index.json> --key-id <id>
                                       write <index.json>.sig with the key in PRISM_GALLERY_SIGNING_KEY
   prism-extension keygen              print a new signing key pair
