@@ -63,9 +63,13 @@ for folder in extensions/*/; do
     if gh release view "$tag" --repo "$repository" >/dev/null 2>&1; then
         # A released version keeps its entry, but its source link follows the
         # folder when that moves.
-        if [[ -f "$site/index.json" ]] && [[ "$("$tool" index source --index "$site/index.json" \
-            --id "$id" --url "$source_url")" == Moved* ]]; then
-            moved=$((moved + 1))
+        if [[ -f "$site/index.json" ]]; then
+            # A plain assignment, so a failing tool still stops the release.
+            result="$("$tool" index source --index "$site/index.json" --id "$id" --url "$source_url")"
+            if [[ "$result" == Moved* ]]; then
+                echo "$result"
+                moved=$((moved + 1))
+            fi
         fi
         continue
     fi
