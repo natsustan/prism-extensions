@@ -77,11 +77,23 @@ enum GalleryIndexTool {
     static let maximumIconSize = 512 * 1024
 
     /// The icon image the manifest names, carried in the index so Prism can
-    /// draw the extension's mark before it is installed.
+    /// draw the extension's mark before it is installed. The package is
+    /// unpacked so the path is read literally, never as an unzip pattern.
     static func packagedIcon(_ path: String, in package: URL) throws -> Data {
-        guard let data = try packagedFile(path, in: package) else {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("prism-icon-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let ditto = Process()
+        ditto.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
+        ditto.arguments = ["-x", "-k", package.path, folder.path]
+        try ditto.run()
+        ditto.waitUntilExit()
+        guard ditto.terminationStatus == 0 else { throw ToolFailure("\(package.lastPathComponent) could not be unpacked.") }
+        let file = folder.appendingPathComponent(path)
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: file.path),
+              attributes[.type] as? FileAttributeType == .typeRegular else {
             throw ToolFailure("\(package.lastPathComponent) has no \(path), which its icon names.")
         }
+        let data = try Data(contentsOf: file)
         guard data.count <= maximumIconSize else {
             throw ToolFailure("\(path) is larger than 512 KB, so Prism would not draw it.")
         }
