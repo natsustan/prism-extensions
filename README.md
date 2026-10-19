@@ -22,6 +22,8 @@ extensions/<id>/     one folder per Gallery extension
 templates/swift/     start here for a Swift extension
 examples/            focus-flag and folders (sh), todo-swift (a list in Swift)
 tools/               prism-extension lint / smoke, and check.sh
+AGENTS.md            conventions for coding agents (and a quick read for people)
+.agents/skills/      agent playbooks: new extension, recipes, release, Kit changes
 ```
 
 Folders without a dot, such as `extensions/caffeinate`, are Prism's own
