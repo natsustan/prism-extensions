@@ -144,13 +144,15 @@ struct GitHub: PrismExtension {
                 items.append(GitHubRows.item(for: issue, section: titled ? section.title : nil, now: date))
             }
         }
-        let noun = kind == .pullRequest ? "Pull Requests" : "Issues"
-        let sentenceNoun = kind == .pullRequest ? "Pull requests" : "Issues"
         return shape.list(
             items: items,
             emptyMessage: text.isEmpty
-                ? ExtensionListMessage(title: "No \(noun)", message: chosen == nil ? "\(sentenceNoun) you created, were assigned, or were mentioned in appear here." : nil, symbol: kind == .pullRequest ? "arrow.triangle.pull" : "smallcircle.filled.circle")
-                : ExtensionListMessage(title: "No Matching \(noun)", symbol: "magnifyingglass"),
+                ? ExtensionListMessage(
+                    title: "No \(kind.plural)",
+                    message: chosen == nil ? "\(kind.sentencePlural) you created, were assigned, or were mentioned in appear here." : nil,
+                    symbol: kind.symbol
+                )
+                : ExtensionListMessage(title: "No Matching \(kind.plural)", symbol: "magnifyingglass"),
             fetchedAt: entries.map(\.fetchedAt).min(),
             error: entries.lazy.compactMap(\.error).first
         )
@@ -240,7 +242,7 @@ struct GitHub: PrismExtension {
             let kind: GitHubIssueKind = command == CommandID.pullRequests ? .pullRequest : .issue
             return ListShape(
                 filtering: .extension,
-                searchPlaceholder: kind == .pullRequest ? "Search your pull requests…" : "Search your issues…",
+                searchPlaceholder: "Search your \(kind.sentencePlural.lowercased())…",
                 filters: kind.sections.map { ExtensionListFilter(id: $0.id, title: $0.title, symbol: $0.symbol) },
                 now: now
             )

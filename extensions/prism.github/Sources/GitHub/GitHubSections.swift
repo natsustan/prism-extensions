@@ -51,6 +51,29 @@ enum GitHubIssueKind: Sendable {
         }
     }
 
+    /// `Pull Requests` in titles, `Pull requests` in sentences.
+    var plural: String {
+        switch self {
+        case .pullRequest: "Pull Requests"
+        case .issue: "Issues"
+        }
+    }
+
+    var sentencePlural: String {
+        switch self {
+        case .pullRequest: "Pull requests"
+        case .issue: "Issues"
+        }
+    }
+
+    /// The empty list's symbol; messages take SF Symbols only.
+    var symbol: String {
+        switch self {
+        case .pullRequest: "arrow.triangle.pull"
+        case .issue: "smallcircle.filled.circle"
+        }
+    }
+
     /// The sections shown together when no filter is chosen, in order. An
     /// item in several shows only in the first.
     var sections: [GitHubSection] {

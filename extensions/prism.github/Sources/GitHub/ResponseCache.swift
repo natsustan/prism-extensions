@@ -41,10 +41,6 @@ actor ResponseCache {
             return Entry(value: value, fetchedAt: fetchedAt, error: error)
         }
     }
-
-    func removeAll() {
-        entries = [:]
-    }
 }
 
 extension GitHubError {
