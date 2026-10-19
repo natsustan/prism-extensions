@@ -293,6 +293,7 @@
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.caffeinate"
     },
     {
+      "iconImage" : "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMTIgMGM2LjYzIDAgMTIgNS4yNzYgMTIgMTEuNzktLjAwMSA1LjA2Ny0zLjI5IDkuNTY3LTguMTc1IDExLjE4Ny0uNi4xMTgtLjgyNS0uMjUtLjgyNS0uNTYgMC0uMzk4LjAxNS0xLjY2NS4wMTUtMy4yNDIgMC0xLjEwNS0uMzc1LTEuODEzLS44MS0yLjE4MSAyLjY3LS4yOTUgNS40NzUtMS4yOTcgNS40NzUtNS44MjIgMC0xLjI5Ny0uNDY1LTIuMzQ0LTEuMjMtMy4xNjkuMTItLjI5NS41NC0xLjUwMy0uMTItMy4xMjUgMCAwLTEuMDA1LS4zMjQtMy4zIDEuMjA5YTExLjMyIDExLjMyIDAgMDAtMy0uMzk4Yy0xLjAyIDAtMi4wNC4xMzMtMyAuMzk4LTIuMjk1LTEuNTE4LTMuMy0xLjIwOS0zLjMtMS4yMDktLjY2IDEuNjIyLS4yNCAyLjgzLS4xMiAzLjEyNS0uNzY1LjgyNS0xLjIzIDEuODg3LTEuMjMgMy4xNjkgMCA0LjUxIDIuNzkgNS41MjcgNS40NiA1LjgyMi0uMzQ1LjI5NC0uNjYuODEtLjc2NSAxLjU3Ny0uNjkuMzEtMi40MTUuODEtMy40OTUtLjk3My0uMjI1LS4zNTQtLjktMS4yMjMtMS44NDUtMS4yMDktMS4wMDUuMDE1LS40MDUuNTYuMDE1Ljc4MS41MS4yOCAxLjA5NSAxLjMyNyAxLjIzIDEuNjY2LjI0LjY2MyAxLjAyIDEuOTMgNC4wMzUgMS4zODUgMCAuOTg4LjAxNSAxLjkxNi4wMTUgMi4xOTYgMCAuMzEtLjIyNS42NjQtLjgyNS41NkMzLjMwMyAyMS4zNzQtLjAwMyAxNi44NjcgMCAxMS43OTEgMCA1LjI3NiA1LjM3IDAgMTIgMHoiLz48L3N2Zz4K",
       "manifest" : {
         "author" : "Prism",
         "capabilities" : [
@@ -403,23 +404,23 @@
         "tasks" : [
 
         ],
-        "version" : "1.0.0",
+        "version" : "1.0.1",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "8885db8ae0539cd1630d4f9c07adf5c49fea420bbe78cf8911a6147d5fef6f66",
-        "size" : 592481,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.github%401.0.0/prism.github-1.0.0.prismextension"
+        "sha256" : "408ae7abb78445919d17bb92b8ef6186bec2ef5a47f8ca07d3c3a48f9bfda682",
+        "size" : 594466,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.github%401.0.1/prism.github-1.0.1.prismextension"
       },
-      "publishedAt" : 1792385392,
-      "releaseNotes" : "- GitHub Notifications: unread or all notifications, with the reason for each.\n- My Pull Requests and My Issues: grouped as on GitHub (created, review\n  requests, assigned, mentioned, reviewed, recently closed), with search.\n- GitHub Repositories: your repositories, starred ones, or a search of all of\n  GitHub.\n- GitHub.com or GitHub Enterprise Server, signed in through the GitHub CLI\n  (`gh auth login`) or with a classic personal access token.",
+      "publishedAt" : 1792390045,
+      "releaseNotes" : "- The Gallery shows the GitHub mark before the extension is installed.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.github"
     }
   ],
   "format" : 1,
-  "generatedAt" : 1792385393,
+  "generatedAt" : 1792390045,
   "revoked" : [
 
   ]
