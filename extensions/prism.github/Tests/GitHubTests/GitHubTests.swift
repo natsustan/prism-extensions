@@ -397,7 +397,7 @@ final class FakeCLI: @unchecked Sendable {
 
 @Suite("GitHub CLI login")
 struct GitHubCLITests {
-    @Test("without a token in preferences the gh login is used, asked once while the extension runs")
+    @Test("without a token in preferences the gh login is used, asked once for loads close together")
     func usesCLIToken() async throws {
         let github = FakeGitHub()
         await github.route("/notifications", json: notificationsJSON)
@@ -449,6 +449,21 @@ struct GitHubCLITests {
         _ = try await prism.list("notifications")
         #expect(gh.asked == 2)
         #expect(await github.requests.last?.value(forHTTPHeaderField: "Authorization") == "Bearer gho_new")
+    }
+
+    @Test("after gh auth switch the next load past the token's lifetime uses the new account")
+    func switchedAccount() async throws {
+        let github = FakeGitHub()
+        await github.route("/notifications", json: notificationsJSON)
+        let clock = Clock(referenceDate)
+        let gh = FakeCLI("gho_first", "gho_second")
+        let prism = try await makeHost(github, clock: clock, token: "", cli: gh.cli)
+
+        _ = try await prism.list("notifications")
+        clock.advance(GitHubCLILogin.tokenLifetime + 1)
+        _ = try await prism.list("notifications")
+        #expect(gh.asked == 2)
+        #expect(await github.requests.last?.value(forHTTPHeaderField: "Authorization") == "Bearer gho_second")
     }
 
     @Test("the token is read from the tool's output, trimmed")

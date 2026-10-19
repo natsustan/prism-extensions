@@ -26,8 +26,8 @@ on GitHub; the extension only reads and never changes anything there.
 
 If you use the [GitHub CLI](https://cli.github.com) and have run
 `gh auth login`, there is nothing to set up: with no token in preferences, the
-extension asks `gh auth token` for that login and follows `gh auth login` and
-`gh auth switch`. When `gh` is installed but signed out, each list shows
+extension asks `gh auth token` for that login and follows `gh auth login`,
+`gh auth switch`, and `gh auth logout` within half a minute. When `gh` is installed but signed out, each list shows
 **Sign In with GitHub CLI** with the command to run.
 
 Otherwise, use a **classic** personal access token; GitHub does not share

@@ -123,10 +123,11 @@ final class ProcessLookup: @unchecked Sendable {
     }
 }
 
-/// The `gh` token per host, asked once while the extension runs instead of
-/// on every keystroke. A token GitHub rejects is forgotten, so the next load
-/// asks `gh` again after `gh auth login`; a missing login is asked again
-/// after a few seconds.
+/// The `gh` token per host, kept briefly instead of asking on every
+/// keystroke. A token is asked again after half a minute, so `gh auth
+/// switch` or `gh auth logout` takes effect without GitHub rejecting the old
+/// token first; one GitHub rejects is forgotten at once. A missing login is
+/// asked again after a few seconds.
 actor GitHubCLILogin {
     enum Lookup: Equatable, Sendable {
         case token(String)
@@ -135,12 +136,12 @@ actor GitHubCLILogin {
         case notInstalled
     }
 
+    static let tokenLifetime: TimeInterval = 30
     static let retryAfter: TimeInterval = 5
 
     private let cli: GitHubCLI
     private let now: @Sendable () -> Date
-    private var tokens: [String: String] = [:]
-    private var misses: [String: (lookup: Lookup, at: Date)] = [:]
+    private var lookups: [String: (lookup: Lookup, at: Date)] = [:]
 
     init(cli: GitHubCLI, now: @escaping @Sendable () -> Date) {
         self.cli = cli
@@ -148,24 +149,24 @@ actor GitHubCLILogin {
     }
 
     func lookup(host: String) async -> Lookup {
-        if let token = tokens[host] { return .token(token) }
-        if let miss = misses[host], now().timeIntervalSince(miss.at) < Self.retryAfter { return miss.lookup }
+        if let cached = lookups[host] {
+            let lifetime = if case .token = cached.lookup { Self.tokenLifetime } else { Self.retryAfter }
+            if now().timeIntervalSince(cached.at) < lifetime { return cached.lookup }
+        }
         guard let executable = cli.executable() else {
-            misses[host] = (.notInstalled, now())
+            lookups[host] = (.notInstalled, now())
             return .notInstalled
         }
         guard let token = await cli.token(executable, host) else {
             // A cancelled load says nothing about the login.
-            if !Task.isCancelled { misses[host] = (.signedOut, now()) }
+            if !Task.isCancelled { lookups[host] = (.signedOut, now()) }
             return .signedOut
         }
-        tokens[host] = token
-        misses[host] = nil
+        lookups[host] = (.token(token), now())
         return .token(token)
     }
 
     func forget(host: String) {
-        tokens[host] = nil
-        misses[host] = nil
+        lookups[host] = nil
     }
 }
