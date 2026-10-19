@@ -52,13 +52,16 @@ mv "$folder/Sources/$Target/HelloSwift.swift" "$folder/Sources/$Target/$Target.s
 mv "$folder/Tests/HelloSwiftTests" "$folder/Tests/${Target}Tests"
 mv "$folder/Tests/${Target}Tests/HelloSwiftTests.swift" "$folder/Tests/${Target}Tests/${Target}Tests.swift"
 grep -rl HelloSwift "$folder" | xargs sed -i '' "s/HelloSwift/$Target/g"
-git ls-remote --tags https://github.com/natsustan/prism-extension-kit.git | tail -1
 ```
 
 Then edit by hand:
 
-- `Package.swift`: set the Kit's `from:` to the newest tag printed above (the
-  template may lag). Keep the `PRISM_KIT_PATH` switch as it is.
+- `Package.swift`: keep the template's `from:` unless the extension uses Kit
+  API added later; then raise it to the first version that has that API
+  (`from:` is the oldest Kit the extension works with). Published versions,
+  newest first:
+  `git ls-remote --tags --refs --sort=-v:refname https://github.com/natsustan/prism-extension-kit.git`.
+  Keep the `PRISM_KIT_PATH` switch as it is.
 - `manifest.json`: `id`, `name`, `version` (`1.0.0` for the first Gallery
   release), `author`, a one-sentence `description` (the Gallery requires it),
   `icon`, `executable` (`.build/release/<Target>`), commands, preferences,

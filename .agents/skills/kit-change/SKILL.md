@@ -42,7 +42,8 @@ extension, and never add per-extension code to Prism.
    `Package.swift`, run `swift package --package-path extensions/<folder> update`,
    then `bash tools/check.sh extensions/<folder>` without `PRISM_KIT_PATH`.
    If `tools/` reads the new fields (index, lint, pack), bump its
-   `Package.swift` too.
+   `Package.swift` too. Raise `templates/swift` to the new version so new
+   extensions start on the current Kit.
 5. **Release the extension** with `release-extension`. Merge it only after
    the Kit version it needs is published, or CI and the release fail to
    resolve it.
