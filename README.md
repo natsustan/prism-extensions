@@ -24,8 +24,10 @@ examples/            focus-flag and folders (sh), todo-swift (a list in Swift)
 tools/               prism-extension lint / smoke, and check.sh
 ```
 
-`extensions/prism.*` are Prism's own extensions. The `prism.` namespace is
-reserved for them; everyone else uses `<github-username>.<name>`.
+Folders without a dot, such as `extensions/caffeinate`, are Prism's own
+extensions: their IDs use the reserved `prism.` namespace (`prism.caffeinate`),
+which the folder name leaves out. Everyone else uses `<github-username>.<name>`
+as both the ID and the folder name.
 
 ## Making an extension
 
@@ -84,6 +86,8 @@ release yet (`.github/workflows/release.yml`, `tools/release.sh`):
 4. `prism-extension index add` updates `index.json` on the `gh-pages` branch
    and `index sign` signs it. Prism installs nothing the signature does not
    cover, and checks each package's size and SHA-256 against the index.
+   Already released extensions keep their entries; `index source` only moves
+   their source links when a folder is renamed, and the index is re-signed.
 
 The `gallery` environment holds `GALLERY_SIGNING_KEY` (and optionally
 `DEVELOPER_ID_P12` / `DEVELOPER_ID_P12_PASSWORD`); the `GALLERY_KEY_ID`

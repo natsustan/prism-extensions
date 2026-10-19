@@ -2,8 +2,8 @@ import Foundation
 import PrismExtensionProtocol
 
 /// Maintains the Gallery's `index.json`: `add` puts a released package's
-/// entry in (one entry per extension, the newest version), `sign` writes
-/// `index.json.sig`. The release workflow runs both; the private key never
+/// entry in (one entry per extension, the newest version), `source` points an
+/// entry at its folder after that moves, and `sign` writes `index.json.sig`. The release workflow runs both; the private key never
 /// leaves its secret.
 enum GalleryIndexTool {
     static func run(_ arguments: [String]) throws {
@@ -21,6 +21,12 @@ enum GalleryIndexTool {
                 source: option("--source", in: arguments).flatMap(URL.init(string:)),
                 notes: notes?.trimmingCharacters(in: .whitespacesAndNewlines), to: indexURL
             )
+        case "source":
+            guard let id = option("--id", in: arguments),
+                  let urlString = option("--url", in: arguments), let url = URL(string: urlString) else {
+                throw ToolFailure("source needs --id and --url.")
+            }
+            try setSource(url, of: ExtensionID(id), in: indexURL)
         case "sign":
             guard let keyID = option("--key-id", in: arguments) else { throw ToolFailure("sign needs --key-id.") }
             guard let key = ProcessInfo.processInfo.environment["PRISM_GALLERY_SIGNING_KEY"], !key.isEmpty else {
@@ -30,7 +36,7 @@ enum GalleryIndexTool {
             try encoder.encode(signature).write(to: indexURL.appendingPathExtension("sig"))
             print("Signed \(indexURL.lastPathComponent) with \(keyID).")
         default:
-            throw ToolFailure("index needs add or sign.")
+            throw ToolFailure("index needs add, source, or sign.")
         }
     }
 
@@ -63,6 +69,18 @@ enum GalleryIndexTool {
         try FileManager.default.createDirectory(at: indexURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try encoder.encode(index).write(to: indexURL)
         print("Indexed \(manifest.id.rawValue) \(manifest.version).")
+    }
+
+    /// Points an existing entry's source link at `url`, printing “Moved” when
+    /// that changed the index. A missing entry is left for `add`.
+    static func setSource(_ url: URL, of id: ExtensionID, in indexURL: URL) throws {
+        var index = try ExtensionWire.decode(ExtensionGalleryIndex.self, from: Data(contentsOf: indexURL))
+        guard let position = index.extensions.firstIndex(where: { $0.id == id }),
+              index.extensions[position].sourceURL != url else { return }
+        index.extensions[position].sourceURL = url
+        index.generatedAt = Date()
+        try encoder.encode(index).write(to: indexURL)
+        print("Moved \(id.rawValue)'s source to \(url.absoluteString).")
     }
 
     /// The manifest inside a package, read without unpacking it to disk.

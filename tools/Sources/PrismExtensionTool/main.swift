@@ -15,6 +15,8 @@ Usage:
   prism-extension index add --index <index.json> --package <file> --url <download URL>
                                       [--source <URL>] [--notes <file>]
                                       put a package's entry into the index (created if missing)
+  prism-extension index source --index <index.json> --id <id> --url <source URL>
+                                      point an entry's source link at a moved folder
   prism-extension index sign --index <index.json> --key-id <id>
                                       write <index.json>.sig with the key in PRISM_GALLERY_SIGNING_KEY
   prism-extension keygen              print a new signing key pair
@@ -77,10 +79,17 @@ struct ToolFailure: Error, CustomStringConvertible {
 }
 
 /// Whether a folder is a first-party extension in this repository, which may
-/// use the reserved `prism.` namespace.
+/// use the reserved `prism.` namespace. Its folder drops that prefix
+/// (`extensions/caffeinate`), while everyone else's keeps the full
+/// `<github-user>.<slug>` ID, so a folder name without a dot is Prism's own.
 func isFirstParty(_ folder: URL) -> Bool {
     folder.deletingLastPathComponent().lastPathComponent == "extensions"
-        && folder.lastPathComponent.hasPrefix("prism.")
+        && !folder.lastPathComponent.contains(".")
+}
+
+/// The folder name a Gallery extension lives under in `extensions/`.
+func folderName(of id: ExtensionID) -> String {
+    id.isFirstParty ? String(id.rawValue.dropFirst("prism.".count)) : id.rawValue
 }
 
 func manifest(of folder: URL) throws -> ExtensionManifest {
@@ -96,10 +105,11 @@ func manifest(of folder: URL) throws -> ExtensionManifest {
 enum Lint {
     static func check(_ folder: URL) throws {
         let manifest = try manifest(of: folder)
-        // Gallery entries live in extensions/<id>/ with a README and a changelog.
+        // Gallery entries live in extensions/<id>/ (without the `prism.` prefix for
+        // Prism's own) with a README and a changelog.
         guard folder.deletingLastPathComponent().lastPathComponent == "extensions" else { return }
-        guard folder.lastPathComponent == manifest.id.rawValue else {
-            throw ToolFailure("The folder must be named after the extension ID, \(manifest.id.rawValue).")
+        guard folder.lastPathComponent == folderName(of: manifest.id) else {
+            throw ToolFailure("The folder must be named \(folderName(of: manifest.id)) after the extension ID.")
         }
         for file in ["README.md", "CHANGELOG.md"] where !FileManager.default.fileExists(
             atPath: folder.appendingPathComponent(file).path
