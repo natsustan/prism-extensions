@@ -380,10 +380,14 @@ final class FakeCLI: @unchecked Sendable {
     private let lock = NSLock()
     private var answers: [String?]
     private(set) var hosts: [String] = []
+    private var loginDate: Date?
 
     init(_ answers: String?...) { self.answers = answers }
 
     var asked: Int { lock.withLock { hosts.count } }
+
+    /// What `gh auth login`, `switch`, or `logout` does to its hosts file.
+    func changeLogin(at date: Date) { lock.withLock { loginDate = date } }
 
     var cli: GitHubCLI {
         GitHubCLI(executable: { URL(fileURLWithPath: "/opt/homebrew/bin/gh") }, token: { _, host in
@@ -391,13 +395,13 @@ final class FakeCLI: @unchecked Sendable {
                 self.hosts.append(host)
                 return self.answers.count > 1 ? self.answers.removeFirst() : self.answers.first ?? nil
             }
-        })
+        }, loginChanged: { self.lock.withLock { self.loginDate } })
     }
 }
 
 @Suite("GitHub CLI login")
 struct GitHubCLITests {
-    @Test("without a token in preferences the gh login is used, asked once for loads close together")
+    @Test("without a token in preferences the gh login is used, asked once while it stays the same")
     func usesCLIToken() async throws {
         let github = FakeGitHub()
         await github.route("/notifications", json: notificationsJSON)
@@ -451,16 +455,21 @@ struct GitHubCLITests {
         #expect(await github.requests.last?.value(forHTTPHeaderField: "Authorization") == "Bearer gho_new")
     }
 
-    @Test("after gh auth switch the next load past the token's lifetime uses the new account")
+    @Test("after gh auth switch the next load uses the new account, and gh is not asked again until then")
     func switchedAccount() async throws {
         let github = FakeGitHub()
         await github.route("/notifications", json: notificationsJSON)
         let clock = Clock(referenceDate)
         let gh = FakeCLI("gho_first", "gho_second")
+        gh.changeLogin(at: referenceDate)
         let prism = try await makeHost(github, clock: clock, token: "", cli: gh.cli)
 
         _ = try await prism.list("notifications")
-        clock.advance(GitHubCLILogin.tokenLifetime + 1)
+        clock.advance(3600)
+        _ = try await prism.list("notifications")
+        #expect(gh.asked == 1)
+
+        gh.changeLogin(at: clock.now)
         _ = try await prism.list("notifications")
         #expect(gh.asked == 2)
         #expect(await github.requests.last?.value(forHTTPHeaderField: "Authorization") == "Bearer gho_second")

@@ -11,8 +11,10 @@ struct GitHubCLI: Sendable {
     var executable: @Sendable () -> URL?
     /// The token `gh` holds for a host, or nil when it has none.
     var token: @Sendable (_ executable: URL, _ host: String) async -> String?
+    /// When `gh`'s login last changed, or nil when it has none.
+    var loginChanged: @Sendable () -> Date? = { nil }
 
-    static let installed = GitHubCLI(executable: Self.findExecutable, token: Self.readToken)
+    static let installed = GitHubCLI(executable: Self.findExecutable, token: Self.readToken, loginChanged: Self.hostsFileDate)
     static let none = GitHubCLI(executable: { nil }, token: { _, _ in nil })
 
     static let loginCommand = "gh auth login"
@@ -38,6 +40,19 @@ struct GitHubCLI: Sendable {
         return folders.lazy
             .map { URL(fileURLWithPath: $0).appending(path: "gh") }
             .first { FileManager.default.isExecutableFile(atPath: $0.path) }
+    }
+
+    /// `gh auth login`, `switch`, and `logout` rewrite `hosts.yml`, which
+    /// names each host's active account; the token itself is in the Keychain.
+    /// Only the file's date is read, found the way `gh` finds its folder.
+    @Sendable
+    static func hostsFileDate() -> Date? {
+        let environment = ProcessInfo.processInfo.environment.filter { !$0.value.isEmpty }
+        let folder = environment["GH_CONFIG_DIR"].map { URL(fileURLWithPath: $0) }
+            ?? environment["XDG_CONFIG_HOME"].map { URL(fileURLWithPath: $0).appending(path: "gh") }
+            ?? FileManager.default.homeDirectoryForCurrentUser.appending(path: ".config/gh")
+        let attributes = try? FileManager.default.attributesOfItem(atPath: folder.appending(path: "hosts.yml").path)
+        return attributes?[.modificationDate] as? Date
     }
 
     @Sendable
@@ -123,11 +138,11 @@ final class ProcessLookup: @unchecked Sendable {
     }
 }
 
-/// The `gh` token per host, kept briefly instead of asking on every
-/// keystroke. A token is asked again after half a minute, so `gh auth
-/// switch` or `gh auth logout` takes effect without GitHub rejecting the old
-/// token first; one GitHub rejects is forgotten at once. A missing login is
-/// asked again after a few seconds.
+/// The `gh` token per host, kept instead of asking on every keystroke until
+/// `gh`'s login changes, so `gh auth switch` or `gh auth logout` applies to
+/// the next load even though the old token still works. A token GitHub
+/// rejects is forgotten at once; a missing login is asked again after a few
+/// seconds.
 actor GitHubCLILogin {
     enum Lookup: Equatable, Sendable {
         case token(String)
@@ -136,12 +151,11 @@ actor GitHubCLILogin {
         case notInstalled
     }
 
-    static let tokenLifetime: TimeInterval = 30
     static let retryAfter: TimeInterval = 5
 
     private let cli: GitHubCLI
     private let now: @Sendable () -> Date
-    private var lookups: [String: (lookup: Lookup, at: Date)] = [:]
+    private var lookups: [String: (lookup: Lookup, at: Date, loginChanged: Date?)] = [:]
 
     init(cli: GitHubCLI, now: @escaping @Sendable () -> Date) {
         self.cli = cli
@@ -149,20 +163,21 @@ actor GitHubCLILogin {
     }
 
     func lookup(host: String) async -> Lookup {
-        if let cached = lookups[host] {
-            let lifetime = if case .token = cached.lookup { Self.tokenLifetime } else { Self.retryAfter }
-            if now().timeIntervalSince(cached.at) < lifetime { return cached.lookup }
+        let loginChanged = cli.loginChanged()
+        if let cached = lookups[host], cached.loginChanged == loginChanged {
+            if case .token = cached.lookup { return cached.lookup }
+            if now().timeIntervalSince(cached.at) < Self.retryAfter { return cached.lookup }
         }
         guard let executable = cli.executable() else {
-            lookups[host] = (.notInstalled, now())
+            lookups[host] = (.notInstalled, now(), loginChanged)
             return .notInstalled
         }
         guard let token = await cli.token(executable, host) else {
             // A cancelled load says nothing about the login.
-            if !Task.isCancelled { lookups[host] = (.signedOut, now()) }
+            if !Task.isCancelled { lookups[host] = (.signedOut, now(), loginChanged) }
             return .signedOut
         }
-        lookups[host] = (.token(token), now())
+        lookups[host] = (.token(token), now(), loginChanged)
         return .token(token)
     }
 
