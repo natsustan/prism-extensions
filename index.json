@@ -110,7 +110,7 @@
       },
       "publishedAt" : 1792052364,
       "releaseNotes" : "- Runs as its own process, built with PrismExtensionKit, instead of inside\n  Prism. The list, detail, widgets, and settings are unchanged.\n- Keeps the last results and the refresh throttle in its data folder, so a\n  restarted process shows them at once without fetching again.\n- Brand icons ship with the extension.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.agent-usage"
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/agent-usage"
     },
     {
       "manifest" : {
@@ -174,7 +174,7 @@
       },
       "publishedAt" : 1792383186,
       "releaseNotes" : "- Search Notes: search every note by title, content, folder, tags, or\n  pinyin, title matches first, and open them in Notes.\n- Tab on Notes' own row in root search opens Search Notes.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.apple-notes"
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/apple-notes"
     },
     {
       "manifest" : {
@@ -290,7 +290,7 @@
       },
       "publishedAt" : 1792052393,
       "releaseNotes" : "- Runs as its own process, built with PrismExtensionKit, instead of inside\n  Prism. Commands, the status row, the widget, and the preference are\n  unchanged.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.caffeinate"
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/caffeinate"
     },
     {
       "iconImage" : "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMTIgMGM2LjYzIDAgMTIgNS4yNzYgMTIgMTEuNzktLjAwMSA1LjA2Ny0zLjI5IDkuNTY3LTguMTc1IDExLjE4Ny0uNi4xMTgtLjgyNS0uMjUtLjgyNS0uNTYgMC0uMzk4LjAxNS0xLjY2NS4wMTUtMy4yNDIgMC0xLjEwNS0uMzc1LTEuODEzLS44MS0yLjE4MSAyLjY3LS4yOTUgNS40NzUtMS4yOTcgNS40NzUtNS44MjIgMC0xLjI5Ny0uNDY1LTIuMzQ0LTEuMjMtMy4xNjkuMTItLjI5NS41NC0xLjUwMy0uMTItMy4xMjUgMCAwLTEuMDA1LS4zMjQtMy4zIDEuMjA5YTExLjMyIDExLjMyIDAgMDAtMy0uMzk4Yy0xLjAyIDAtMi4wNC4xMzMtMyAuMzk4LTIuMjk1LTEuNTE4LTMuMy0xLjIwOS0zLjMtMS4yMDktLjY2IDEuNjIyLS4yNCAyLjgzLS4xMiAzLjEyNS0uNzY1LjgyNS0xLjIzIDEuODg3LTEuMjMgMy4xNjkgMCA0LjUxIDIuNzkgNS41MjcgNS40NiA1LjgyMi0uMzQ1LjI5NC0uNjYuODEtLjc2NSAxLjU3Ny0uNjkuMzEtMi40MTUuODEtMy40OTUtLjk3My0uMjI1LS4zNTQtLjktMS4yMjMtMS44NDUtMS4yMDktMS4wMDUuMDE1LS40MDUuNTYuMDE1Ljc4MS41MS4yOCAxLjA5NSAxLjMyNyAxLjIzIDEuNjY2LjI0LjY2MyAxLjAyIDEuOTMgNC4wMzUgMS4zODUgMCAuOTg4LjAxNSAxLjkxNi4wMTUgMi4xOTYgMCAuMzEtLjIyNS42NjQtLjgyNS41NkMzLjMwMyAyMS4zNzQtLjAwMyAxNi44NjcgMCAxMS43OTEgMCA1LjI3NiA1LjM3IDAgMTIgMHoiLz48L3N2Zz4K",
@@ -416,11 +416,11 @@
       },
       "publishedAt" : 1792390045,
       "releaseNotes" : "- The Gallery shows the GitHub mark before the extension is installed.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.github"
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/github"
     }
   ],
   "format" : 1,
-  "generatedAt" : 1792390045,
+  "generatedAt" : 1792396071,
   "revoked" : [
 
   ]
