@@ -7,4 +7,5 @@
   requests, assigned, mentioned, reviewed, recently closed), with search.
 - GitHub Repositories: your repositories, starred ones, or a search of all of
   GitHub.
-- GitHub.com or GitHub Enterprise Server, with a classic personal access token.
+- GitHub.com or GitHub Enterprise Server, signed in through the GitHub CLI
+  (`gh auth login`) or with a classic personal access token.

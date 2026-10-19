@@ -7,9 +7,9 @@ typealias GitHubTransport = @Sendable (URLRequest) async throws -> (Data, HTTPUR
 /// The few GitHub REST calls the lists need, for one account.
 struct GitHubClient: Sendable {
     /// The classic token scopes the lists need: private repositories and
-    /// their issues (`repo`), organization repositories (`read:org`), the
-    /// signed-in user (`read:user`), and the inbox (`notifications`).
-    static let scopes = ["repo", "read:org", "read:user", "notifications"]
+    /// their issues (`repo`), organization repositories (`read:org`), and
+    /// the inbox (`notifications`).
+    static let scopes = ["repo", "read:org", "notifications"]
 
     static let notificationsPerPage = 50
     static let notificationPages = 2

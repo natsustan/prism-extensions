@@ -3,8 +3,8 @@ import PrismExtensionKit
 
 /// GitHub notifications, pull requests, issues, and repositories for one
 /// account on GitHub.com or GitHub Enterprise Server, read with a personal
-/// access token. Every row opens its page on GitHub; nothing is changed
-/// there.
+/// access token from preferences or, without one, the GitHub CLI's login.
+/// Every row opens its page on GitHub; nothing is changed there.
 @main
 struct GitHub: PrismExtension {
     enum CommandID {
@@ -36,15 +36,17 @@ struct GitHub: PrismExtension {
     let transport: GitHubTransport
     let now: @Sendable () -> Date
     let cache: ResponseCache
+    let cliLogin: GitHubCLILogin
 
     init() {
-        self.init(transport: GitHubClient.urlSession)
+        self.init(transport: GitHubClient.urlSession, cli: .installed)
     }
 
-    init(transport: @escaping GitHubTransport, now: @escaping @Sendable () -> Date = Date.init) {
+    init(transport: @escaping GitHubTransport, cli: GitHubCLI = .none, now: @escaping @Sendable () -> Date = Date.init) {
         self.transport = transport
         self.now = now
         self.cache = ResponseCache(now: now)
+        self.cliLogin = GitHubCLILogin(cli: cli, now: now)
     }
 
     func list(command: String, query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
@@ -55,9 +57,22 @@ struct GitHub: PrismExtension {
         } catch {
             return shape.list(items: [], emptyMessage: GitHubRows.message(for: error, now: now()))
         }
-        let token = context.preferences.string(PreferenceID.token).trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !token.isEmpty else {
-            return shape.list(items: [GitHubRows.tokenItem(server: server)])
+        let host = GitHubCLI.host(of: server)
+        let token: String
+        let source: GitHubTokenSource
+        let preference = context.preferences.string(PreferenceID.token).trimmingCharacters(in: .whitespacesAndNewlines)
+        if !preference.isEmpty {
+            (token, source) = (preference, .preferences)
+        } else {
+            switch await cliLogin.lookup(host: host) {
+            case let .token(cliToken):
+                (token, source) = (cliToken, .githubCLI)
+            case .signedOut:
+                try Task.checkCancellation()
+                return shape.list(items: [GitHubRows.cliItem(host: host), GitHubRows.tokenItem(server: server)])
+            case .notInstalled:
+                return shape.list(items: [GitHubRows.tokenItem(server: server)])
+            }
         }
         let client = GitHubClient(server: server, token: token, transport: transport)
         let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -73,7 +88,9 @@ struct GitHub: PrismExtension {
                 return try await repositories(client, text: text, filter: filter, shape: shape)
             }
         } catch let error as GitHubError {
-            return shape.list(items: [], emptyMessage: GitHubRows.message(for: error, now: now()))
+            // gh may have a new login by the next load.
+            if source == .githubCLI, error == .invalidToken { await cliLogin.forget(host: host) }
+            return shape.list(items: [], emptyMessage: GitHubRows.message(for: error, source: source, now: now()))
         }
     }
 

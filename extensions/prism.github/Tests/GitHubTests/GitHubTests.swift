@@ -66,11 +66,12 @@ final class Clock: @unchecked Sendable {
 let referenceDate = Date(timeIntervalSince1970: 1_792_411_200)
 
 func makeHost(
-    _ github: FakeGitHub, clock: Clock = Clock(referenceDate), token: String = "ghp_test", server: String = "https://github.com"
+    _ github: FakeGitHub, clock: Clock = Clock(referenceDate), token: String = "ghp_test", server: String = "https://github.com",
+    cli: GitHubCLI = .none
 ) async throws -> PrismTestHost {
     let transport = await github.transport
     return try await PrismTestHost(
-        GitHub(transport: transport, now: { clock.now }),
+        GitHub(transport: transport, cli: cli, now: { clock.now }),
         extensionID: "prism.github",
         preferences: ["token": .string(token), "server": .string(server)]
     )
@@ -165,7 +166,7 @@ struct GitHubListTests {
             #expect(list.items.map(\.id) == ["create-token"])
             let url = try #require(list.items.first?.openURL)
             #expect(url.absoluteString.hasPrefix("https://github.com/settings/tokens/new?"))
-            #expect(url.absoluteString.contains("scopes=repo,read:org,read:user,notifications"))
+            #expect(url.absoluteString.contains("scopes=repo,read:org,notifications"))
         }
         #expect(await github.requests.isEmpty)
     }
@@ -368,5 +369,105 @@ struct GitHubRepositoryTests {
         let list = try await prism.list("repositories", query: "linux", filter: "everywhere")
         #expect(list.items.map(\.title) == ["torvalds/linux"])
         #expect(await github.searches == ["linux"])
+    }
+}
+
+/// A `gh` that hands out queued answers and counts how often it was asked.
+final class FakeCLI: @unchecked Sendable {
+    private let lock = NSLock()
+    private var answers: [String?]
+    private(set) var hosts: [String] = []
+
+    init(_ answers: String?...) { self.answers = answers }
+
+    var asked: Int { lock.withLock { hosts.count } }
+
+    var cli: GitHubCLI {
+        GitHubCLI(executable: { URL(fileURLWithPath: "/opt/homebrew/bin/gh") }, token: { _, host in
+            self.lock.withLock {
+                self.hosts.append(host)
+                return self.answers.count > 1 ? self.answers.removeFirst() : self.answers.first ?? nil
+            }
+        })
+    }
+}
+
+@Suite("GitHub CLI login")
+struct GitHubCLITests {
+    @Test("without a token in preferences the gh login is used, asked once while the extension runs")
+    func usesCLIToken() async throws {
+        let github = FakeGitHub()
+        await github.route("/notifications", json: notificationsJSON)
+        let gh = FakeCLI("gho_cli")
+        let prism = try await makeHost(github, token: "", cli: gh.cli)
+
+        _ = try await prism.list("notifications")
+        _ = try await prism.list("notifications", filter: "all")
+        #expect(gh.hosts == ["github.com"])
+        let request = try #require(await github.requests.first)
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer gho_cli")
+    }
+
+    @Test("a token in preferences comes first and gh is never asked")
+    func preferenceFirst() async throws {
+        let github = FakeGitHub()
+        await github.route("/notifications", json: "[]")
+        let gh = FakeCLI("gho_cli")
+        let prism = try await makeHost(github, cli: gh.cli)
+
+        _ = try await prism.list("notifications")
+        #expect(gh.asked == 0)
+        #expect(await github.requests.first?.value(forHTTPHeaderField: "Authorization") == "Bearer ghp_test")
+    }
+
+    @Test("a signed-out gh offers its login command for the server's host, beside creating a token")
+    func signedOut() async throws {
+        let github = FakeGitHub()
+        let gh = FakeCLI(nil)
+        let prism = try await makeHost(github, token: "", server: "https://ghe.example.com", cli: gh.cli)
+
+        let list = try await prism.list("pull-requests")
+        #expect(list.items.map(\.id) == ["github-cli", "create-token"])
+        #expect(list.items[0].subtitle == "Run gh auth login --hostname ghe.example.com in Terminal, then reopen this list")
+        #expect(list.items[0].actions.first?.kind == .copy(text: "gh auth login --hostname ghe.example.com"))
+        #expect(gh.hosts == ["ghe.example.com"])
+        #expect(await github.requests.isEmpty)
+    }
+
+    @Test("a rejected gh login says to sign in again, and the next load asks gh afresh")
+    func rejectedCLIToken() async throws {
+        let github = FakeGitHub()
+        await github.route("/notifications", .init(status: 401, body: #"{"message":"Bad credentials"}"#))
+        let gh = FakeCLI("gho_old", "gho_new")
+        let prism = try await makeHost(github, token: "", cli: gh.cli)
+
+        let list = try await prism.list("notifications")
+        #expect(list.emptyMessage?.title == "GitHub Didn’t Accept the GitHub CLI Login")
+        _ = try await prism.list("notifications")
+        #expect(gh.asked == 2)
+        #expect(await github.requests.last?.value(forHTTPHeaderField: "Authorization") == "Bearer gho_new")
+    }
+
+    @Test("the token is read from the tool's output, trimmed")
+    func readsProcessOutput() async throws {
+        // `echo` stands in for gh: it prints its arguments.
+        let token = await GitHubCLI.readToken(executable: URL(fileURLWithPath: "/bin/echo"), host: "github.com")
+        #expect(token == "auth token --hostname github.com")
+        #expect(await GitHubCLI.readToken(executable: URL(fileURLWithPath: "/usr/bin/false"), host: "github.com") == nil)
+    }
+
+    @Test("a gh that hangs is stopped at the timeout")
+    func timeout() async throws {
+        let folder = FileManager.default.temporaryDirectory.appending(path: "prism-github-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let script = folder.appending(path: "gh")
+        try "#!/bin/sh\nexec /bin/sleep 30\n".write(to: script, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
+
+        let start = ContinuousClock.now
+        let token = await GitHubCLI.readToken(executable: script, host: "github.com", timeout: .milliseconds(200))
+        #expect(token == nil)
+        #expect(ContinuousClock.now - start < .seconds(5))
     }
 }

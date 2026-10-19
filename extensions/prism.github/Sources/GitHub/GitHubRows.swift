@@ -10,6 +10,7 @@ enum GitHubRows {
         static let copyTitle = "copy-title"
         static let copyName = "copy-name"
         static let createToken = "create-token"
+        static let copyLoginCommand = "copy-login-command"
     }
 
     // MARK: - Notifications
@@ -208,8 +209,31 @@ enum GitHubRows {
         )
     }
 
-    static func message(for error: GitHubError, now: Date) -> ExtensionListMessage {
-        switch error {
+    /// Shown when `gh` is installed but signed out: signing in there is
+    /// enough, with no token to copy.
+    static func cliItem(host: String) -> ExtensionListItem {
+        let command = host == "github.com" ? GitHubCLI.loginCommand : "\(GitHubCLI.loginCommand) --hostname \(host)"
+        return ExtensionListItem(
+            id: "github-cli",
+            title: "Sign In with GitHub CLI",
+            subtitle: "Run \(command) in Terminal, then reopen this list",
+            icon: ExtensionIcon(symbol: "terminal", tint: "gray"),
+            actions: [ExtensionAction(
+                id: ActionID.copyLoginCommand, title: "Copy Command", symbol: "doc.on.doc",
+                kind: .copy(text: command)
+            )]
+        )
+    }
+
+    static func message(for error: GitHubError, source: GitHubTokenSource = .preferences, now: Date) -> ExtensionListMessage {
+        if source == .githubCLI, error == .invalidToken || error == .missingScope {
+            return ExtensionListMessage(
+                title: "GitHub Didn’t Accept the GitHub CLI Login",
+                message: "Run \(GitHubCLI.loginCommand) in Terminal again, or paste a token in Settings → Extensions → GitHub.",
+                symbol: "terminal"
+            )
+        }
+        return switch error {
         case .missingToken:
             ExtensionListMessage(title: "Add a GitHub Token", message: "Paste a token in Settings → Extensions → GitHub.", symbol: "key")
         case .invalidServer:
@@ -244,4 +268,10 @@ enum GitHubRows {
             return message(for: error, now: now).title
         }
     }
+}
+
+/// Where the token in use came from, for messages that say how to fix it.
+enum GitHubTokenSource: Sendable {
+    case preferences
+    case githubCLI
 }

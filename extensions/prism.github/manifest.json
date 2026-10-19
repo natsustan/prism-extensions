@@ -14,8 +14,8 @@
     { "id": "repositories", "title": "GitHub Repositories", "subtitle": "GitHub", "mode": "list", "keywords": ["github", "repositories", "repos", "starred"], "searchesApp": "com.github.GitHubClient" }
   ],
   "preferences": [
-    { "id": "token", "type": "secret", "title": "Personal Access Token", "section": "Account", "caption": "A classic token with the repo, read:org, read:user, and notifications scopes. Sent only to your GitHub server." },
+    { "id": "token", "type": "secret", "title": "Personal Access Token", "section": "Account", "caption": "A classic token with the repo, read:org, and notifications scopes. Sent only to your GitHub server. Leave blank to use your GitHub CLI (gh) login." },
     { "id": "server", "type": "text", "title": "Server", "section": "Account", "caption": "Leave as https://github.com, or enter your GitHub Enterprise Server address.", "default": "https://github.com" }
   ],
-  "capabilities": ["network"]
+  "capabilities": ["network", "spawnProcesses"]
 }

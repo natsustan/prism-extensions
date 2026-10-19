@@ -24,15 +24,22 @@ on GitHub; the extension only reads and never changes anything there.
 
 ## Setup
 
-The extension signs in with a **classic** personal access token; GitHub does
-not share notifications with fine-grained tokens. Until one is set, each list
-shows **Add a GitHub Token**: press Return to open GitHub's page for a new token
-with the scopes filled in (`repo`, `read:org`, `read:user`, `notifications`),
-create it, and paste it in Settings → Extensions → GitHub. Prism keeps it in
-the Keychain and sends it only to the server below.
+If you use the [GitHub CLI](https://cli.github.com) and have run
+`gh auth login`, there is nothing to set up: with no token in preferences, the
+extension asks `gh auth token` for that login and follows `gh auth login` and
+`gh auth switch`. When `gh` is installed but signed out, each list shows
+**Sign In with GitHub CLI** with the command to run.
+
+Otherwise, use a **classic** personal access token; GitHub does not share
+notifications with fine-grained tokens. Each list shows **Add a GitHub Token**:
+press Return to open GitHub's page for a new token with the scopes filled in
+(`repo`, `read:org`, `notifications`), create it, and paste it in
+Settings → Extensions → GitHub. Prism keeps it in the Keychain and sends it only
+to the server below. A token in preferences comes before the `gh` login.
 
 For GitHub Enterprise Server, set **Server** to its address
-(`https://github.example.com`); the API is read from `/api/v3` there.
+(`https://github.example.com`); the API is read from `/api/v3` there, and the
+`gh` login for that host is used (`gh auth login --hostname github.example.com`).
 
 ## Requests
 
@@ -43,7 +50,8 @@ minutes. Notifications are always asked again. When GitHub can't be reached or
 the rate limit is hit, the list keeps its last rows and says why; a rejected
 token clears them.
 
-Capabilities: `network` (GitHub's API).
+Capabilities: `network` (GitHub's API) and `spawnProcesses` (`gh auth token`,
+when no token is set).
 
 The GitHub mark in `icons/` comes from the
 [Raycast GitHub extension](https://github.com/raycast/extensions/tree/main/extensions/github)
