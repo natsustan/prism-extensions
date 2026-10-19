@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "author": "Prism",
   "description": "Your GitHub notifications, pull requests, issues, and repositories, on GitHub.com or GitHub Enterprise.",
-  "icon": { "symbol": "chevron.left.forwardslash.chevron.right", "tint": "gray", "image": "icons/github.svg" },
+  "icon": { "symbol": "chevron.left.forwardslash.chevron.right", "tint": "graphite", "image": "icons/github.svg", "style": "tile" },
   "executable": ".build/release/GitHub",
   "commands": [
     { "id": "notifications", "title": "GitHub Notifications", "subtitle": "GitHub", "mode": "list", "keywords": ["github", "notifications", "inbox", "unread"], "searchesApp": "com.github.GitHubClient" },

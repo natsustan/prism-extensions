@@ -237,8 +237,11 @@ struct GitHubListTests {
         #expect(list.items[0].subtitle == "octo/app#12")
         #expect(list.items[0].icon?.tint == "gray")
         #expect(list.items[0].accessories.compactMap(\.text) == ["Draft", "mona", "3h"])
-        #expect(list.items[1].icon?.tint == "green")
-        #expect(list.items[2].icon?.symbol == "arrow.triangle.merge")
+        #expect(list.items[1].icon == ExtensionIcon(
+            symbol: "arrow.triangle.pull", tint: "green", image: "icons/octicons/git-pull-request.svg", style: .glyph
+        ))
+        #expect(list.items[2].icon?.image == "icons/octicons/git-merge.svg")
+        #expect(list.items[2].icon?.tint == "violet")
         #expect(list.items[0].openURL?.absoluteString == "https://github.com/octo/app/pull/12")
     }
 
@@ -257,7 +260,7 @@ struct GitHubListTests {
             "is:issue archived:false involves:@me crash",
             "is:issue archived:false is:open assignee:@me crash",
         ])
-        #expect(assigned.items.first?.icon?.symbol == "smallcircle.filled.circle")
+        #expect(assigned.items.first?.icon?.image == "icons/octicons/issue-opened.svg")
     }
 
     @Test("reopening a list within a minute answers from the cache instead of spending search quota")
@@ -469,5 +472,35 @@ struct GitHubCLITests {
         let token = await GitHubCLI.readToken(executable: script, host: "github.com", timeout: .milliseconds(200))
         #expect(token == nil)
         #expect(ContinuousClock.now - start < .seconds(5))
+    }
+}
+
+@Suite("GitHub row icons")
+struct GitHubRowIconTests {
+    @Test("every Octicon a row names ships in the extension's folder")
+    func octiconsShip() throws {
+        let folder = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appending(path: "../..").standardized
+        let issues = [
+            issueJSON(id: 1, number: 1, title: "a"), issueJSON(id: 2, number: 2, title: "b", draft: true),
+            issueJSON(id: 3, number: 3, title: "c", state: "closed", merged: true), issueJSON(id: 4, number: 4, title: "d", state: "closed"),
+            issueJSON(id: 5, number: 5, title: "e", pullRequest: false), issueJSON(id: 6, number: 6, title: "f", state: "closed", pullRequest: false),
+        ].map { try! GitHubClient.decoder.decode(GitHubIssue.self, from: Data($0.utf8)) }
+        var icons = issues.map(GitHubRows.stateIcon(for:))
+        icons += ["PullRequest", "Issue", "Release", "Discussion", "Commit", "CheckSuite", "SecurityAdvisory", "Other"]
+            .map { GitHubRows.subjectIcon($0, unread: true) }
+        for icon in icons {
+            let image = try #require(icon.image)
+            #expect(icon.style == .glyph)
+            #expect(FileManager.default.fileExists(atPath: folder.appending(path: image).path), "\(image) is missing")
+        }
+    }
+
+    @Test("a closed issue shows whether it was completed or not planned")
+    func notPlanned() throws {
+        let json = issueJSON(id: 7, number: 7, title: "g", state: "closed", pullRequest: false)
+            .replacingOccurrences(of: #""state":"closed""#, with: #""state":"closed","state_reason":"not_planned""#)
+        let issue = try GitHubClient.decoder.decode(GitHubIssue.self, from: Data(json.utf8))
+        #expect(GitHubRows.stateIcon(for: issue).image == "icons/octicons/skip.svg")
+        #expect(GitHubRows.stateIcon(for: issue).tint == "gray")
     }
 }

@@ -63,18 +63,19 @@ enum GitHubRows {
         }
     }
 
+    /// Blue while unread, as Mail marks unread mail; gray once read.
     static func subjectIcon(_ type: String, unread: Bool) -> ExtensionIcon {
         let tint = unread ? "blue" : "gray"
         return switch type {
-        case "PullRequest": ExtensionIcon(symbol: "arrow.triangle.pull", tint: tint)
-        case "Issue": ExtensionIcon(symbol: "smallcircle.filled.circle", tint: tint)
-        case "Release": ExtensionIcon(symbol: "tag", tint: tint)
-        case "Discussion": ExtensionIcon(symbol: "bubble.left.and.bubble.right", tint: tint)
-        case "Commit": ExtensionIcon(symbol: "point.topleft.down.to.point.bottomright.curvepath", tint: tint)
-        case "CheckSuite", "WorkflowRun": ExtensionIcon(symbol: "gearshape.2", tint: tint)
+        case "PullRequest": octicon("git-pull-request", symbol: "arrow.triangle.pull", tint: tint)
+        case "Issue": octicon("issue-opened", symbol: "smallcircle.filled.circle", tint: tint)
+        case "Release": octicon("tag", symbol: "tag", tint: tint)
+        case "Discussion": octicon("comment-discussion", symbol: "bubble.left.and.bubble.right", tint: tint)
+        case "Commit": octicon("git-commit", symbol: "smallcircle.filled.circle", tint: tint)
+        case "CheckSuite", "WorkflowRun": octicon("play", symbol: "play.circle", tint: tint)
         case "RepositoryVulnerabilityAlert", "RepositoryDependabotAlertsThread", "SecurityAdvisory":
-            ExtensionIcon(symbol: "exclamationmark.shield", tint: unread ? "red" : "gray")
-        default: ExtensionIcon(symbol: "bell", tint: tint)
+            octicon("shield", symbol: "exclamationmark.shield", tint: unread ? "red" : "gray")
+        default: octicon("bell", symbol: "bell", tint: tint)
         }
     }
 
@@ -102,18 +103,24 @@ enum GitHubRows {
         )
     }
 
-    /// GitHub's own state colors: green open, gray draft, purple merged or
-    /// completed, red closed unmerged.
+    /// GitHub's own state marks and colors: green open, gray draft or not
+    /// planned, purple merged or completed, red closed unmerged.
     static func stateIcon(for issue: GitHubIssue) -> ExtensionIcon {
         if issue.isPullRequest {
-            if issue.isMerged { return ExtensionIcon(symbol: "arrow.triangle.merge", tint: "violet") }
-            if !issue.isOpen { return ExtensionIcon(symbol: "arrow.triangle.pull", tint: "red") }
-            if issue.draft == true { return ExtensionIcon(symbol: "arrow.triangle.pull", tint: "gray") }
-            return ExtensionIcon(symbol: "arrow.triangle.pull", tint: "green")
+            if issue.isMerged { return octicon("git-merge", symbol: "arrow.triangle.merge", tint: "violet") }
+            if !issue.isOpen { return octicon("git-pull-request-closed", symbol: "xmark.circle", tint: "red") }
+            if issue.draft == true { return octicon("git-pull-request-draft", symbol: "arrow.triangle.pull", tint: "gray") }
+            return octicon("git-pull-request", symbol: "arrow.triangle.pull", tint: "green")
         }
-        return issue.isOpen
-            ? ExtensionIcon(symbol: "smallcircle.filled.circle", tint: "green")
-            : ExtensionIcon(symbol: "checkmark.circle", tint: "violet")
+        if issue.isOpen { return octicon("issue-opened", symbol: "smallcircle.filled.circle", tint: "green") }
+        if issue.stateReason == "not_planned" { return octicon("skip", symbol: "slash.circle", tint: "gray") }
+        return octicon("issue-closed", symbol: "checkmark.circle", tint: "violet")
+    }
+
+    /// One of GitHub's Octicons in `icons/octicons/`, drawn alone in the
+    /// tint; `symbol` stands in where Prism can't draw the file.
+    static func octicon(_ name: String, symbol: String, tint: String) -> ExtensionIcon {
+        ExtensionIcon(symbol: symbol, tint: tint, image: "icons/octicons/\(name).svg", style: .glyph)
     }
 
     // MARK: - Repositories
@@ -143,10 +150,9 @@ enum GitHubRows {
             id: String(repository.id),
             title: repository.fullName,
             subtitle: repository.description.flatMap { $0.isEmpty ? nil : $0 },
-            icon: ExtensionIcon(
-                symbol: repository.fork == true ? "arrow.triangle.branch" : "book.closed",
-                tint: repository.private ? "gold" : "gray"
-            ),
+            icon: repository.fork == true
+                ? octicon("repo-forked", symbol: "arrow.triangle.branch", tint: "gray")
+                : octicon("repo", symbol: "book.closed", tint: "gray"),
             accessories: accessories,
             keywords: [repository.name],
             actions: actions
@@ -201,7 +207,7 @@ enum GitHubRows {
             id: "create-token",
             title: "Add a GitHub Token",
             subtitle: "Create a classic token, then paste it in Settings → Extensions → GitHub",
-            icon: ExtensionIcon(symbol: "key", tint: "gray"),
+            icon: ExtensionIcon(symbol: "key", tint: "gray", style: .glyph),
             actions: [ExtensionAction(
                 id: ActionID.createToken, title: "Create Token on GitHub", symbol: "safari",
                 kind: .open(url: server.newTokenURL)
@@ -217,7 +223,7 @@ enum GitHubRows {
             id: "github-cli",
             title: "Sign In with GitHub CLI",
             subtitle: "Run \(command) in Terminal, then reopen this list",
-            icon: ExtensionIcon(symbol: "terminal", tint: "gray"),
+            icon: ExtensionIcon(symbol: "terminal", tint: "gray", style: .glyph),
             actions: [ExtensionAction(
                 id: ActionID.copyLoginCommand, title: "Copy Command", symbol: "doc.on.doc",
                 kind: .copy(text: command)

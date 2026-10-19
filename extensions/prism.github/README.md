@@ -53,6 +53,8 @@ token clears them.
 Capabilities: `network` (GitHub's API) and `spawnProcesses` (`gh auth token`,
 when no token is set).
 
-The GitHub mark in `icons/` comes from the
-[Raycast GitHub extension](https://github.com/raycast/extensions/tree/main/extensions/github)
-(MIT), drawn from GitHub's Octicons.
+The extension's icon is GitHub's mark on a graphite tile. Rows draw their
+state with GitHub's own [Octicons](https://primer.style/octicons) (MIT,
+`icons/octicons/LICENSE`) in GitHub's colors: green open, gray draft or not
+planned, purple merged or completed, red closed; notifications are blue while
+unread.

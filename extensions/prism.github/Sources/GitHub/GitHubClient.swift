@@ -228,6 +228,8 @@ struct GitHubIssue: Decodable, Hashable, Sendable {
     let number: Int
     let title: String
     let state: String
+    /// Why a closed issue closed: `completed`, `not_planned`, or `reopened`.
+    let stateReason: String?
     let draft: Bool?
     let updatedAt: Date
     let htmlUrl: URL
