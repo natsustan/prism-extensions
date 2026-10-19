@@ -24,8 +24,10 @@ examples/            focus-flag and folders (sh), todo-swift (a list in Swift)
 tools/               prism-extension lint / smoke, and check.sh
 ```
 
-`extensions/prism.*` are Prism's own extensions. The `prism.` namespace is
-reserved for them; everyone else uses `<github-username>.<name>`.
+Folders without a dot, such as `extensions/caffeinate`, are Prism's own
+extensions: their IDs use the reserved `prism.` namespace (`prism.caffeinate`),
+which the folder name leaves out. Everyone else uses `<github-username>.<name>`
+as both the ID and the folder name.
 
 ## Making an extension
 
