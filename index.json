@@ -291,10 +291,135 @@
       "publishedAt" : 1792052393,
       "releaseNotes" : "- Runs as its own process, built with PrismExtensionKit, instead of inside\n  Prism. Commands, the status row, the widget, and the preference are\n  unchanged.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.caffeinate"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
+          "network",
+          "spawnProcesses"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "notifications",
+            "keywords" : [
+              "github",
+              "notifications",
+              "inbox",
+              "unread"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "com.github.GitHubClient",
+            "subtitle" : "GitHub",
+            "title" : "GitHub Notifications"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "pull-requests",
+            "keywords" : [
+              "github",
+              "pull requests",
+              "pr",
+              "prs",
+              "review"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "com.github.GitHubClient",
+            "subtitle" : "GitHub",
+            "title" : "My Pull Requests"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "issues",
+            "keywords" : [
+              "github",
+              "issues",
+              "bugs"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "com.github.GitHubClient",
+            "subtitle" : "GitHub",
+            "title" : "My Issues"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "repositories",
+            "keywords" : [
+              "github",
+              "repositories",
+              "repos",
+              "starred"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "com.github.GitHubClient",
+            "subtitle" : "GitHub",
+            "title" : "GitHub Repositories"
+          }
+        ],
+        "description" : "Your GitHub notifications, pull requests, issues, and repositories, on GitHub.com or GitHub Enterprise.",
+        "executable" : "bin/GitHub",
+        "folders" : [
+
+        ],
+        "icon" : {
+          "image" : "icons/github.svg",
+          "style" : "tile",
+          "symbol" : "chevron.left.forwardslash.chevron.right",
+          "tint" : "graphite"
+        },
+        "id" : "prism.github",
+        "name" : "GitHub",
+        "preferences" : [
+          {
+            "caption" : "A classic token with the repo, read:org, and notifications scopes. Sent only to your GitHub server. Leave blank to use your GitHub CLI (gh) login.",
+            "id" : "token",
+            "section" : "Account",
+            "title" : "Personal Access Token",
+            "type" : "secret"
+          },
+          {
+            "caption" : "Leave as https://github.com, or enter your GitHub Enterprise Server address.",
+            "default" : "https://github.com",
+            "id" : "server",
+            "section" : "Account",
+            "title" : "Server",
+            "type" : "text"
+          }
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "8885db8ae0539cd1630d4f9c07adf5c49fea420bbe78cf8911a6147d5fef6f66",
+        "size" : 592481,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.github%401.0.0/prism.github-1.0.0.prismextension"
+      },
+      "publishedAt" : 1792385392,
+      "releaseNotes" : "- GitHub Notifications: unread or all notifications, with the reason for each.\n- My Pull Requests and My Issues: grouped as on GitHub (created, review\n  requests, assigned, mentioned, reviewed, recently closed), with search.\n- GitHub Repositories: your repositories, starred ones, or a search of all of\n  GitHub.\n- GitHub.com or GitHub Enterprise Server, signed in through the GitHub CLI\n  (`gh auth login`) or with a classic personal access token.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.github"
     }
   ],
   "format" : 1,
-  "generatedAt" : 1792383186,
+  "generatedAt" : 1792385393,
   "revoked" : [
 
   ]
