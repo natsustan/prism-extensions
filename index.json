@@ -32,6 +32,9 @@
         ],
         "description" : "Quotas for your AI coding agents — Codex, Claude, Grok, Amp, Antigravity, Devin, and Z.ai — in the launcher and in widgets.",
         "executable" : "bin/AgentUsage",
+        "folders" : [
+
+        ],
         "icon" : {
           "symbol" : "gauge.with.needle",
           "tint" : "indigo"
@@ -113,6 +116,70 @@
       "manifest" : {
         "author" : "Prism",
         "capabilities" : [
+          "readHomeFiles"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "search-notes",
+            "keywords" : [
+              "notes",
+              "apple notes",
+              "find note",
+              "memo",
+              "备忘录",
+              "笔记"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "com.apple.Notes",
+            "subtitle" : "Apple Notes",
+            "title" : "Search Notes"
+          }
+        ],
+        "description" : "Search your Apple Notes by title, folder, content, tags, or pinyin, and open them in Notes.",
+        "executable" : "bin/AppleNotes",
+        "folders" : [
+          {
+            "id" : "notes",
+            "path" : "~/Library/Group Containers/group.com.apple.notes",
+            "reason" : "Apple Notes searches your notes in this folder and never changes them."
+          }
+        ],
+        "icon" : {
+          "app" : "com.apple.Notes",
+          "symbol" : "note.text",
+          "tint" : "gold"
+        },
+        "id" : "prism.apple-notes",
+        "name" : "Apple Notes",
+        "preferences" : [
+
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "e60c202502d23fd7923f8d22908b9039cc8354cebfd6ab605ae49c16cb49e030",
+        "size" : 490725,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.apple-notes%401.0.0/prism.apple-notes-1.0.0.prismextension"
+      },
+      "publishedAt" : 1792383186,
+      "releaseNotes" : "- Search Notes: search every note by title, content, folder, tags, or\n  pinyin, title matches first, and open them in Notes.\n- Tab on Notes' own row in root search opens Search Notes.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/prism.apple-notes"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
           "hostTasks",
           "inspectProcesses"
         ],
@@ -180,6 +247,9 @@
         ],
         "description" : "Keep your Mac awake from the launcher, a hotkey, or a widget.",
         "executable" : "bin/Caffeinate",
+        "folders" : [
+
+        ],
         "icon" : {
           "symbol" : "cup.and.saucer.fill",
           "tint" : "brown"
@@ -224,7 +294,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1792052393,
+  "generatedAt" : 1792383186,
   "revoked" : [
 
   ]
