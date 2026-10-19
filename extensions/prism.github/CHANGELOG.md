@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- The Gallery shows the GitHub mark before the extension is installed.
+
 ## 1.0.0
 
 - GitHub Notifications: unread or all notifications, with the reason for each.
