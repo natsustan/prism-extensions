@@ -15,6 +15,7 @@
 
             ],
             "id" : "usage",
+            "interactive" : false,
             "keywords" : [
               "ai",
               "usage",
@@ -124,6 +125,7 @@
 
             ],
             "id" : "search-notes",
+            "interactive" : false,
             "keywords" : [
               "notes",
               "apple notes",
@@ -189,6 +191,7 @@
 
             ],
             "id" : "caffeinate",
+            "interactive" : false,
             "keywords" : [
               "keep awake",
               "prevent sleep",
@@ -204,6 +207,7 @@
 
             ],
             "id" : "caffeinate-status",
+            "interactive" : false,
             "keywords" : [
               "awake",
               "sleep",
@@ -219,6 +223,7 @@
 
             ],
             "id" : "decaffeinate",
+            "interactive" : false,
             "keywords" : [
               "allow sleep",
               "stop caffeinate",
@@ -234,6 +239,7 @@
 
             ],
             "id" : "toggle-caffeinate",
+            "interactive" : false,
             "keywords" : [
               "keep awake",
               "allow sleep",
@@ -293,6 +299,105 @@
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/caffeinate"
     },
     {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
+
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "pick-color",
+            "interactive" : true,
+            "keywords" : [
+              "color picker",
+              "eyedropper",
+              "sample",
+              "screen"
+            ],
+            "liveStatus" : false,
+            "mode" : "no-view",
+            "title" : "Pick Color"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "colors",
+            "interactive" : false,
+            "keywords" : [
+              "color picker",
+              "saved colors",
+              "favorite colors",
+              "history",
+              "palette"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "subtitle" : "Color Picker",
+            "title" : "Colors"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "convert-color",
+            "interactive" : false,
+            "keywords" : [
+              "color picker",
+              "hex",
+              "rgb",
+              "hsl",
+              "oklch",
+              "p3",
+              "color name"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "subtitle" : "Color Picker",
+            "title" : "Convert Color"
+          }
+        ],
+        "description" : "Pick colors anywhere on screen, keep them, and copy them as HEX, RGB, HSL, OKLCH, LCH, Display P3, or SwiftUI.",
+        "executable" : "bin/ColorPicker",
+        "folders" : [
+
+        ],
+        "icon" : {
+          "symbol" : "eyedropper",
+          "tint" : "pink"
+        },
+        "id" : "prism.color-picker",
+        "name" : "Color Picker",
+        "preferences" : [
+          {
+            "caption" : "Drag to reorder. Pick Color copies the first format that’s on; saved colors offer every format that’s on.",
+            "id" : "formats",
+            "title" : "Formats",
+            "type" : "orderedList"
+          }
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "457a1a7901313967a46c738f0bfdca196a1b5323f9918db84dc5a27362040b39",
+        "size" : 507954,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.color-picker%401.0.0/prism.color-picker-1.0.0.prismextension"
+      },
+      "publishedAt" : 1792483135,
+      "releaseNotes" : "- Pick Color: pick a color anywhere on screen and copy it in your first format.\n- Colors: the colors you picked, with favorites, names, and every format.\n- Convert Color: type or paste a color or a CSS color name and copy it in any\n  format.\n- Formats: choose and order HEX, RGB, HSL, OKLCH, LCH, Display P3, and SwiftUI.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/color-picker"
+    },
+    {
       "iconImage" : "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMTIgMGM2LjYzIDAgMTIgNS4yNzYgMTIgMTEuNzktLjAwMSA1LjA2Ny0zLjI5IDkuNTY3LTguMTc1IDExLjE4Ny0uNi4xMTgtLjgyNS0uMjUtLjgyNS0uNTYgMC0uMzk4LjAxNS0xLjY2NS4wMTUtMy4yNDIgMC0xLjEwNS0uMzc1LTEuODEzLS44MS0yLjE4MSAyLjY3LS4yOTUgNS40NzUtMS4yOTcgNS40NzUtNS44MjIgMC0xLjI5Ny0uNDY1LTIuMzQ0LTEuMjMtMy4xNjkuMTItLjI5NS41NC0xLjUwMy0uMTItMy4xMjUgMCAwLTEuMDA1LS4zMjQtMy4zIDEuMjA5YTExLjMyIDExLjMyIDAgMDAtMy0uMzk4Yy0xLjAyIDAtMi4wNC4xMzMtMyAuMzk4LTIuMjk1LTEuNTE4LTMuMy0xLjIwOS0zLjMtMS4yMDktLjY2IDEuNjIyLS4yNCAyLjgzLS4xMiAzLjEyNS0uNzY1LjgyNS0xLjIzIDEuODg3LTEuMjMgMy4xNjkgMCA0LjUxIDIuNzkgNS41MjcgNS40NiA1LjgyMi0uMzQ1LjI5NC0uNjYuODEtLjc2NSAxLjU3Ny0uNjkuMzEtMi40MTUuODEtMy40OTUtLjk3My0uMjI1LS4zNTQtLjktMS4yMjMtMS44NDUtMS4yMDktMS4wMDUuMDE1LS40MDUuNTYuMDE1Ljc4MS41MS4yOCAxLjA5NSAxLjMyNyAxLjIzIDEuNjY2LjI0LjY2MyAxLjAyIDEuOTMgNC4wMzUgMS4zODUgMCAuOTg4LjAxNSAxLjkxNi4wMTUgMi4xOTYgMCAuMzEtLjIyNS42NjQtLjgyNS41NkMzLjMwMyAyMS4zNzQtLjAwMyAxNi44NjcgMCAxMS43OTEgMCA1LjI3NiA1LjM3IDAgMTIgMHoiLz48L3N2Zz4K",
       "manifest" : {
         "author" : "Prism",
@@ -306,6 +411,7 @@
 
             ],
             "id" : "notifications",
+            "interactive" : false,
             "keywords" : [
               "github",
               "notifications",
@@ -323,6 +429,7 @@
 
             ],
             "id" : "pull-requests",
+            "interactive" : false,
             "keywords" : [
               "github",
               "pull requests",
@@ -341,6 +448,7 @@
 
             ],
             "id" : "issues",
+            "interactive" : false,
             "keywords" : [
               "github",
               "issues",
@@ -357,6 +465,7 @@
 
             ],
             "id" : "repositories",
+            "interactive" : false,
             "keywords" : [
               "github",
               "repositories",
@@ -420,7 +529,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1792396071,
+  "generatedAt" : 1792483136,
   "revoked" : [
 
   ]
