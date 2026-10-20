@@ -10,54 +10,67 @@ struct PortManagerTests {
     let command = PortManager.CommandID.openPorts
     typealias ActionID = PortManager.ActionID
 
-    let node = RunningProcess.fake(4242, "node", parent: 4200, arguments: ["node", "server.js", "--port", "3000"])
+    let node = RunningProcess.fake(4242, "node", parent: 4200, path: "/opt/homebrew/bin/node", arguments: ["node", "server.js", "--port", "3000"])
     let npm = RunningProcess.fake(4200, "npm")
     let postgres = RunningProcess.fake(610, "postgres", path: "/opt/homebrew/opt/postgresql@17/bin/postgres")
     let sshd = RunningProcess.fake(1, "launchd", user: root, parent: 0, path: "/sbin/launchd")
 
-    /// node on localhost over IPv4 and IPv6, Postgres on every interface, and
-    /// root's Remote Login.
+    let nodeRow = "4242@1700000000.250000"
+
+    /// node on localhost over IPv4 and IPv6 on two ports, Postgres on every
+    /// interface, and root's Remote Login.
     func typicalMac() -> FakePorts {
         let fake = FakePorts()
         fake.run(npm)
-        fake.listen(node, at: ("127.0.0.1", 3000), ("::1", 3000))
+        fake.listen(node, at: ("127.0.0.1", 3000), ("::1", 3000), ("0.0.0.0", 9229))
         fake.listen(postgres, at: ("0.0.0.0", 5432), ("::", 5432))
         fake.listen(sshd, at: ("0.0.0.0", 22), ("::", 22), listedName: "launchd")
         return fake
     }
 
-    @Test("lists one row per process and port, by port, with IPv4 and IPv6 sockets together")
+    @Test("lists one row per process, by its lowest port, with each port colored by its reach")
     func rows() async throws {
         let prism = try await PrismTestHost(PortManager(fake: typicalMac()))
         let list = try await prism.list(command)
-        #expect(list.items.map(\.id) == ["1:22", "4242:3000", "610:5432"])
-        #expect(list.items.map(\.title) == ["22", "3000", "5432"])
-        #expect(list.items.map(\.subtitle) == ["launchd", "node", "postgres"])
+        #expect(list.items.map(\.id) == ["1@1700000000.250000", nodeRow, "610@1700000000.250000"])
+        #expect(list.items.map(\.title) == ["launchd", "node", "postgres"])
+        #expect(list.items.map(\.subtitle) == ["root", nil, nil])
         #expect(list.filtering == .prism)
         #expect(list.error == nil)
 
-        let nodeRow = list.items[1]
-        #expect(nodeRow.accessories == [
-            ExtensionListAccessory(text: "Localhost", symbol: "lock.fill", tint: "green", help: "Reachable only from this Mac"),
+        let row = list.items[1]
+        #expect(row.accessories == [
+            ExtensionListAccessory(text: "3000", tint: "green", help: "127.0.0.1:3000, [::1]:3000: reachable only from this Mac"),
+            ExtensionListAccessory(text: "9229", tint: "orange", help: "0.0.0.0:9229: reachable from other devices on your network"),
         ])
-        #expect(nodeRow.keywords.contains("node server.js --port 3000"))
-        #expect(nodeRow.keywords.contains("[::1]:3000"))
-        #expect(nodeRow.keywords.contains("4242"))
-        #expect(list.items[2].accessories.map(\.text) == ["Network"])
+        for keyword in ["3000", "9229", "[::1]:3000", "4242", "node server.js --port 3000", "/opt/homebrew/bin/node"] {
+            #expect(row.keywords.contains(keyword))
+        }
     }
 
-    @Test("a port the user named shows its name before the process")
+    @Test("a process with many ports shows the first two and a count of the rest")
+    func manyPorts() async throws {
+        let fake = FakePorts()
+        fake.listen(.fake(1111, "Surge"), at: ("127.0.0.1", 6171), ("0.0.0.0", 6152), ("0.0.0.0", 6153), ("127.0.0.1", 49160))
+        fake.listen(.fake(721, "ControlCenter"), at: ("0.0.0.0", 5000), ("0.0.0.0", 7000), ("::", 7000))
+        let list = try await PrismTestHost(PortManager(fake: fake)).list(command)
+        #expect(list.items.map { $0.accessories.map(\.text) } == [["5000", "7000"], ["6152", "6153", "+2"]])
+        #expect(list.items[1].accessories.last == ExtensionListAccessory(text: "+2", help: "6171, 49160"))
+    }
+
+    @Test("a port the user named is found by its name and shows it in the detail")
     func portNames() async throws {
         let prism = try await PrismTestHost(
             PortManager(fake: typicalMac()), preferences: [PortManager.PreferenceID.portNames: .string("3000 Web, 5432=Postgres")]
         )
-        let list = try await prism.list(command)
-        #expect(list.items.map(\.subtitle) == ["launchd", "Web · node", "Postgres · postgres"])
-        #expect(list.items[1].detail?.title == "Port 3000 · Web")
-        #expect(list.items[1].keywords.contains("Web"))
+        let row = try #require(try await prism.list(command).items.first { $0.id == nodeRow })
+        #expect(row.keywords.contains("Web"))
+        #expect(row.accessories.map(\.text) == ["3000", "9229"])
+        #expect(row.accessories[0].help == "Web, 127.0.0.1:3000, [::1]:3000: reachable only from this Mac")
+        #expect(row.detail?.sections[0].rows.map(\.value) == ["Web · This Mac only", "Web · This Mac only", "Every network interface"])
     }
 
-    @Test("filters narrow the list by how far a port reaches")
+    @Test("filters keep the processes with a port that reaches that far, and only those ports")
     func filters() async throws {
         let fake = typicalMac()
         fake.listen(.fake(900, "vite"), at: ("192.168.1.20", 5173))
@@ -65,13 +78,21 @@ struct PortManagerTests {
         typealias FilterID = PortManager.FilterID
 
         #expect(try await prism.list(command).filters.map(\.id) == [FilterID.all, FilterID.localhost, FilterID.network, FilterID.interface])
-        #expect(try await prism.list(command, filter: FilterID.all).items.map(\.title) == ["22", "3000", "5173", "5432"])
-        #expect(try await prism.list(command, filter: FilterID.localhost).items.map(\.title) == ["3000"])
-        #expect(try await prism.list(command, filter: FilterID.network).items.map(\.title) == ["22", "5432"])
+        #expect(try await prism.list(command, filter: FilterID.all).items.map(\.title) == ["launchd", "node", "vite", "postgres"])
+
+        let localhost = try await prism.list(command, filter: FilterID.localhost)
+        #expect(localhost.items.map(\.title) == ["node"])
+        #expect(localhost.items[0].accessories.map(\.text) == ["3000"])
+
+        let network = try await prism.list(command, filter: FilterID.network)
+        #expect(network.items.map(\.title) == ["launchd", "postgres", "node"])
+        #expect(network.items[2].accessories.map(\.text) == ["9229"])
+
         let interface = try await prism.list(command, filter: FilterID.interface)
-        #expect(interface.items.map(\.title) == ["5173"])
-        #expect(interface.items[0].accessories.map(\.text) == ["192.168.1.20"])
-        #expect(interface.filters.count == 4)
+        #expect(interface.items.map(\.title) == ["vite"])
+        #expect(interface.items[0].accessories == [
+            ExtensionListAccessory(text: "5173", tint: "blue", help: "192.168.1.20:5173: reachable only through this address"),
+        ])
     }
 
     @Test("an empty list says nothing is listening, or nothing matches the filter")
@@ -90,33 +111,38 @@ struct PortManagerTests {
         fake.listen(node, at: ("127.0.0.1", 3000))
         fake.showOnlyCurrentUser()
         let list = try await PrismTestHost(PortManager(fake: fake)).list(command)
-        #expect(list.items.map(\.title) == ["3000"])
+        #expect(list.items.map(\.title) == ["node"])
         #expect(list.error == "Only your own processes are shown, because the system’s list of sockets couldn’t be read.")
     }
 
-    @Test("the user's own process can be killed, force killed, or have its parent killed")
+    @Test("the user's own process can be killed, force killed, have its parent killed, or opened on each port")
     func ownActions() async throws {
         let list = try await PrismTestHost(PortManager(fake: typicalMac())).list(command)
-        let row = try #require(list.items.first { $0.id == "4242:3000" })
+        let row = try #require(list.items.first { $0.id == nodeRow })
         #expect(row.actions.map(\.id) == [
-            ActionID.kill, ActionID.forceKill, ActionID.killParent, ActionID.openInBrowser,
+            ActionID.kill, ActionID.forceKill, ActionID.killParent, ActionID.openInBrowser, "\(ActionID.openInBrowser):9229",
             ActionID.showInFinder, ActionID.copyPID, ActionID.copyCommandLine,
         ])
         #expect(row.actions.filter { $0.style == .destructive }.count == 3)
-        #expect(row.primaryAction?.confirmationMessage == "“node” (PID 4242) stops listening on port 3000 and quits.")
+        #expect(row.primaryAction?.confirmationMessage == "“node” (PID 4242) stops listening on ports 3000 and 9229 and quits.")
         #expect(row.action(id: ActionID.killParent)?.confirmationMessage == "“npm” (PID 4200), which started “node”, quits.")
+        #expect(row.actions.filter { $0.symbol == "safari" }.map(\.title) == ["Open 3000 in Browser", "Open 9229 in Browser"])
         #expect(row.action(id: ActionID.openInBrowser)?.kind == .open(url: URL(string: "http://localhost:3000")!))
         #expect(row.action(id: ActionID.copyPID)?.kind == .copy(text: "4242"))
         #expect(row.action(id: ActionID.copyCommandLine)?.kind == .copy(text: "node server.js --port 3000"))
+
+        let postgresRow = try #require(list.items.last)
         // Postgres's parent is launchd, which is never offered.
-        #expect(list.items.first { $0.id == "610:5432" }?.action(id: ActionID.killParent) == nil)
+        #expect(postgresRow.action(id: ActionID.killParent) == nil)
+        #expect(postgresRow.action(id: ActionID.openInBrowser)?.title == "Open in Browser")
+        #expect(postgresRow.primaryAction?.confirmationMessage == "“postgres” (PID 610) stops listening on port 5432 and quits.")
     }
 
-    @Test("another user's process shows its owner and offers no kill")
+    @Test("another user's process names its owner and offers no kill")
     func otherUsersProcess() async throws {
         let list = try await PrismTestHost(PortManager(fake: typicalMac())).list(command)
         let row = try #require(list.items.first)
-        #expect(row.accessories.map(\.text) == ["root", "Network"])
+        #expect(row.subtitle == "root")
         #expect(row.actions.map(\.id) == [ActionID.openInBrowser, ActionID.showInFinder, ActionID.copyPID])
     }
 
@@ -132,21 +158,25 @@ struct PortManagerTests {
         ])
     }
 
-    @Test("the detail shows where it listens, the process, and its command line")
+    @Test("the detail shows the command line, where it listens, and the process, with no long values in rows")
     func detail() async throws {
         let list = try await PrismTestHost(PortManager(fake: typicalMac())).list(command)
         let detail = try #require(list.items[1].detail)
-        #expect(detail.title == "Port 3000")
-        #expect(detail.subtitle == "node")
-        #expect(detail.markdown == "```\nnode server.js --port 3000\n```")
+        #expect(detail.title == "node")
+        #expect(detail.subtitle == "Ports 3000, 9229")
+        #expect(detail.markdown == "```\nnode server.js --port 3000\n```\n\nRuns `/opt/homebrew/bin/node`")
         #expect(detail.sections.map(\.title) == ["Listening On", "Process"])
-        #expect(detail.sections[0].rows.map(\.label) == ["127.0.0.1:3000", "[::1]:3000"])
-        #expect(detail.sections[0].rows.map(\.value) == ["This Mac only", "This Mac only"])
-        #expect(detail.sections[1].rows.map(\.label) == ["Name", "PID", "User", "Parent", "Path"])
-        #expect(detail.sections[1].rows.map(\.value) == ["node", "4242", "jane", "npm (PID 4200)", "/usr/local/bin/node"])
+        #expect(detail.sections[0].rows.map(\.label) == ["127.0.0.1:3000", "[::1]:3000", "0.0.0.0:9229"])
+        #expect(detail.sections[0].rows.map(\.value) == ["This Mac only", "This Mac only", "Every network interface"])
+        #expect(detail.sections[1].rows.map(\.label) == ["PID", "User", "Parent"])
+        #expect(detail.sections[1].rows.map(\.value) == ["4242", "jane", "npm (4200)"])
         #expect(detail.metadata == [ExtensionMetadataRow(label: "Started", date: Date(timeIntervalSince1970: TimeInterval(startSeconds)))])
-        // Another user's arguments can't be read.
-        #expect(list.items[0].detail?.markdown == nil)
+
+        // Another user's arguments can't be read, so its path stands in.
+        #expect(list.items[0].detail?.markdown == "```\n/sbin/launchd\n```")
+        #expect(list.items[0].detail?.subtitle == "Port 22")
+        // A command line that is only the path isn't repeated.
+        #expect(list.items[2].detail?.markdown == "```\n/opt/homebrew/opt/postgresql@17/bin/postgres\n```")
     }
 
     @Test("an app's process shows its app's icon, and Show in Finder reveals its own bundle")
@@ -156,17 +186,22 @@ struct PortManagerTests {
             xcodePython: "org.python.python",
             "/Applications/Docker.app": "com.docker.docker",
         ])
-        fake.listen(.fake(77, "Python", path: "\(xcodePython)/Contents/MacOS/Python"), at: ("127.0.0.1", 8000))
-        fake.listen(.fake(78, "com.docker.backend", path: "/Applications/Docker.app/Contents/MacOS/com.docker.backend"), at: ("127.0.0.1", 2375))
-        fake.listen(.fake(79, "com.docker.vpnkit", path: "/Applications/Docker.app/Contents/Resources/bin/com.docker.vpnkit"), at: ("127.0.0.1", 2376))
-        fake.listen(.fake(80, "redis-server"), at: ("127.0.0.1", 6379))
+        let python = RunningProcess.fake(77, "Python", path: "\(xcodePython)/Contents/MacOS/Python")
+        let backend = RunningProcess.fake(78, "com.docker.backend", path: "/Applications/Docker.app/Contents/MacOS/com.docker.backend")
+        let vpnkit = RunningProcess.fake(79, "com.docker.vpnkit", path: "/Applications/Docker.app/Contents/Resources/bin/com.docker.vpnkit")
+        let redis = RunningProcess.fake(80, "redis-server")
+        fake.listen(python, at: ("127.0.0.1", 8000))
+        fake.listen(backend, at: ("127.0.0.1", 2375))
+        fake.listen(vpnkit, at: ("127.0.0.1", 2376))
+        fake.listen(redis, at: ("127.0.0.1", 6379))
         let prism = try await PrismTestHost(PortManager(fake: fake))
         let list = try await prism.list(command)
         #expect(list.items.map(\.icon?.app) == ["com.docker.docker", "com.docker.docker", nil, "org.python.python"])
         #expect(list.items[2].icon == ExtensionIcon(symbol: "terminal", tint: "gray"))
 
-        for item in ["77:8000", "78:2375", "79:2376", "80:6379"] {
-            #expect(try await prism.perform(ActionID.showInFinder, on: item, in: command) == .done)
+        for process in [python, backend, vpnkit, redis] {
+            let id = "\(process.pid)@1700000000.250000"
+            #expect(try await prism.perform(ActionID.showInFinder, on: id, in: command) == .done)
         }
         #expect(fake.revealed == [
             xcodePython, "/Applications/Docker.app",
@@ -180,9 +215,9 @@ struct PortManagerTests {
     func kill() async throws {
         let fake = typicalMac()
         let prism = try await PrismTestHost(PortManager(fake: fake))
-        #expect(try await prism.perform(ActionID.kill, on: "4242:3000", in: command) == .reload(message: "Killed “node”."))
+        #expect(try await prism.perform(ActionID.kill, on: nodeRow, in: command) == .reload(message: "Killed “node”."))
         #expect(fake.signals == [.init(pid: 4242, signal: SIGTERM)])
-        #expect(try await prism.list(command).items.map(\.title) == ["22", "5432"])
+        #expect(try await prism.list(command).items.map(\.title) == ["launchd", "postgres"])
     }
 
     @Test("a process that ignores SIGTERM is reported still running, and Force Kill stops it")
@@ -190,9 +225,9 @@ struct PortManagerTests {
         let fake = typicalMac()
         fake.ignoreTerminate(4242)
         let prism = try await PrismTestHost(PortManager(fake: fake))
-        #expect(try await prism.perform(ActionID.kill, on: "4242:3000", in: command)
+        #expect(try await prism.perform(ActionID.kill, on: nodeRow, in: command)
             == .reload(message: "“node” is still running. Force Kill (⌘⇧⌫) stops it at once."))
-        #expect(try await prism.perform(ActionID.forceKill, on: "4242:3000", in: command) == .reload(message: "Killed “node”."))
+        #expect(try await prism.perform(ActionID.forceKill, on: nodeRow, in: command) == .reload(message: "Killed “node”."))
         #expect(fake.signals == [.init(pid: 4242, signal: SIGTERM), .init(pid: 4242, signal: SIGKILL)])
     }
 
@@ -200,28 +235,28 @@ struct PortManagerTests {
     func killParent() async throws {
         let fake = typicalMac()
         let prism = try await PrismTestHost(PortManager(fake: fake))
-        #expect(try await prism.perform(ActionID.killParent, on: "4242:3000", in: command) == .reload(message: "Killed “npm”."))
+        #expect(try await prism.perform(ActionID.killParent, on: nodeRow, in: command) == .reload(message: "Killed “npm”."))
         #expect(fake.signals == [.init(pid: 4200, signal: SIGTERM)])
     }
 
-    @Test("an action on a port that has closed since the list loaded signals nothing")
-    func closedPort() async throws {
+    @Test("an action on a process that stopped listening since the list loaded signals nothing")
+    func stoppedListening() async throws {
         let fake = typicalMac()
         let prism = try await PrismTestHost(PortManager(fake: fake))
         fake.quit(4242)
-        #expect(try await prism.perform(ActionID.kill, on: "4242:3000", in: command) == .reload(message: "Port 3000 is no longer open."))
+        #expect(try await prism.perform(ActionID.kill, on: nodeRow, in: command) == .reload(message: "That process is no longer listening."))
         #expect(fake.signals.isEmpty)
     }
 
-    @Test("a server restarted under a new PID is a new row, so the old row signals nothing")
-    func restartedServer() async throws {
+    @Test("a new process that got the old one's PID is a new row, so the old row signals nothing")
+    func reusedPID() async throws {
         let fake = typicalMac()
         let prism = try await PrismTestHost(PortManager(fake: fake))
         fake.quit(4242)
-        fake.listen(.fake(4300, "node"), at: ("127.0.0.1", 3000))
-        #expect(try await prism.perform(ActionID.kill, on: "4242:3000", in: command) == .reload(message: "Port 3000 is no longer open."))
+        fake.listen(.fake(4242, "node", startedAt: startSeconds + 60), at: ("127.0.0.1", 3000))
+        #expect(try await prism.perform(ActionID.kill, on: nodeRow, in: command) == .reload(message: "That process is no longer listening."))
         #expect(fake.signals.isEmpty)
-        #expect(try await prism.list(command).items.map(\.id).contains("4300:3000"))
+        #expect(try await prism.list(command).items.map(\.id).contains("4242@1700000060.250000"))
     }
 
     @Test("a refused signal is shown as a failure")
@@ -229,7 +264,7 @@ struct PortManagerTests {
         let fake = typicalMac()
         fake.refuseSignals(4242)
         let prism = try await PrismTestHost(PortManager(fake: fake))
-        #expect(try await prism.perform(ActionID.kill, on: "4242:3000", in: command)
+        #expect(try await prism.perform(ActionID.kill, on: nodeRow, in: command)
             == ExtensionActionResult(.failed(message: "You don’t have permission to kill “node”."), reload: true))
         #expect(fake.signals.isEmpty)
     }

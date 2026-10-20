@@ -53,15 +53,20 @@ struct PortManager: PrismExtension {
             throw PrismExtensionError("Port Manager has no list “\(command)”.")
         }
         let names = PortNames(context.preferences.string(PreferenceID.portNames))
-        let (ports, scan) = await openPorts()
+        let (listeners, scan) = await listeningProcesses()
         try Task.checkCancellation()
 
+        // A filter keeps the processes with a port that reaches that far, and
+        // shows only those ports.
         let exposure = Self.exposure(for: filter)
+        let shown = exposure.map { exposure in
+            listeners.compactMap { $0.only(exposure) }.sorted(by: ListeningProcess.byLowestPort)
+        } ?? listeners
         let currentUserID = system.currentUserID
         return ExtensionList(
-            items: ports.filter { exposure == nil || $0.exposure == exposure }.map {
+            items: shown.map {
                 PortRows.item(
-                    for: $0, name: names[$0.port], currentUserID: currentUserID,
+                    for: $0, names: names, currentUserID: currentUserID,
                     bundleIdentifier: system.bundleIdentifier(ofAppAt:)
                 )
             },
@@ -78,21 +83,20 @@ struct PortManager: PrismExtension {
         guard command == CommandID.openPorts else {
             throw PrismExtensionError("Port Manager has no list “\(command)”.")
         }
-        // The row may be minutes old: act only if the same process still
-        // listens there.
-        guard let port = await openPorts().ports.first(where: { $0.id == item }) else {
-            let number = item.split(separator: ":").last.map(String.init) ?? item
-            return .reload(message: "Port \(number) is no longer open.")
+        // The row may be minutes old: its ID names the process by PID and
+        // start time, so act only if that same process still listens.
+        guard let listener = await listeningProcesses().listeners.first(where: { $0.id == item }) else {
+            return .reload(message: "That process is no longer listening.")
         }
         switch action {
         case ActionID.kill:
-            return try await stop(port.process, with: SIGTERM)
+            return try await stop(listener.process, with: SIGTERM)
         case ActionID.forceKill:
-            return try await stop(port.process, with: SIGKILL)
+            return try await stop(listener.process, with: SIGKILL)
         case ActionID.killParent:
-            return try await stop(port.parent, with: SIGTERM)
+            return try await stop(listener.parent, with: SIGTERM)
         case ActionID.showInFinder:
-            guard let path = port.process.flatMap({ $0.bundlePath ?? $0.path }) else {
+            guard let path = listener.process.flatMap({ $0.bundlePath ?? $0.path }) else {
                 return ExtensionActionResult(.failed(message: "The program’s location can’t be read."))
             }
             do {
@@ -108,9 +112,9 @@ struct PortManager: PrismExtension {
 
     // MARK: - Reading and stopping
 
-    private func openPorts() async -> (ports: [OpenPort], scan: SocketScan) {
+    private func listeningProcesses() async -> (listeners: [ListeningProcess], scan: SocketScan) {
         let scan = await system.listeningSockets()
-        return (OpenPort.group(scan.sockets, processes: system.process), scan)
+        return (ListeningProcess.group(scan.sockets, processes: system.process), scan)
     }
 
     static func exposure(for filter: String?) -> Exposure? {

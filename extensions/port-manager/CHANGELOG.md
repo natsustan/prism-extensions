@@ -2,8 +2,9 @@
 
 ## 1.0.0
 
-- Open Ports lists every listening TCP port with the process behind it and
-  whether it is open to this Mac only, to the network, or to one address.
+- Open Ports lists every process listening on a TCP port, with its ports
+  colored by whether each is open to this Mac only, to the network, or to one
+  address.
 - Kill, force kill, or kill the parent of the process on a port, after a
   confirmation; a process that ignores the request to quit is reported as
   still running.

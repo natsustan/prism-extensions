@@ -3,17 +3,18 @@
 Shows which programs listen on which TCP ports, how far each port reaches,
 and kills the process behind one.
 
-- **Open Ports** lists every listening port, one row per process and port,
-  with the process beside it and how far the port reaches: **Localhost**
-  (only this Mac), **Network** (every interface, so other devices too), or the
-  one address it is bound to. Type a port, a process, an address, or part of a
+- **Open Ports** lists every process that listens on a TCP port, one row per
+  process, with its ports beside it. Each port’s color says how far it
+  reaches: green for this Mac only, orange for every network interface (so
+  other devices too), blue for the one address it is bound to; hover a port
+  to see its addresses. Type a port, a process, an address, or part of a
   command line to find it. Return kills the process after you confirm; ⌘K
   also force kills it (⌘⇧⌫), kills the process that started it, such as
-  `npm` for its `node`, opens the port in your browser (⌘O), shows the
-  program in Finder (⌘⇧F), or copies its PID (⌘⇧C) or command line (⌘⇧L).
-  ⌘P shows only Localhost, Network, or single-interface ports. The detail
-  pane shows every address, the process, its parent, its command line, and
-  when it started.
+  `npm` for its `node`, opens a port in your browser (⌘O for the first),
+  shows the program in Finder (⌘⇧F), or copies its PID (⌘⇧C) or command line
+  (⌘⇧L). ⌘P shows only localhost, network, or single-interface ports. The
+  detail pane shows the command line, every address, the process’s owner and
+  parent, and when it started.
 
 A kill asks the process to quit (`SIGTERM`) and reports it killed only once
 it has gone; one that keeps running can be force killed (`SIGKILL`). Before
