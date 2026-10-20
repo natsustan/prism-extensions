@@ -1,0 +1,18 @@
+{
+  "protocol": 1,
+  "id": "prism.color-picker",
+  "name": "Color Picker",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Pick colors anywhere on screen, keep them, and copy them as HEX, RGB, HSL, OKLCH, LCH, Display P3, or SwiftUI.",
+  "icon": { "symbol": "eyedropper", "tint": "pink" },
+  "executable": ".build/release/ColorPicker",
+  "commands": [
+    { "id": "pick-color", "title": "Pick Color", "mode": "no-view", "keywords": ["color picker", "eyedropper", "sample", "screen"], "interactive": true },
+    { "id": "colors", "title": "Colors", "subtitle": "Color Picker", "mode": "list", "keywords": ["color picker", "saved colors", "favorite colors", "history", "palette"] },
+    { "id": "convert-color", "title": "Convert Color", "subtitle": "Color Picker", "mode": "list", "keywords": ["color picker", "hex", "rgb", "hsl", "oklch", "p3", "color name"] }
+  ],
+  "preferences": [
+    { "id": "formats", "type": "orderedList", "title": "Formats", "caption": "Drag to reorder. Pick Color copies the first format that’s on; saved colors offer every format that’s on." }
+  ]
+}
