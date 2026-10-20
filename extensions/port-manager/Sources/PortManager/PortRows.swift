@@ -8,8 +8,8 @@ enum PortRows {
     typealias FilterID = PortManager.FilterID
 
     /// How many ports a row shows before the rest become “+N”: the list
-    /// column is narrow, and accessories don't shrink.
-    static let visiblePorts = 3
+    /// column fits two port tags beside a title.
+    static let visiblePorts = 2
     /// How many ports get their own Open in Browser action.
     static let browserPorts = 5
 
@@ -76,33 +76,29 @@ enum PortRows {
                 ))
             }
         }
-        let single = listener.ports.count == 1
-        for (index, port) in listener.ports.prefix(browserPorts).enumerated() {
-            guard let url = port.url else { continue }
-            actions.append(ExtensionAction(
-                id: index == 0 ? ActionID.openInBrowser : "\(ActionID.openInBrowser):\(port.port)",
-                title: single ? "Open in Browser" : "Open \(port.port) in Browser", symbol: "safari",
-                kind: .open(url: url), shortcut: index == 0 ? ExtensionShortcut("cmd+o") : nil
-            ))
-        }
+        actions += group(ActionID.browserMenu, title: "Open in Browser", symbol: "safari", browserActions(for: listener.ports))
+
+        var finder: [ExtensionAction] = []
         if process?.path != nil {
-            actions.append(ExtensionAction(
+            finder.append(ExtensionAction(
                 id: ActionID.showInFinder, title: "Show in Finder", symbol: "folder",
                 shortcut: ExtensionShortcut("cmd+shift+f")
             ))
         }
         if listener.parent?.path != nil {
-            actions.append(ExtensionAction(id: ActionID.showParentInFinder, title: "Show Parent in Finder", symbol: "folder"))
+            finder.append(ExtensionAction(id: ActionID.showParentInFinder, title: "Show Parent in Finder", symbol: "folder"))
         }
-        actions.append(ExtensionAction(
-            id: ActionID.copyPID, title: "Copy PID", symbol: "doc.on.doc",
+        actions += group(ActionID.finderMenu, title: "Show in Finder", symbol: "folder", finder)
+
+        var copies = [ExtensionAction(
+            id: ActionID.copyPID, title: "Copy PID", symbol: "number",
             kind: .copy(text: "\(listener.pid)"), shortcut: ExtensionShortcut("cmd+shift+c")
-        ))
+        )]
         if let path = process?.path {
-            actions.append(ExtensionAction(id: ActionID.copyPath, title: "Copy Path", symbol: "doc.on.doc", kind: .copy(text: path)))
+            copies.append(ExtensionAction(id: ActionID.copyPath, title: "Copy Path", symbol: "folder", kind: .copy(text: path)))
         }
         if let commandLine = process?.commandLine {
-            actions.append(ExtensionAction(
+            copies.append(ExtensionAction(
                 id: ActionID.copyCommandLine, title: "Copy Command Line", symbol: "terminal",
                 kind: .copy(text: commandLine), shortcut: ExtensionShortcut("cmd+shift+l")
             ))
@@ -110,12 +106,33 @@ enum PortRows {
         // Prism can't stop another user's process, but an administrator can
         // in Terminal. Never launchd, which would take the Mac down.
         if let process, process.userID != currentUserID, process.pid > 1 {
-            actions.append(ExtensionAction(
-                id: ActionID.copyKillCommand, title: "Copy Kill Command", symbol: "terminal",
+            copies.append(ExtensionAction(
+                id: ActionID.copyKillCommand, title: "Copy Kill Command", symbol: "xmark.circle",
                 kind: .copy(text: "sudo kill \(process.pid)"), shortcut: ExtensionShortcut("cmd+shift+k")
             ))
         }
+        actions += group(ActionID.copyMenu, title: "Copy", symbol: "doc.on.doc", copies)
         return actions
+    }
+
+    /// One Open in Browser action per port, the first on ⌘O.
+    private static func browserActions(for ports: [ListeningPort]) -> [ExtensionAction] {
+        let single = ports.count == 1
+        return ports.prefix(browserPorts).enumerated().compactMap { index, port in
+            port.url.map { url in
+                ExtensionAction(
+                    id: index == 0 ? ActionID.openInBrowser : "\(ActionID.openInBrowser):\(port.port)",
+                    title: single ? "Open in Browser" : "Open \(port.port) in Browser", symbol: "safari",
+                    kind: .open(url: url), shortcut: index == 0 ? ExtensionShortcut("cmd+o") : nil
+                )
+            }
+        }
+    }
+
+    /// Related actions as one submenu; a lone action stays as it is.
+    private static func group(_ id: String, title: String, symbol: String, _ actions: [ExtensionAction]) -> [ExtensionAction] {
+        guard actions.count > 1 else { return actions }
+        return [ExtensionAction(id: id, title: title, symbol: symbol, actions: actions)]
     }
 
     // MARK: - Pieces
@@ -136,13 +153,14 @@ enum PortRows {
                 text: "\(port.port)",
                 tint: port.exposure.tint,
                 help: [names[port.port], port.hosts.map { ListeningPort.address(host: $0, port: port.port) }.joined(separator: ", ")]
-                    .compactMap { $0 }.joined(separator: ", ") + ": \(port.exposure.help)"
+                    .compactMap { $0 }.joined(separator: ", ") + ": \(port.exposure.help)",
+                style: .tag
             )
         }
         let hidden = ports.dropFirst(shown.count)
         if !hidden.isEmpty {
             accessories.append(ExtensionListAccessory(
-                text: "+\(hidden.count)", help: hidden.map { "\($0.port)" }.joined(separator: ", ")
+                text: "+\(hidden.count)", help: hidden.map { "\($0.port)" }.joined(separator: ", "), style: .tag
             ))
         }
         return accessories
@@ -159,57 +177,46 @@ enum PortRows {
         return ports + ["\(listener.pid)", process?.userName, process?.path, process?.commandLine].compactMap { $0 }
     }
 
+    /// The command line above the Information block, which holds every
+    /// fact about the process, as in Raycast: a row per port, then the
+    /// process, its owner and parent, and where both programs live.
     private static func detail(for listener: ListeningProcess, names: PortNames, icon: ExtensionIcon) -> ExtensionDetail {
         let process = listener.process
-        var processRows = [ExtensionMetadataRow(label: "PID", value: "\(listener.pid)")]
+        var rows = listener.ports.map { port in
+            ExtensionMetadataRow(
+                label: names[port.port].map { "Port \(port.port) (\($0))" } ?? "Port \(port.port)",
+                value: port.hosts.map { ListeningPort.address(host: $0, port: port.port) }.joined(separator: ", ")
+                    + " · \(port.exposure.summary)"
+            )
+        }
+        rows.append(ExtensionMetadataRow(label: "PID", value: "\(listener.pid)"))
         if let process {
-            processRows.append(ExtensionMetadataRow(
+            rows.append(ExtensionMetadataRow(
                 label: "User", value: process.userName.map { "\($0) (\(process.userID))" } ?? "\(process.userID)"
             ))
         }
         if let parent = listener.parent {
-            processRows.append(ExtensionMetadataRow(label: "Parent", value: "\(parent.name) (\(parent.pid))"))
+            rows.append(ExtensionMetadataRow(label: "Parent", value: "\(parent.name) (\(parent.pid))"))
+        }
+        if let path = process?.path {
+            rows.append(ExtensionMetadataRow(label: "Path", value: path))
+        }
+        if let path = listener.parent?.path {
+            rows.append(ExtensionMetadataRow(label: "Parent Path", value: path))
+        }
+        if let process {
+            rows.append(ExtensionMetadataRow(label: "Started", date: process.startedAt))
         }
         let numbers = listener.ports.map { "\($0.port)" }.joined(separator: ", ")
+        let commandLine = process?.commandLine
         return ExtensionDetail(
             title: listener.processName,
             subtitle: listener.ports.count == 1 ? "Port \(numbers)" : "Ports \(numbers)",
             icon: icon,
-            markdown: markdown(for: process, parent: listener.parent),
-            sections: [
-                ExtensionDetailSection(title: "Listening On", rows: listener.ports.flatMap { port in
-                    port.hosts.map {
-                        ExtensionMetadataRow(
-                            label: ListeningPort.address(host: $0, port: port.port),
-                            value: [names[port.port], Exposure(host: $0).summary].compactMap { $0 }.joined(separator: " · ")
-                        )
-                    }
-                }),
-                ExtensionDetailSection(title: "Process", rows: processRows),
-            ],
-            metadata: process.map { [ExtensionMetadataRow(label: "Started", date: $0.startedAt)] } ?? []
+            // Only when it says more than the path below.
+            markdown: commandLine.flatMap { $0 == process?.path ? nil : codeBlock($0) },
+            metadata: rows
         )
-    }
-
-    /// The command line, unless it is only the path, then the program's and
-    /// its parent's paths. Paths go here rather than in detail rows, where
-    /// Prism doesn't wrap them.
-    private static func markdown(for process: RunningProcess?, parent: RunningProcess?) -> String? {
-        var blocks: [String] = []
-        if let commandLine = process?.commandLine, commandLine != process?.path {
-            blocks.append(codeBlock(commandLine))
-        }
-        if let path = process?.path {
-            blocks.append("**Path** \(inlineCode(path))")
-        }
-        if let path = parent?.path {
-            blocks.append("**Parent Path** \(inlineCode(path))")
-        }
-        return blocks.isEmpty ? nil : blocks.joined(separator: "\n\n")
-    }
-
-    private static func inlineCode(_ text: String) -> String {
-        "`\(text.replacingOccurrences(of: "`", with: ""))`"
     }
 
     /// A fence longer than any run of backticks in the command line, which

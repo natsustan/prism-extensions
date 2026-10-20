@@ -40,22 +40,22 @@ struct PortManagerTests {
 
         let row = list.items[1]
         #expect(row.accessories == [
-            ExtensionListAccessory(text: "3000", tint: "green", help: "127.0.0.1:3000, [::1]:3000: reachable only from this Mac"),
-            ExtensionListAccessory(text: "9229", tint: "orange", help: "0.0.0.0:9229: reachable from other devices on your network"),
+            ExtensionListAccessory(text: "3000", tint: "green", help: "127.0.0.1:3000, [::1]:3000: reachable only from this Mac", style: .tag),
+            ExtensionListAccessory(text: "9229", tint: "orange", help: "0.0.0.0:9229: reachable from other devices on your network", style: .tag),
         ])
         for keyword in ["3000", "9229", "[::1]:3000", "4242", "node server.js --port 3000", "/opt/homebrew/bin/node"] {
             #expect(row.keywords.contains(keyword))
         }
     }
 
-    @Test("a process with many ports shows the first two and a count of the rest")
+    @Test("a process with more than two ports shows the first and a count of the rest")
     func manyPorts() async throws {
         let fake = FakePorts()
         fake.listen(.fake(1111, "Surge"), at: ("127.0.0.1", 6171), ("0.0.0.0", 6152), ("0.0.0.0", 6153), ("127.0.0.1", 49160))
         fake.listen(.fake(721, "ControlCenter"), at: ("0.0.0.0", 5000), ("0.0.0.0", 7000), ("::", 7000))
         let list = try await PrismTestHost(PortManager(fake: fake)).list(command)
-        #expect(list.items.map { $0.accessories.map(\.text) } == [["5000", "7000"], ["6152", "6153", "+2"]])
-        #expect(list.items[1].accessories.last == ExtensionListAccessory(text: "+2", help: "6171, 49160"))
+        #expect(list.items.map { $0.accessories.map(\.text) } == [["5000", "7000"], ["6152", "+3"]])
+        #expect(list.items[1].accessories.last == ExtensionListAccessory(text: "+3", help: "6153, 6171, 49160", style: .tag))
     }
 
     @Test("a port the user named is found by its name and shows it in the detail")
@@ -67,7 +67,7 @@ struct PortManagerTests {
         #expect(row.keywords.contains("Web"))
         #expect(row.accessories.map(\.text) == ["3000", "9229"])
         #expect(row.accessories[0].help == "Web, 127.0.0.1:3000, [::1]:3000: reachable only from this Mac")
-        #expect(row.detail?.sections[0].rows.map(\.value) == ["Web · This Mac only", "Web · This Mac only", "Every network interface"])
+        #expect(row.detail?.metadata.prefix(2).map(\.label) == ["Port 3000 (Web)", "Port 9229"])
     }
 
     @Test("filters keep the processes with a port that reaches that far, and only those ports")
@@ -91,7 +91,7 @@ struct PortManagerTests {
         let interface = try await prism.list(command, filter: FilterID.interface)
         #expect(interface.items.map(\.title) == ["vite"])
         #expect(interface.items[0].accessories == [
-            ExtensionListAccessory(text: "5173", tint: "blue", help: "192.168.1.20:5173: reachable only through this address"),
+            ExtensionListAccessory(text: "5173", tint: "blue", help: "192.168.1.20:5173: reachable only through this address", style: .tag),
         ])
     }
 
@@ -119,15 +119,22 @@ struct PortManagerTests {
     func ownActions() async throws {
         let list = try await PrismTestHost(PortManager(fake: typicalMac())).list(command)
         let row = try #require(list.items.first { $0.id == nodeRow })
+        // Kills stay at the top; opening, showing, and copying are submenus.
         #expect(row.actions.map(\.id) == [
-            ActionID.kill, ActionID.forceKill, ActionID.killParent, ActionID.openInBrowser, "\(ActionID.openInBrowser):9229",
-            ActionID.showInFinder, ActionID.showParentInFinder, ActionID.copyPID, ActionID.copyPath, ActionID.copyCommandLine,
+            ActionID.kill, ActionID.forceKill, ActionID.killParent, ActionID.browserMenu, ActionID.finderMenu, ActionID.copyMenu,
         ])
+        #expect(row.actions.map(\.actions).map { $0.map(\.id) } == [
+            [], [], [],
+            [ActionID.openInBrowser, "\(ActionID.openInBrowser):9229"],
+            [ActionID.showInFinder, ActionID.showParentInFinder],
+            [ActionID.copyPID, ActionID.copyPath, ActionID.copyCommandLine],
+        ])
+        #expect(row.actions.suffix(3).map(\.title) == ["Open in Browser", "Show in Finder", "Copy"])
         #expect(row.action(id: ActionID.copyPath)?.kind == .copy(text: "/opt/homebrew/bin/node"))
-        #expect(row.actions.filter { $0.style == .destructive }.count == 3)
+        #expect(row.allActions.filter { $0.style == .destructive }.count == 3)
         #expect(row.primaryAction?.confirmationMessage == "“node” (PID 4242) stops listening on ports 3000 and 9229 and quits.")
         #expect(row.action(id: ActionID.killParent)?.confirmationMessage == "“npm” (PID 4200), which started “node”, quits.")
-        #expect(row.actions.filter { $0.symbol == "safari" }.map(\.title) == ["Open 3000 in Browser", "Open 9229 in Browser"])
+        #expect(row.action(id: ActionID.browserMenu)?.actions.map(\.title) == ["Open 3000 in Browser", "Open 9229 in Browser"])
         #expect(row.action(id: ActionID.openInBrowser)?.kind == .open(url: URL(string: "http://localhost:3000")!))
         #expect(row.action(id: ActionID.copyPID)?.kind == .copy(text: "4242"))
         #expect(row.action(id: ActionID.copyCommandLine)?.kind == .copy(text: "node server.js --port 3000"))
@@ -135,6 +142,8 @@ struct PortManagerTests {
         let postgresRow = try #require(list.items.last)
         // Postgres's parent is launchd, which is never offered.
         #expect(postgresRow.action(id: ActionID.killParent) == nil)
+        // One port opens directly, with no submenu around it.
+        #expect(postgresRow.actions.map(\.id).contains(ActionID.openInBrowser))
         #expect(postgresRow.action(id: ActionID.openInBrowser)?.title == "Open in Browser")
         #expect(postgresRow.primaryAction?.confirmationMessage == "“postgres” (PID 610) stops listening on port 5432 and quits.")
     }
@@ -147,11 +156,13 @@ struct PortManagerTests {
         let launchd = try #require(list.items.first)
         #expect(launchd.subtitle == "root")
         // launchd is never offered: killing it takes the Mac down.
-        #expect(launchd.actions.map(\.id) == [ActionID.openInBrowser, ActionID.showInFinder, ActionID.copyPID, ActionID.copyPath])
+        #expect(launchd.actions.map(\.id) == [ActionID.openInBrowser, ActionID.showInFinder, ActionID.copyMenu])
+        #expect(launchd.action(id: ActionID.copyMenu)?.actions.map(\.id) == [ActionID.copyPID, ActionID.copyPath])
 
         let httpd = try #require(list.items.first { $0.title == "httpd" })
-        #expect(httpd.actions.map(\.id) == [
-            ActionID.openInBrowser, ActionID.showInFinder, ActionID.copyPID, ActionID.copyPath, ActionID.copyKillCommand,
+        #expect(httpd.allActions.map(\.id) == [
+            ActionID.openInBrowser, ActionID.showInFinder, ActionID.copyMenu, ActionID.copyPID, ActionID.copyPath,
+            ActionID.copyKillCommand,
         ])
         #expect(httpd.action(id: ActionID.copyKillCommand)?.kind == .copy(text: "sudo kill 88"))
     }
@@ -168,7 +179,7 @@ struct PortManagerTests {
         ])
     }
 
-    @Test("the detail shows the command line, where it listens, and the process, with no long values in rows")
+    @Test("the detail shows the command line, and every fact about the process in its Information block")
     func detail() async throws {
         let list = try await PrismTestHost(PortManager(fake: typicalMac())).list(command)
         let detail = try #require(list.items[1].detail)
@@ -178,24 +189,34 @@ struct PortManagerTests {
         ```
         node server.js --port 3000
         ```
-
-        **Path** `/opt/homebrew/bin/node`
-
-        **Parent Path** `/usr/local/bin/npm`
         """)
-        #expect(detail.sections.map(\.title) == ["Listening On", "Process"])
-        #expect(detail.sections[0].rows.map(\.label) == ["127.0.0.1:3000", "[::1]:3000", "0.0.0.0:9229"])
-        #expect(detail.sections[0].rows.map(\.value) == ["This Mac only", "This Mac only", "Every network interface"])
-        #expect(detail.sections[1].rows.map(\.label) == ["PID", "User", "Parent"])
-        #expect(detail.sections[1].rows.map(\.value) == ["4242", "jane (501)", "npm (4200)"])
-        #expect(detail.metadata == [ExtensionMetadataRow(label: "Started", date: Date(timeIntervalSince1970: TimeInterval(startSeconds)))])
+        #expect(detail.sections.isEmpty)
+        #expect(detail.metadata == [
+            ExtensionMetadataRow(label: "Port 3000", value: "127.0.0.1:3000, [::1]:3000 · This Mac only"),
+            ExtensionMetadataRow(label: "Port 9229", value: "0.0.0.0:9229 · Every network interface"),
+            ExtensionMetadataRow(label: "PID", value: "4242"),
+            ExtensionMetadataRow(label: "User", value: "jane (501)"),
+            ExtensionMetadataRow(label: "Parent", value: "npm (4200)"),
+            ExtensionMetadataRow(label: "Path", value: "/opt/homebrew/bin/node"),
+            ExtensionMetadataRow(label: "Parent Path", value: "/usr/local/bin/npm"),
+            ExtensionMetadataRow(label: "Started", date: Date(timeIntervalSince1970: TimeInterval(startSeconds))),
+        ])
 
         // Another user's arguments can't be read.
-        #expect(list.items[0].detail?.markdown == "**Path** `/sbin/launchd`")
-        #expect(list.items[0].detail?.subtitle == "Port 22")
-        #expect(list.items[0].detail?.sections[1].rows.map(\.value) == ["1", "root (0)"])
+        let launchd = try #require(list.items[0].detail)
+        #expect(launchd.markdown == nil)
+        #expect(launchd.subtitle == "Port 22")
+        #expect(launchd.metadata.map(\.label) == ["Port 22", "PID", "User", "Path", "Started"])
+        #expect(launchd.metadata.map(\.value)[0...2] == ["0.0.0.0:22, [::]:22 · Every network interface", "1", "root (0)"])
         // A command line that is only the path isn't repeated.
-        #expect(list.items[2].detail?.markdown == "**Path** `/opt/homebrew/opt/postgresql@17/bin/postgres`")
+        #expect(list.items[2].detail?.markdown == nil)
+    }
+
+    @Test("a Prism without submenus that runs one is asked to update")
+    func submenuOnOlderPrism() async throws {
+        let prism = try await PrismTestHost(PortManager(fake: typicalMac()))
+        #expect(try await prism.perform(ActionID.copyMenu, on: nodeRow, in: command)
+            == ExtensionActionResult(.failed(message: "Update Prism to open this menu.")))
     }
 
     @Test("Show Parent in Finder reveals the program that started the server")

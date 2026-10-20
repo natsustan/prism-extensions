@@ -29,6 +29,10 @@ struct PortManager: PrismExtension {
         static let copyPath = "copy-path"
         static let copyCommandLine = "copy-command-line"
         static let copyKillCommand = "copy-kill-command"
+        // Submenus.
+        static let browserMenu = "browser"
+        static let finderMenu = "finder"
+        static let copyMenu = "copy"
     }
 
     enum PreferenceID {
@@ -102,6 +106,9 @@ struct PortManager: PrismExtension {
             return await reveal(listener.process)
         case ActionID.showParentInFinder:
             return await reveal(listener.parent)
+        case ActionID.browserMenu, ActionID.finderMenu, ActionID.copyMenu:
+            // A Prism without submenus runs the submenu itself.
+            return ExtensionActionResult(.failed(message: "Update Prism to open this menu."))
         default:
             throw PrismExtensionError("Port Manager can’t do “\(action)”.")
         }
