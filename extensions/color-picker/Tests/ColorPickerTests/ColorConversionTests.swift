@@ -44,10 +44,12 @@ struct ColorConversionTests {
         #expect(ColorFormat.displayP3.string(for: p3Red) == "color(display-p3 1 0 0)")
     }
 
-    @Test("OKLCH and Display P3 read back to the same color")
+    @Test("OKLCH, LCH, Display P3, and HSL read back to the same color")
     func roundTrips() {
         let oklch = coralRed.oklch
         #expect(RGBColor(oklchLightness: oklch.lightness, chroma: oklch.chroma, hue: oklch.hue).hex == "#FF6363")
+        let lch = coralRed.lch
+        #expect(RGBColor(lchLightness: lch.lightness, chroma: lch.chroma, hue: lch.hue).hex == "#FF6363")
         let p3 = coralRed.displayP3
         #expect(RGBColor(displayP3Red: p3.red, green: p3.green, blue: p3.blue).hex == "#FF6363")
         let hsl = coralRed.hsl
@@ -65,6 +67,8 @@ struct ColorConversionTests {
         ("hsla(120, 100%, 25%, 1)", "#008000"),
         ("oklch(0.628 0.2577 29.23)", "#FF0000"),
         ("oklch(62.8% 0.2577 29.23)", "#FF0000"),
+        ("lch(54.29 106.84 40.85)", "#FF0000"),
+        ("lch(54.29% 71.23% 40.85deg / 0.5)", "#FF000080"),
         ("color(display-p3 0.9175 0.2003 0.1386)", "#FF0000"),
         ("  Coral; ", "#FF7F50"),
         ("light grey", "#D3D3D3"),
@@ -74,10 +78,23 @@ struct ColorConversionTests {
         #expect(ColorParser.parse(input)?.hex == hex)
     }
 
+    @Test("every format the extension writes reads back")
+    func readsItsOwnFormats() {
+        for format in ColorFormat.allCases where format != .swiftUI {
+            #expect(ColorParser.parse(format.string(for: coralRed))?.hex == "#FF6363", "\(format)")
+        }
+    }
+
+    @Test("rgb() clamps channels and alpha, as CSS does, rather than reading a wide-gamut color")
+    func clampsRGB() {
+        #expect(ColorParser.parse("rgb(300 -20 0 / 2)") == red)
+        #expect(ColorParser.parse("rgb(1e300 0 0)") == red)
+    }
+
     @Test("the parser rejects what isn't a color", arguments: [
         "", "hello", "#12345", "rgb(1 2)", "rgb(a b c)", "color(srgb 1 0 0)", "hsl(0 100%)", "rgb(1 2 3",
         "rgb(nan 0 0)", "rgb(0 0 0 / nan)", "hsl(inf 50% 50%)", "oklch(1e400 0 0)", "oklch(1e300 1e300 0)",
-        "rgb(1e300 0 0)", "color(display-p3 1e200 0 0)",
+        "lch(1e300 0 0)", "color(display-p3 1e200 0 0)",
     ])
     func rejects(input: String) {
         #expect(ColorParser.parse(input) == nil)

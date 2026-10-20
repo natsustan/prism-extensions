@@ -1,8 +1,8 @@
 import Foundation
 
 /// Reads what people type or paste as a color: HEX, CSS `rgb()`, `hsl()`,
-/// `oklch()`, `color(display-p3 …)` in modern or comma syntax, or a CSS
-/// color name.
+/// `oklch()`, `lch()`, `color(display-p3 …)` in modern or comma syntax, or a
+/// CSS color name.
 enum ColorParser {
     static func parse(_ text: String) -> RGBColor? {
         // Huge values overflow the conversions to infinity or NaN, which no
@@ -38,6 +38,11 @@ enum ColorParser {
                   let chroma = number(arguments[1], percentOf: 0.4), let hue = angle(arguments[2]),
                   let alpha = alpha(arguments, at: 3) else { return nil }
             return RGBColor(oklchLightness: lightness, chroma: chroma, hue: hue, alpha: alpha)
+        case "lch":
+            guard [3, 4].contains(arguments.count), let lightness = number(arguments[0], percentOf: 100),
+                  let chroma = number(arguments[1], percentOf: 150), let hue = angle(arguments[2]),
+                  let alpha = alpha(arguments, at: 3) else { return nil }
+            return RGBColor(lchLightness: lightness, chroma: chroma, hue: hue, alpha: alpha)
         case "color":
             guard arguments.first == "display-p3" else { return nil }
             arguments.removeFirst()
@@ -55,9 +60,10 @@ enum ColorParser {
         text.split { $0 == "," || $0 == "/" || $0.isWhitespace }.map(String.init)
     }
 
-    /// 0...255, or a percentage.
+    /// 0...255, or a percentage; CSS clamps `rgb()` to that range rather
+    /// than reading it as a wide-gamut color.
     private static func channel(_ token: String) -> Double? {
-        number(token, percentOf: 255).map { $0 / 255 }
+        number(token, percentOf: 255).map { min(max($0 / 255, 0), 1) }
     }
 
     /// A number, or a percentage of `whole`.
@@ -85,7 +91,8 @@ enum ColorParser {
         finite(token.hasSuffix("deg") ? token.dropLast(3) : Substring(token))
     }
 
+    /// Clamped to 0...1, as CSS does.
     private static func alpha(_ arguments: [String], at index: Int) -> Double? {
-        arguments.indices.contains(index) ? fraction(arguments[index]) : 1
+        arguments.indices.contains(index) ? fraction(arguments[index]).map { min(max($0, 0), 1) } : 1
     }
 }

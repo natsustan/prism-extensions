@@ -124,6 +124,15 @@ struct RGBColor: Codable, Hashable, Sendable {
         return (116 * fy - 16, Self.chroma(a, b), Self.hue(a, b))
     }
 
+    init(lchLightness lightness: Double, chroma: Double, hue: Double, alpha: Double = 1) {
+        let radians = hue * .pi / 180
+        let fy = (lightness + 16) / 116
+        let fx = fy + chroma * cos(radians) / 500, fz = fy - chroma * sin(radians) / 200
+        func inverse(_ f: Double) -> Double { f * f * f > 216.0 / 24389 ? f * f * f : (116 * f - 16) * 27 / 24389 }
+        let d50 = (inverse(fx) * 0.3457 / 0.3585, inverse(fy), inverse(fz) * (1 - 0.3457 - 0.3585) / 0.3585)
+        self.init(linear: Self.multiply(Self.xyzToLinearSRGB, Self.multiply(Self.d50ToD65, d50)), alpha: alpha)
+    }
+
     // MARK: - Display P3
 
     var displayP3: (red: Double, green: Double, blue: Double) {
@@ -180,6 +189,12 @@ struct RGBColor: Codable, Hashable, Sendable {
         [1.0479298208405488, 0.022946793341019088, -0.05019222954313557],
         [0.029627815688159344, 0.990434484573249, -0.01707382502938514],
         [-0.009243058152591178, 0.015055144896577895, 0.7518742899580008],
+    ]
+
+    private static let d50ToD65: [[Double]] = [
+        [0.955473421488075, -0.02309845494876471, 0.06325924320057072],
+        [-0.0283697093338637, 1.0099953980813041, 0.021041441191917323],
+        [0.012314014864481998, -0.020507649298898964, 1.330365926242124],
     ]
 
     private static let linearSRGBToXYZ: [[Double]] = [
