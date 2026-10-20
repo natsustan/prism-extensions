@@ -121,8 +121,9 @@ struct PortManagerTests {
         let row = try #require(list.items.first { $0.id == nodeRow })
         #expect(row.actions.map(\.id) == [
             ActionID.kill, ActionID.forceKill, ActionID.killParent, ActionID.openInBrowser, "\(ActionID.openInBrowser):9229",
-            ActionID.showInFinder, ActionID.copyPID, ActionID.copyCommandLine,
+            ActionID.showInFinder, ActionID.showParentInFinder, ActionID.copyPID, ActionID.copyPath, ActionID.copyCommandLine,
         ])
+        #expect(row.action(id: ActionID.copyPath)?.kind == .copy(text: "/opt/homebrew/bin/node"))
         #expect(row.actions.filter { $0.style == .destructive }.count == 3)
         #expect(row.primaryAction?.confirmationMessage == "“node” (PID 4242) stops listening on ports 3000 and 9229 and quits.")
         #expect(row.action(id: ActionID.killParent)?.confirmationMessage == "“npm” (PID 4200), which started “node”, quits.")
@@ -138,12 +139,21 @@ struct PortManagerTests {
         #expect(postgresRow.primaryAction?.confirmationMessage == "“postgres” (PID 610) stops listening on port 5432 and quits.")
     }
 
-    @Test("another user's process names its owner and offers no kill")
+    @Test("another user's process names its owner, offers no kill, and copies a sudo kill instead")
     func otherUsersProcess() async throws {
-        let list = try await PrismTestHost(PortManager(fake: typicalMac())).list(command)
-        let row = try #require(list.items.first)
-        #expect(row.subtitle == "root")
-        #expect(row.actions.map(\.id) == [ActionID.openInBrowser, ActionID.showInFinder, ActionID.copyPID])
+        let fake = typicalMac()
+        fake.listen(.fake(88, "httpd", user: root, path: "/usr/sbin/httpd"), at: ("0.0.0.0", 80))
+        let list = try await PrismTestHost(PortManager(fake: fake)).list(command)
+        let launchd = try #require(list.items.first)
+        #expect(launchd.subtitle == "root")
+        // launchd is never offered: killing it takes the Mac down.
+        #expect(launchd.actions.map(\.id) == [ActionID.openInBrowser, ActionID.showInFinder, ActionID.copyPID, ActionID.copyPath])
+
+        let httpd = try #require(list.items.first { $0.title == "httpd" })
+        #expect(httpd.actions.map(\.id) == [
+            ActionID.openInBrowser, ActionID.showInFinder, ActionID.copyPID, ActionID.copyPath, ActionID.copyKillCommand,
+        ])
+        #expect(httpd.action(id: ActionID.copyKillCommand)?.kind == .copy(text: "sudo kill 88"))
     }
 
     @Test("Open in Browser uses localhost, or the one address a server is bound to")
@@ -164,19 +174,36 @@ struct PortManagerTests {
         let detail = try #require(list.items[1].detail)
         #expect(detail.title == "node")
         #expect(detail.subtitle == "Ports 3000, 9229")
-        #expect(detail.markdown == "```\nnode server.js --port 3000\n```\n\nRuns `/opt/homebrew/bin/node`")
+        #expect(detail.markdown == """
+        ```
+        node server.js --port 3000
+        ```
+
+        **Path** `/opt/homebrew/bin/node`
+
+        **Parent Path** `/usr/local/bin/npm`
+        """)
         #expect(detail.sections.map(\.title) == ["Listening On", "Process"])
         #expect(detail.sections[0].rows.map(\.label) == ["127.0.0.1:3000", "[::1]:3000", "0.0.0.0:9229"])
         #expect(detail.sections[0].rows.map(\.value) == ["This Mac only", "This Mac only", "Every network interface"])
         #expect(detail.sections[1].rows.map(\.label) == ["PID", "User", "Parent"])
-        #expect(detail.sections[1].rows.map(\.value) == ["4242", "jane", "npm (4200)"])
+        #expect(detail.sections[1].rows.map(\.value) == ["4242", "jane (501)", "npm (4200)"])
         #expect(detail.metadata == [ExtensionMetadataRow(label: "Started", date: Date(timeIntervalSince1970: TimeInterval(startSeconds)))])
 
-        // Another user's arguments can't be read, so its path stands in.
-        #expect(list.items[0].detail?.markdown == "```\n/sbin/launchd\n```")
+        // Another user's arguments can't be read.
+        #expect(list.items[0].detail?.markdown == "**Path** `/sbin/launchd`")
         #expect(list.items[0].detail?.subtitle == "Port 22")
+        #expect(list.items[0].detail?.sections[1].rows.map(\.value) == ["1", "root (0)"])
         // A command line that is only the path isn't repeated.
-        #expect(list.items[2].detail?.markdown == "```\n/opt/homebrew/opt/postgresql@17/bin/postgres\n```")
+        #expect(list.items[2].detail?.markdown == "**Path** `/opt/homebrew/opt/postgresql@17/bin/postgres`")
+    }
+
+    @Test("Show Parent in Finder reveals the program that started the server")
+    func revealParent() async throws {
+        let fake = typicalMac()
+        let prism = try await PrismTestHost(PortManager(fake: fake))
+        #expect(try await prism.perform(ActionID.showParentInFinder, on: nodeRow, in: command) == .done)
+        #expect(fake.revealed == ["/usr/local/bin/npm"])
     }
 
     @Test("an app's process shows its app's icon, and Show in Finder reveals its own bundle")

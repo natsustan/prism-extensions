@@ -91,14 +91,28 @@ enum PortRows {
                 shortcut: ExtensionShortcut("cmd+shift+f")
             ))
         }
+        if listener.parent?.path != nil {
+            actions.append(ExtensionAction(id: ActionID.showParentInFinder, title: "Show Parent in Finder", symbol: "folder"))
+        }
         actions.append(ExtensionAction(
             id: ActionID.copyPID, title: "Copy PID", symbol: "doc.on.doc",
             kind: .copy(text: "\(listener.pid)"), shortcut: ExtensionShortcut("cmd+shift+c")
         ))
+        if let path = process?.path {
+            actions.append(ExtensionAction(id: ActionID.copyPath, title: "Copy Path", symbol: "doc.on.doc", kind: .copy(text: path)))
+        }
         if let commandLine = process?.commandLine {
             actions.append(ExtensionAction(
                 id: ActionID.copyCommandLine, title: "Copy Command Line", symbol: "terminal",
                 kind: .copy(text: commandLine), shortcut: ExtensionShortcut("cmd+shift+l")
+            ))
+        }
+        // Prism can't stop another user's process, but an administrator can
+        // in Terminal. Never launchd, which would take the Mac down.
+        if let process, process.userID != currentUserID, process.pid > 1 {
+            actions.append(ExtensionAction(
+                id: ActionID.copyKillCommand, title: "Copy Kill Command", symbol: "terminal",
+                kind: .copy(text: "sudo kill \(process.pid)"), shortcut: ExtensionShortcut("cmd+shift+k")
             ))
         }
         return actions
@@ -149,7 +163,9 @@ enum PortRows {
         let process = listener.process
         var processRows = [ExtensionMetadataRow(label: "PID", value: "\(listener.pid)")]
         if let process {
-            processRows.append(ExtensionMetadataRow(label: "User", value: process.userName ?? "\(process.userID)"))
+            processRows.append(ExtensionMetadataRow(
+                label: "User", value: process.userName.map { "\($0) (\(process.userID))" } ?? "\(process.userID)"
+            ))
         }
         if let parent = listener.parent {
             processRows.append(ExtensionMetadataRow(label: "Parent", value: "\(parent.name) (\(parent.pid))"))
@@ -159,7 +175,7 @@ enum PortRows {
             title: listener.processName,
             subtitle: listener.ports.count == 1 ? "Port \(numbers)" : "Ports \(numbers)",
             icon: icon,
-            markdown: process.flatMap(markdown),
+            markdown: markdown(for: process, parent: listener.parent),
             sections: [
                 ExtensionDetailSection(title: "Listening On", rows: listener.ports.flatMap { port in
                     port.hosts.map {
@@ -175,16 +191,25 @@ enum PortRows {
         )
     }
 
-    /// The command line, and the program's path when the command line
-    /// doesn't start with it. Long paths go here rather than in a detail row,
-    /// where they would not wrap.
-    private static func markdown(for process: RunningProcess) -> String? {
-        let path = process.path
-        guard let commandLine = process.commandLine, commandLine != path else {
-            return path.map { codeBlock($0) }
+    /// The command line, unless it is only the path, then the program's and
+    /// its parent's paths. Paths go here rather than in detail rows, where
+    /// Prism doesn't wrap them.
+    private static func markdown(for process: RunningProcess?, parent: RunningProcess?) -> String? {
+        var blocks: [String] = []
+        if let commandLine = process?.commandLine, commandLine != process?.path {
+            blocks.append(codeBlock(commandLine))
         }
-        guard let path, process.arguments?.first != path else { return codeBlock(commandLine) }
-        return "\(codeBlock(commandLine))\n\nRuns `\(path.replacingOccurrences(of: "`", with: ""))`"
+        if let path = process?.path {
+            blocks.append("**Path** \(inlineCode(path))")
+        }
+        if let path = parent?.path {
+            blocks.append("**Parent Path** \(inlineCode(path))")
+        }
+        return blocks.isEmpty ? nil : blocks.joined(separator: "\n\n")
+    }
+
+    private static func inlineCode(_ text: String) -> String {
+        "`\(text.replacingOccurrences(of: "`", with: ""))`"
     }
 
     /// A fence longer than any run of backticks in the command line, which

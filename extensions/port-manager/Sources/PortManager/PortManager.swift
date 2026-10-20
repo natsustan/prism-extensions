@@ -24,8 +24,11 @@ struct PortManager: PrismExtension {
         static let killParent = "kill-parent"
         static let openInBrowser = "open-in-browser"
         static let showInFinder = "show-in-finder"
+        static let showParentInFinder = "show-parent-in-finder"
         static let copyPID = "copy-pid"
+        static let copyPath = "copy-path"
         static let copyCommandLine = "copy-command-line"
+        static let copyKillCommand = "copy-kill-command"
     }
 
     enum PreferenceID {
@@ -96,18 +99,26 @@ struct PortManager: PrismExtension {
         case ActionID.killParent:
             return try await stop(listener.parent, with: SIGTERM)
         case ActionID.showInFinder:
-            guard let path = listener.process.flatMap({ $0.bundlePath ?? $0.path }) else {
-                return ExtensionActionResult(.failed(message: "The program’s location can’t be read."))
-            }
-            do {
-                try await system.reveal(path)
-            } catch {
-                return ExtensionActionResult(.failed(message: "Finder couldn’t show “\(URL(fileURLWithPath: path).lastPathComponent)”."))
-            }
-            return .done
+            return await reveal(listener.process)
+        case ActionID.showParentInFinder:
+            return await reveal(listener.parent)
         default:
             throw PrismExtensionError("Port Manager can’t do “\(action)”.")
         }
+    }
+
+    /// Selects the program in Finder: its app bundle when it is an app's
+    /// program, otherwise the executable.
+    private func reveal(_ process: RunningProcess?) async -> ExtensionActionResult {
+        guard let path = process.flatMap({ $0.bundlePath ?? $0.path }) else {
+            return ExtensionActionResult(.failed(message: "The program’s location can’t be read."))
+        }
+        do {
+            try await system.reveal(path)
+        } catch {
+            return ExtensionActionResult(.failed(message: "Finder couldn’t show “\(URL(fileURLWithPath: path).lastPathComponent)”."))
+        }
+        return .done
     }
 
     // MARK: - Reading and stopping
