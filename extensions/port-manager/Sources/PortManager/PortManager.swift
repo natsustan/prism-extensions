@@ -64,16 +64,18 @@ struct PortManager: PrismExtension {
         try Task.checkCancellation()
 
         // A filter keeps the processes with a port that reaches that far, and
-        // shows only those ports.
+        // shows only those ports beside them. Actions and the detail still
+        // cover every port, since a kill closes them all.
         let exposure = Self.exposure(for: filter)
-        let shown = exposure.map { exposure in
-            listeners.compactMap { $0.only(exposure) }.sorted(by: ListeningProcess.byLowestPort)
-        } ?? listeners
+        let shown: [(row: ListeningProcess, process: ListeningProcess)] = exposure.map { exposure in
+            listeners.compactMap { listener in listener.only(exposure).map { ($0, listener) } }
+                .sorted { ListeningProcess.byLowestPort($0.row, $1.row) }
+        } ?? listeners.map { ($0, $0) }
         let currentUserID = system.currentUserID
         return ExtensionList(
             items: shown.map {
                 PortRows.item(
-                    for: $0, names: names, currentUserID: currentUserID,
+                    for: $0.process, showing: $0.row.ports, names: names, currentUserID: currentUserID,
                     bundleIdentifier: system.bundleIdentifier(ofAppAt:)
                 )
             },

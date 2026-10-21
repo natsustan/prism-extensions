@@ -1,3 +1,4 @@
+import Darwin
 import Testing
 @testable import PortManager
 
@@ -79,7 +80,9 @@ struct NetstatTests {
     func exposure() {
         #expect(["127.0.0.1", "127.0.1.1", "::1", "::ffff:127.0.0.1"].map(Exposure.init(host:)).allSatisfy { $0 == .localhost })
         #expect(["0.0.0.0", "::", "*"].map(Exposure.init(host:)).allSatisfy { $0 == .network })
-        #expect(["192.168.1.20", "fe80::1%lo0", "100.64.0.3"].map(Exposure.init(host:)).allSatisfy { $0 == .interface })
+        #expect(["192.168.1.20", "fe80::1%en0", "100.64.0.3"].map(Exposure.init(host:)).allSatisfy { $0 == .interface })
+        // A link-local address on the loopback interface stays on this Mac.
+        #expect(Exposure(host: "fe80::1%lo0") == .localhost)
     }
 
     @Test("Port Names reads ports and names in the ways people write them")
@@ -87,6 +90,29 @@ struct NetstatTests {
         let names = PortNames("3000 Web, 5432=Postgres; 6379: Redis\n8080 Proxy, 3000 Other, abc, 99999 Huge, 4000")
         #expect(names.names == [3000: "Web", 5432: "Postgres", 6379: "Redis", 8080: "Proxy"])
         #expect(PortNames("").names.isEmpty)
+    }
+
+    @Test("a command line is quoted as a shell needs it")
+    func shellQuoting() {
+        let process = RunningProcess.fake(1, "node", arguments: [
+            "node", "server.js", "--port=3000", "--title=Bob's server", "$HOME", "*.js", "", "a;b",
+        ])
+        #expect(process.commandLine == #"node server.js --port=3000 '--title=Bob'\''s server' '$HOME' '*.js' '' 'a;b'"#)
+    }
+
+    @Test("a link-local address names its interface as netstat does")
+    func linkLocal() {
+        var address = in6_addr()
+        withUnsafeMutableBytes(of: &address) { bytes in
+            bytes[0] = 0xFE
+            bytes[1] = 0x80
+            bytes[3] = UInt8(if_nametoindex("lo0"))
+            bytes[15] = 1
+        }
+        #expect(ProcessTable.ipv6Host(address) == "fe80::1%lo0")
+        var loopback = in6_addr()
+        withUnsafeMutableBytes(of: &loopback) { $0[15] = 1 }
+        #expect(ProcessTable.ipv6Host(loopback) == "::1")
     }
 
     @Test("a command line holding backticks gets a longer fence")

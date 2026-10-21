@@ -22,7 +22,7 @@ enum CommandRunner {
 
         let timer = Task {
             try await Task.sleep(for: timeout)
-            process.terminate()
+            stop(process)
         }
         defer { timer.cancel() }
 
@@ -37,12 +37,24 @@ enum CommandRunner {
                 }
             }
         } onCancel: {
-            process.terminate()
+            stop(process)
         }
         try Task.checkCancellation()
         guard process.terminationReason == .exit, process.terminationStatus == 0 else {
             throw Failure(description: "\(executable.lastPathComponent) stopped with status \(process.terminationStatus).")
         }
         return data
+    }
+
+    /// Asks the tool to quit, then kills one that doesn't, so reading its
+    /// output always ends. A tool that already exited is left alone, since
+    /// its PID may be another process's by now.
+    private static func stop(_ process: Process) {
+        guard process.isRunning else { return }
+        process.terminate()
+        let pid = process.processIdentifier
+        DispatchQueue.global().asyncAfter(deadline: .now() + 1) {
+            if process.isRunning { kill(pid, SIGKILL) }
+        }
     }
 }

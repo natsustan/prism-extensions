@@ -1,10 +1,11 @@
 import Foundation
 
-/// Reads listening sockets from `netstat -anv -p tcp`, which lists every
-/// user's sockets with the PID that owns each, without root.
+/// Reads listening sockets from `netstat -anvW -p tcp`, which lists every
+/// user's sockets with the PID that owns each, without root. `-W` keeps long
+/// addresses whole, so their port is never cut off.
 enum Netstat {
     static let executable = URL(fileURLWithPath: "/usr/sbin/netstat")
-    static let arguments = ["-anv", "-p", "tcp"]
+    static let arguments = ["-anvW", "-p", "tcp"]
 
     /// The listening sockets in `output`, or nil when its header isn't one
     /// this parser knows, so the caller can read the sockets another way.

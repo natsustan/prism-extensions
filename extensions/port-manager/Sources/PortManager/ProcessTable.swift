@@ -75,13 +75,31 @@ enum ProcessTable {
             let port = Int(UInt16(bigEndian: UInt16(truncatingIfNeeded: internet.insi_lport)))
             let host: String
             if internet.insi_vflag & UInt8(INI_IPV6) != 0 {
-                host = format(AF_INET6, internet.insi_laddr.ina_6, length: INET6_ADDRSTRLEN)
+                host = ipv6Host(internet.insi_laddr.ina_6)
             } else {
                 host = format(AF_INET, internet.insi_laddr.ina_46.i46a_addr4, length: INET_ADDRSTRLEN)
             }
             listeners.append(SocketListener(pid: pid, host: host, port: port))
         }
         return listeners
+    }
+
+    /// The kernel keeps a link-local address's interface in its second
+    /// 16 bits; netstat writes it as `fe80::1%lo0`, and so does this, so the
+    /// two copies of one socket match.
+    static func ipv6Host(_ address: in6_addr) -> String {
+        var address = address
+        let scope = withUnsafeMutableBytes(of: &address) { bytes -> UInt32 in
+            guard bytes[0] == 0xFE, bytes[1] & 0xC0 == 0x80 else { return 0 }
+            let scope = UInt32(bytes[2]) << 8 | UInt32(bytes[3])
+            bytes[2] = 0
+            bytes[3] = 0
+            return scope
+        }
+        let host = format(AF_INET6, address, length: INET6_ADDRSTRLEN)
+        var name = [CChar](repeating: 0, count: Int(IF_NAMESIZE) + 1)
+        guard scope != 0, if_indextoname(scope, &name) != nil else { return host }
+        return "\(host)%\(string(name))"
     }
 
     private static func format<Address>(_ family: Int32, _ address: Address, length: Int32) -> String {

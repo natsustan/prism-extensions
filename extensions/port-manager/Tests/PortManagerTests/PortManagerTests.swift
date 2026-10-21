@@ -87,6 +87,11 @@ struct PortManagerTests {
         let network = try await prism.list(command, filter: FilterID.network)
         #expect(network.items.map(\.title) == ["launchd", "postgres", "node"])
         #expect(network.items[2].accessories.map(\.text) == ["9229"])
+        // A kill closes every port, so the row's actions and detail still name them all.
+        #expect(network.items[2].primaryAction?.confirmationMessage
+            == "“node” (PID 4242) stops listening on ports 3000 and 9229 and quits.")
+        #expect(network.items[2].detail?.subtitle == "Ports 3000, 9229")
+        #expect(network.items[2].action(id: "\(ActionID.openInBrowser):3000") != nil)
 
         let interface = try await prism.list(command, filter: FilterID.interface)
         #expect(interface.items.map(\.title) == ["vite"])
@@ -115,7 +120,7 @@ struct PortManagerTests {
         ])
         #expect(row.actions.map(\.actions).map { $0.map(\.id) } == [
             [], [], [],
-            [ActionID.openInBrowser, "\(ActionID.openInBrowser):9229"],
+            ["\(ActionID.openInBrowser):3000", "\(ActionID.openInBrowser):9229"],
             [ActionID.showInFinder, ActionID.showParentInFinder],
             [ActionID.copyPID, ActionID.copyPath, ActionID.copyCommandLine],
         ])
@@ -125,7 +130,8 @@ struct PortManagerTests {
         #expect(row.primaryAction?.confirmationMessage == "“node” (PID 4242) stops listening on ports 3000 and 9229 and quits.")
         #expect(row.action(id: ActionID.killParent)?.confirmationMessage == "“npm” (PID 4200), which started “node”, quits.")
         #expect(row.action(id: ActionID.browserMenu)?.actions.map(\.title) == ["Open 3000 in Browser", "Open 9229 in Browser"])
-        #expect(row.action(id: ActionID.openInBrowser)?.kind == .open(url: URL(string: "http://localhost:3000")!))
+        #expect(row.action(id: "\(ActionID.openInBrowser):3000")?.kind == .open(url: URL(string: "http://localhost:3000")!))
+        #expect(row.action(id: "\(ActionID.openInBrowser):3000")?.shortcut == ExtensionShortcut("cmd+o"))
         #expect(row.action(id: ActionID.copyPID)?.kind == .copy(text: "4242"))
         #expect(row.action(id: ActionID.copyCommandLine)?.kind == .copy(text: "node server.js --port 3000"))
 
@@ -133,8 +139,8 @@ struct PortManagerTests {
         // Postgres's parent is launchd, which is never offered.
         #expect(postgresRow.action(id: ActionID.killParent) == nil)
         // One port opens directly, with no submenu around it.
-        #expect(postgresRow.actions.map(\.id).contains(ActionID.openInBrowser))
-        #expect(postgresRow.action(id: ActionID.openInBrowser)?.title == "Open in Browser")
+        #expect(postgresRow.actions.map(\.id).contains("\(ActionID.openInBrowser):5432"))
+        #expect(postgresRow.action(id: "\(ActionID.openInBrowser):5432")?.title == "Open in Browser")
         #expect(postgresRow.primaryAction?.confirmationMessage == "“postgres” (PID 610) stops listening on port 5432 and quits.")
     }
 
@@ -146,12 +152,12 @@ struct PortManagerTests {
         let launchd = try #require(list.items.first)
         #expect(launchd.subtitle == "root")
         // launchd is never offered: killing it takes the Mac down.
-        #expect(launchd.actions.map(\.id) == [ActionID.openInBrowser, ActionID.showInFinder, ActionID.copyMenu])
+        #expect(launchd.actions.map(\.id) == ["\(ActionID.openInBrowser):22", ActionID.showInFinder, ActionID.copyMenu])
         #expect(launchd.action(id: ActionID.copyMenu)?.actions.map(\.id) == [ActionID.copyPID, ActionID.copyPath])
 
         let httpd = try #require(list.items.first { $0.title == "httpd" })
         #expect(httpd.allActions.map(\.id) == [
-            ActionID.openInBrowser, ActionID.showInFinder, ActionID.copyMenu, ActionID.copyPID, ActionID.copyPath,
+            "\(ActionID.openInBrowser):80", ActionID.showInFinder, ActionID.copyMenu, ActionID.copyPID, ActionID.copyPath,
             ActionID.copyKillCommand,
         ])
         #expect(httpd.action(id: ActionID.copyKillCommand)?.kind == .copy(text: "sudo kill 88"))
@@ -163,7 +169,7 @@ struct PortManagerTests {
         fake.listen(.fake(900, "vite"), at: ("192.168.1.20", 5173))
         fake.listen(.fake(901, "dev"), at: ("fe80::1", 8080))
         let list = try await PrismTestHost(PortManager(fake: fake)).list(command)
-        #expect(list.items.map { $0.action(id: ActionID.openInBrowser)?.kind } == [
+        #expect(zip(list.items, [5173, 8080]).map { $0.action(id: "\(ActionID.openInBrowser):\($1)")?.kind } == [
             .open(url: URL(string: "http://192.168.1.20:5173")!),
             .open(url: URL(string: "http://[fe80::1]:8080")!),
         ])

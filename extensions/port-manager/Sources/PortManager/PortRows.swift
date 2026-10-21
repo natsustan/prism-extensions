@@ -33,8 +33,10 @@ enum PortRows {
         }
     }
 
+    /// `ports` are the ones the row shows, which a filter narrows.
     static func item(
-        for listener: ListeningProcess, names: PortNames, currentUserID: uid_t, bundleIdentifier: (String) -> String?
+        for listener: ListeningProcess, showing ports: [ListeningPort], names: PortNames, currentUserID: uid_t,
+        bundleIdentifier: (String) -> String?
     ) -> ExtensionListItem {
         let process = listener.process
         let icon = icon(for: process, bundleIdentifier: bundleIdentifier)
@@ -46,7 +48,7 @@ enum PortRows {
             title: listener.processName,
             subtitle: owner,
             icon: icon,
-            accessories: accessories(for: listener.ports, names: names),
+            accessories: accessories(for: ports, names: names),
             keywords: keywords(for: listener, names: names),
             detail: detail(for: listener, names: names, icon: icon),
             actions: actions(for: listener, currentUserID: currentUserID)
@@ -115,13 +117,14 @@ enum PortRows {
         return actions
     }
 
-    /// One Open in Browser action per port, the first on ⌘O.
+    /// One Open in Browser action per port, named by the port so a hotkey
+    /// stays on it whichever port comes first; the first is on ⌘O.
     private static func browserActions(for ports: [ListeningPort]) -> [ExtensionAction] {
         let single = ports.count == 1
         return ports.prefix(browserPorts).enumerated().compactMap { index, port in
             port.url.map { url in
                 ExtensionAction(
-                    id: index == 0 ? ActionID.openInBrowser : "\(ActionID.openInBrowser):\(port.port)",
+                    id: "\(ActionID.openInBrowser):\(port.port)",
                     title: single ? "Open in Browser" : "Open \(port.port) in Browser", symbol: "safari",
                     kind: .open(url: url), shortcut: index == 0 ? ExtensionShortcut("cmd+o") : nil
                 )

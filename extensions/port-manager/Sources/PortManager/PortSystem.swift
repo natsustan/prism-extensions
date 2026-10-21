@@ -64,9 +64,20 @@ struct RunningProcess: Hashable, Sendable {
         path.map { URL(fileURLWithPath: $0).lastPathComponent }.flatMap { $0.isEmpty ? nil : $0 } ?? shortName
     }
 
+    /// The arguments as a shell would need them typed, so a copied command
+    /// line runs the same program with the same arguments.
     var commandLine: String? {
         guard let arguments, !arguments.isEmpty else { return nil }
-        return arguments.map { $0.contains(" ") ? "'\($0)'" : $0 }.joined(separator: " ")
+        return arguments.map(Self.shellQuoted).joined(separator: " ")
+    }
+
+    private static let shellSafe = CharacterSet(
+        charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_./:=@%+,"
+    )
+
+    static func shellQuoted(_ argument: String) -> String {
+        if !argument.isEmpty, argument.unicodeScalars.allSatisfy(shellSafe.contains) { return argument }
+        return "'" + argument.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 
     /// The app whose icon the process shows: its own bundle, or else the

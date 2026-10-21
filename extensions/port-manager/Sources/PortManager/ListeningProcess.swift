@@ -99,7 +99,13 @@ enum Exposure: Int, Comparable, CaseIterable, Sendable {
     case network
 
     init(host: String) {
-        let address = host.split(separator: "%", maxSplits: 1).first.map(String.init) ?? host
+        let parts = host.split(separator: "%", maxSplits: 1).map(String.init)
+        let address = parts.first ?? host
+        // A link-local address on the loopback interface, as cupsd binds.
+        if parts.count == 2, parts[1] == "lo0" {
+            self = .localhost
+            return
+        }
         switch address {
         case "0.0.0.0", "::", "*", "":
             self = .network
