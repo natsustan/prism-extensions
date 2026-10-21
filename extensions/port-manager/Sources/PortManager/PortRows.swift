@@ -208,13 +208,12 @@ enum PortRows {
             rows.append(ExtensionMetadataRow(label: "Started", date: process.startedAt))
         }
         let numbers = listener.ports.map { "\($0.port)" }.joined(separator: ", ")
-        let commandLine = process?.commandLine
         return ExtensionDetail(
             title: listener.processName,
             subtitle: listener.ports.count == 1 ? "Port \(numbers)" : "Ports \(numbers)",
             icon: icon,
-            // Only when it says more than the path below.
-            markdown: commandLine.flatMap { $0 == process?.path ? nil : codeBlock($0) },
+            // Another user's arguments can't be read; the path still shows below.
+            markdown: process?.commandLine.map(codeBlock),
             metadata: rows
         )
     }

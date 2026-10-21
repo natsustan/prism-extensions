@@ -81,7 +81,7 @@ struct PortManager: PrismExtension {
             filters: PortRows.filters,
             emptyMessage: PortRows.emptyMessage(for: exposure),
             error: scan.isCurrentUserOnly
-                ? "Only your own processes are shown, because the system’s list of sockets couldn’t be read."
+                ? "Showing only your own processes."
                 : nil
         )
     }

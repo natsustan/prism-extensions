@@ -112,7 +112,7 @@ struct PortManagerTests {
         fake.showOnlyCurrentUser()
         let list = try await PrismTestHost(PortManager(fake: fake)).list(command)
         #expect(list.items.map(\.title) == ["node"])
-        #expect(list.error == "Only your own processes are shown, because the system’s list of sockets couldn’t be read.")
+        #expect(list.error == "Showing only your own processes.")
     }
 
     @Test("the user's own process can be killed, force killed, have its parent killed, or opened on each port")
@@ -208,8 +208,8 @@ struct PortManagerTests {
         #expect(launchd.subtitle == "Port 22")
         #expect(launchd.metadata.map(\.label) == ["Port 22", "PID", "User", "Path", "Started"])
         #expect(launchd.metadata.map(\.value)[0...2] == ["0.0.0.0:22, [::]:22 · Every network interface", "1", "root (0)"])
-        // A command line that is only the path isn't repeated.
-        #expect(list.items[2].detail?.markdown == nil)
+        // A program started without arguments still shows its command line.
+        #expect(list.items[2].detail?.markdown == "```\n/opt/homebrew/opt/postgresql@17/bin/postgres\n```")
     }
 
     @Test("a Prism without submenus that runs one is asked to update")
