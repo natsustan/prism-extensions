@@ -15,9 +15,9 @@ enum PortRows {
 
     static let filters = [
         ExtensionListFilter(id: FilterID.all, title: "All Ports", symbol: "network"),
-        ExtensionListFilter(id: FilterID.localhost, title: "Localhost Only", symbol: "lock"),
-        ExtensionListFilter(id: FilterID.network, title: "Reachable from Network", symbol: "globe"),
-        ExtensionListFilter(id: FilterID.interface, title: "Specific Interface", symbol: "point.3.connected.trianglepath.dotted"),
+        ExtensionListFilter(id: FilterID.localhost, title: "Localhost Only", symbol: Exposure.localhost.symbol),
+        ExtensionListFilter(id: FilterID.network, title: "Reachable from Network", symbol: Exposure.network.symbol),
+        ExtensionListFilter(id: FilterID.interface, title: "Specific Interface", symbol: Exposure.interface.symbol),
     ]
 
     static func emptyMessage(for exposure: Exposure?) -> ExtensionListMessage {
@@ -25,17 +25,17 @@ enum PortRows {
         case nil:
             ExtensionListMessage(title: "No Open Ports", message: "Nothing is listening on a TCP port.", symbol: "network.slash")
         case .localhost:
-            ExtensionListMessage(title: "No Localhost Ports", message: "No port is open only to this Mac.", symbol: "lock")
+            ExtensionListMessage(title: "No Localhost Ports", message: "No port is open only to this Mac.", symbol: Exposure.localhost.symbol)
         case .network:
-            ExtensionListMessage(title: "No Ports Reachable from Network", message: "No port is open on every network interface.", symbol: "globe")
+            ExtensionListMessage(title: "No Ports Reachable from Network", message: "No port is open on every network interface.", symbol: Exposure.network.symbol)
         case .interface:
-            ExtensionListMessage(title: "No Ports on a Specific Interface", message: "No port is bound to one interface’s address.", symbol: "point.3.connected.trianglepath.dotted")
+            ExtensionListMessage(title: "No Ports on a Specific Interface", message: "No port is bound to one interface’s address.", symbol: Exposure.interface.symbol)
         }
     }
 
     /// `ports` are the ones the row shows, which a filter narrows.
     static func item(
-        for listener: ListeningProcess, showing ports: [ListeningPort], names: PortNames, currentUserID: uid_t,
+        for listener: ListeningProcess, showing ports: [ListeningPort]? = nil, names: PortNames, currentUserID: uid_t,
         bundleIdentifier: (String) -> String?
     ) -> ExtensionListItem {
         let process = listener.process
@@ -48,7 +48,7 @@ enum PortRows {
             title: listener.processName,
             subtitle: owner,
             icon: icon,
-            accessories: accessories(for: ports, names: names),
+            accessories: accessories(for: ports ?? listener.ports, names: names),
             keywords: keywords(for: listener, names: names),
             detail: detail(for: listener, names: names, icon: icon),
             actions: actions(for: listener, currentUserID: currentUserID)
@@ -155,7 +155,7 @@ enum PortRows {
             ExtensionListAccessory(
                 text: "\(port.port)",
                 tint: port.exposure.tint,
-                help: [names[port.port], port.hosts.map { ListeningPort.address(host: $0, port: port.port) }.joined(separator: ", ")]
+                help: [names[port.port], port.addresses.joined(separator: ", ")]
                     .compactMap { $0 }.joined(separator: ", ") + ": \(port.exposure.help)",
                 style: .tag
             )
@@ -175,7 +175,7 @@ enum PortRows {
         let process = listener.process
         let ports = listener.ports.flatMap { port in
             ["\(port.port)", names[port.port]].compactMap { $0 }
-                + port.hosts.map { ListeningPort.address(host: $0, port: port.port) }
+                + port.addresses
         }
         return ports + ["\(listener.pid)", process?.userName, process?.path, process?.commandLine].compactMap { $0 }
     }
@@ -188,7 +188,7 @@ enum PortRows {
         var rows = listener.ports.map { port in
             ExtensionMetadataRow(
                 label: names[port.port].map { "Port \(port.port) (\($0))" } ?? "Port \(port.port)",
-                value: port.hosts.map { ListeningPort.address(host: $0, port: port.port) }.joined(separator: ", ")
+                value: port.addresses.joined(separator: ", ")
                     + " · \(port.exposure.summary)"
             )
         }
@@ -246,6 +246,14 @@ enum PortRows {
 }
 
 extension Exposure {
+    var symbol: String {
+        switch self {
+        case .localhost: "lock"
+        case .interface: "point.3.connected.trianglepath.dotted"
+        case .network: "globe"
+        }
+    }
+
     var tint: String {
         switch self {
         case .localhost: "green"

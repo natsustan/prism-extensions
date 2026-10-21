@@ -12,23 +12,14 @@ struct SystemPorts: PortSystem {
     /// macOS hides the socket table from a `netstat` started by a program
     /// that isn't signed with a Developer ID, such as a local build: it
     /// prints its header and no sockets. The current user's own sockets,
-    /// which are the ones that can be killed, are always read through libproc
-    /// as well, so the list is never empty for that reason.
+    /// which are the ones that can be killed, are then read through libproc,
+    /// so the list is never empty for that reason.
     func listeningSockets() async -> [SocketListener] {
         let data = try? await CommandRunner.output(
             of: Netstat.executable, arguments: Netstat.arguments, timeout: Self.netstatTimeout
         )
         let everyone = data.flatMap { Netstat.listeners(in: String(decoding: $0, as: UTF8.self)) } ?? []
-        let own = ProcessTable.currentUserListeners()
-        return Self.merge(everyone, own)
-    }
-
-    /// The `netstat` sockets, then any it missed; `netstat`'s copy wins, as
-    /// it carries the process name.
-    static func merge(_ everyone: [SocketListener], _ own: [SocketListener]) -> [SocketListener] {
-        func key(_ socket: SocketListener) -> String { "\(socket.pid) \(socket.host) \(socket.port)" }
-        let listed = Set(everyone.map(key))
-        return everyone + own.filter { !listed.contains(key($0)) }
+        return everyone.isEmpty ? ProcessTable.currentUserListeners() : everyone
     }
 
     func process(_ pid: pid_t) -> RunningProcess? {

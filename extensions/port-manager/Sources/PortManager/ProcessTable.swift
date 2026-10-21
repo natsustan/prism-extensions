@@ -8,10 +8,9 @@ enum ProcessTable {
     /// `proc_pidinfo`, which is refused for other users' processes.
     static func process(_ pid: pid_t) -> RunningProcess? {
         guard pid > 0, let info = kinfo(pid) else { return nil }
-        let start = info.kp_proc.p_un.__p_starttime
         let userID = info.kp_eproc.e_ucred.cr_uid
         return RunningProcess(
-            identity: ProcessIdentity(pid: pid, startSeconds: Int(start.tv_sec), startMicroseconds: Int(start.tv_usec)),
+            identity: identity(pid, info),
             parentPID: info.kp_eproc.e_ppid,
             userID: userID,
             userName: userName(userID),
@@ -25,6 +24,10 @@ enum ProcessTable {
     /// waits as a zombie for its parent, since its sockets are closed then.
     static func identity(_ pid: pid_t) -> ProcessIdentity? {
         guard let info = kinfo(pid), info.kp_proc.p_stat != SZOMB else { return nil }
+        return identity(pid, info)
+    }
+
+    private static func identity(_ pid: pid_t, _ info: kinfo_proc) -> ProcessIdentity {
         let start = info.kp_proc.p_un.__p_starttime
         return ProcessIdentity(pid: pid, startSeconds: Int(start.tv_sec), startMicroseconds: Int(start.tv_usec))
     }
@@ -108,7 +111,7 @@ enum ProcessTable {
         return formatted == nil ? "" : string(buffer)
     }
 
-    private static func userProcessIDs() -> ArraySlice<pid_t> {
+    private static func userProcessIDs() -> [pid_t] {
         let bytesNeeded = proc_listpids(UInt32(PROC_UID_ONLY), getuid(), nil, 0)
         guard bytesNeeded > 0 else { return [] }
         var pids = [pid_t](repeating: 0, count: Int(bytesNeeded) / MemoryLayout<pid_t>.size + 64)
@@ -116,7 +119,7 @@ enum ProcessTable {
             UInt32(PROC_UID_ONLY), getuid(), &pids, Int32(pids.count * MemoryLayout<pid_t>.size)
         )
         guard bytesRead > 0 else { return [] }
-        return pids.prefix(Int(bytesRead) / MemoryLayout<pid_t>.size).filter { $0 > 0 }[...]
+        return pids.prefix(Int(bytesRead) / MemoryLayout<pid_t>.size).filter { $0 > 0 }
     }
 
     // MARK: - Details

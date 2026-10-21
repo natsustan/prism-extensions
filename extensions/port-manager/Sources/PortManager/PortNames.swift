@@ -2,7 +2,7 @@ import Foundation
 
 /// The user's names for ports, from the Port Names preference:
 /// `3000 Web, 5432 Postgres`. `3000=Web` and `3000: Web` read the same.
-struct PortNames: Equatable, Sendable {
+struct PortNames: Sendable {
     let names: [Int: String]
 
     init(_ text: String) {

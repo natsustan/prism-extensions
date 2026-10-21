@@ -102,7 +102,7 @@ struct RunningProcess: Hashable, Sendable {
     }
 }
 
-enum SignalError: Error, Equatable {
+enum SignalError: Error {
     /// The process has exited, or its PID now belongs to another process.
     case gone
     case notPermitted

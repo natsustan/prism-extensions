@@ -56,9 +56,7 @@ struct PortManager: PrismExtension {
     }
 
     func list(command: String, query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
-        guard command == CommandID.openPorts else {
-            throw PrismExtensionError("Port Manager has no list “\(command)”.")
-        }
+        try Self.check(command)
         let names = PortNames(context.preferences.string(PreferenceID.portNames))
         let listeners = await listeningProcesses()
         try Task.checkCancellation()
@@ -67,15 +65,15 @@ struct PortManager: PrismExtension {
         // shows only those ports beside them. Actions and the detail still
         // cover every port, since a kill closes them all.
         let exposure = Self.exposure(for: filter)
-        let shown: [(row: ListeningProcess, process: ListeningProcess)] = exposure.map { exposure in
-            listeners.compactMap { listener in listener.only(exposure).map { ($0, listener) } }
-                .sorted { ListeningProcess.byLowestPort($0.row, $1.row) }
-        } ?? listeners.map { ($0, $0) }
+        let shown: [(process: ListeningProcess, ports: [ListeningPort])] = exposure.map { exposure in
+            listeners.map { ($0, $0.ports(reaching: exposure)) }.filter { !$0.ports.isEmpty }
+                .sorted(by: ListeningProcess.byLowestPort)
+        } ?? listeners.map { ($0, $0.ports) }
         let currentUserID = system.currentUserID
         return ExtensionList(
             items: shown.map {
                 PortRows.item(
-                    for: $0.process, showing: $0.row.ports, names: names, currentUserID: currentUserID,
+                    for: $0.process, showing: $0.ports, names: names, currentUserID: currentUserID,
                     bundleIdentifier: system.bundleIdentifier(ofAppAt:)
                 )
             },
@@ -86,30 +84,31 @@ struct PortManager: PrismExtension {
     }
 
     func perform(action: String, item: String, command: String, context: PrismContext) async throws -> ExtensionActionResult {
-        guard command == CommandID.openPorts else {
-            throw PrismExtensionError("Port Manager has no list “\(command)”.")
-        }
-        // The row may be minutes old: its ID names the process by PID and
-        // start time, so act only if that same process still listens.
-        guard let listener = await listeningProcesses().first(where: { $0.id == item }) else {
-            return .reload(message: "That process is no longer listening.")
-        }
+        try Self.check(command)
+        let act: (ListeningProcess) async throws -> ExtensionActionResult
         switch action {
-        case ActionID.kill:
-            return try await stop(listener.process, with: SIGTERM)
-        case ActionID.forceKill:
-            return try await stop(listener.process, with: SIGKILL)
-        case ActionID.killParent:
-            return try await stop(listener.parent, with: SIGTERM)
-        case ActionID.showInFinder:
-            return await reveal(listener.process)
-        case ActionID.showParentInFinder:
-            return await reveal(listener.parent)
+        case ActionID.kill: act = { try await stop($0.process, with: SIGTERM) }
+        case ActionID.forceKill: act = { try await stop($0.process, with: SIGKILL) }
+        case ActionID.killParent: act = { try await stop($0.parent, with: SIGTERM) }
+        case ActionID.showInFinder: act = { await reveal($0.process) }
+        case ActionID.showParentInFinder: act = { await reveal($0.parent) }
         case ActionID.browserMenu, ActionID.finderMenu, ActionID.copyMenu:
             // A Prism without submenus runs the submenu itself.
             return ExtensionActionResult(.failed(message: "Update Prism to open this menu."))
         default:
             throw PrismExtensionError("Port Manager can’t do “\(action)”.")
+        }
+        // The row may be minutes old: its ID names the process by PID and
+        // start time, so act only if that same process still listens.
+        guard let listener = await listeningProcess(item) else {
+            return .reload(message: "That process is no longer listening.")
+        }
+        return try await act(listener)
+    }
+
+    private static func check(_ command: String) throws {
+        guard command == CommandID.openPorts else {
+            throw PrismExtensionError("Port Manager has no list “\(command)”.")
         }
     }
 
@@ -131,6 +130,13 @@ struct PortManager: PrismExtension {
 
     private func listeningProcesses() async -> [ListeningProcess] {
         ListeningProcess.group(await system.listeningSockets(), processes: system.process)
+    }
+
+    /// The row with this ID, reading only its PID's process.
+    private func listeningProcess(_ id: String) async -> ListeningProcess? {
+        guard let pid = pid_t(id.prefix { $0 != "@" }) else { return nil }
+        let sockets = await system.listeningSockets().filter { $0.pid == pid }
+        return ListeningProcess.group(sockets, processes: system.process).first { $0.id == id }
     }
 
     static func exposure(for filter: String?) -> Exposure? {

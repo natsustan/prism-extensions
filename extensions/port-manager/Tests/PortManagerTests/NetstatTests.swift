@@ -58,15 +58,6 @@ struct NetstatTests {
         #expect(Netstat.listeners(in: String(current.split(separator: "\n").prefix(2).joined(separator: "\n"))) == [])
     }
 
-    @Test("sockets netstat missed are added from the user's own, without repeats")
-    func merge() {
-        let everyone = [SocketListener(pid: 1, host: "0.0.0.0", port: 22, processName: "launchd"),
-                        SocketListener(pid: 7, host: "127.0.0.1", port: 3000, processName: "node")]
-        let own = [SocketListener(pid: 7, host: "127.0.0.1", port: 3000), SocketListener(pid: 7, host: "::1", port: 3000)]
-        #expect(SystemPorts.merge(everyone, own) == everyone + [SocketListener(pid: 7, host: "::1", port: 3000)])
-        #expect(SystemPorts.merge([], own) == own)
-    }
-
     @Test("a process's arguments are read from KERN_PROCARGS2, without its environment")
     func procArgs() {
         var buffer: [UInt8] = withUnsafeBytes(of: Int32(3)) { Array($0) }

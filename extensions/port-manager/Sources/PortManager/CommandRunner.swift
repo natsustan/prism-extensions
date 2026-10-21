@@ -3,9 +3,8 @@ import Foundation
 /// Runs a short-lived tool and returns what it wrote. A timeout or a
 /// cancelled request terminates it, so nothing outlives the request.
 enum CommandRunner {
-    struct Failure: Error, CustomStringConvertible {
-        let description: String
-    }
+    /// The tool stopped early or with a failing status.
+    struct Failure: Error {}
 
     static func output(of executable: URL, arguments: [String], timeout: Duration) async throws -> Data {
         let process = Process()
@@ -41,7 +40,7 @@ enum CommandRunner {
         }
         try Task.checkCancellation()
         guard process.terminationReason == .exit, process.terminationStatus == 0 else {
-            throw Failure(description: "\(executable.lastPathComponent) stopped with status \(process.terminationStatus).")
+            throw Failure()
         }
         return data
     }

@@ -21,11 +21,9 @@ struct ListeningProcess: Hashable, Sendable {
 
     var processName: String { process?.name ?? listedName ?? "PID \(pid)" }
 
-    /// The same process with only the ports that reach as far as `exposure`.
-    func only(_ exposure: Exposure) -> ListeningProcess? {
-        let kept = ports.filter { $0.exposure == exposure }
-        guard !kept.isEmpty else { return nil }
-        return ListeningProcess(pid: pid, ports: kept, process: process, parent: parent, listedName: listedName)
+    /// The ports that reach as far as `exposure`, in order.
+    func ports(reaching exposure: Exposure) -> [ListeningPort] {
+        ports.filter { $0.exposure == exposure }
     }
 
     /// Groups sockets by process, sorted by each one's lowest port, and reads
@@ -61,7 +59,14 @@ struct ListeningProcess: Hashable, Sendable {
     }
 
     static func byLowestPort(_ lhs: ListeningProcess, _ rhs: ListeningProcess) -> Bool {
-        (lhs.ports[0].port, lhs.pid) < (rhs.ports[0].port, rhs.pid)
+        byLowestPort((lhs, lhs.ports), (rhs, rhs.ports))
+    }
+
+    /// Rows showing `ports` of a process, by the lowest of them.
+    static func byLowestPort(
+        _ lhs: (process: ListeningProcess, ports: [ListeningPort]), _ rhs: (process: ListeningProcess, ports: [ListeningPort])
+    ) -> Bool {
+        (lhs.ports[0].port, lhs.process.pid) < (rhs.ports[0].port, rhs.process.pid)
     }
 }
 
@@ -71,9 +76,17 @@ struct ListeningPort: Hashable, Sendable {
     let port: Int
     /// Sorted, without repeats.
     let hosts: [String]
-
     /// The widest reach of any of its addresses.
-    var exposure: Exposure { hosts.map(Exposure.init(host:)).max() ?? .localhost }
+    let exposure: Exposure
+
+    init(port: Int, hosts: [String]) {
+        self.port = port
+        self.hosts = hosts
+        exposure = hosts.map(Exposure.init(host:)).max() ?? .localhost
+    }
+
+    /// Each address with the port, as a browser or `netstat` writes it.
+    var addresses: [String] { hosts.map { Self.address(host: $0, port: port) } }
 
     /// The address a browser on this Mac can reach it at: localhost, unless
     /// it listens only on one interface's address.
@@ -90,7 +103,7 @@ struct ListeningPort: Hashable, Sendable {
 
 /// Who can reach a listening socket, judged by the address it is bound to.
 /// Ordered from the narrowest reach to the widest.
-enum Exposure: Int, Comparable, CaseIterable, Sendable {
+enum Exposure: Comparable, Sendable {
     /// `127.0.0.1` or `::1`: only this Mac.
     case localhost
     /// One interface's address, such as a LAN or VPN address.
@@ -115,8 +128,6 @@ enum Exposure: Int, Comparable, CaseIterable, Sendable {
             self = address.hasPrefix("127.") || address.hasPrefix("::ffff:127.") ? .localhost : .interface
         }
     }
-
-    static func < (lhs: Exposure, rhs: Exposure) -> Bool { lhs.rawValue < rhs.rawValue }
 
     /// IPv4 before IPv6, then by text, so a port lists `127.0.0.1` before `::1`.
     static func hostOrder(_ lhs: String, _ rhs: String) -> Bool {

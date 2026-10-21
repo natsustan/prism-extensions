@@ -48,7 +48,7 @@ enum Netstat {
 
         var listeners: [SocketListener] = []
         var seen = Set<SocketListener>()
-        for line in lines {
+        for line in lines where line.contains("LISTEN") {
             let columns = line.split(whereSeparator: \.isWhitespace)
             guard columns.count > 5, columns[0].hasPrefix("tcp"), columns[5] == "LISTEN",
                   let (host, port) = address(columns[3], family: columns[0]),

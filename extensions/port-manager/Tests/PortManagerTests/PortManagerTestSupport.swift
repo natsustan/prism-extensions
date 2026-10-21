@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import Synchronization
 @testable import PortManager
 
 let me: uid_t = 501
@@ -8,7 +9,7 @@ let root: uid_t = 0
 /// A Mac played in memory: its sockets and processes, and the signals and
 /// Finder requests it received. A signalled process quits unless it ignores
 /// that signal.
-final class FakePorts: PortSystem, @unchecked Sendable {
+final class FakePorts: PortSystem, Sendable {
     private struct State {
         var sockets: [SocketListener] = []
         var processes: [pid_t: RunningProcess] = [:]
@@ -25,8 +26,7 @@ final class FakePorts: PortSystem, @unchecked Sendable {
 
     let currentUserID = me
     let bundleIdentifiers: [String: String]
-    private let lock = NSLock()
-    private var state = State()
+    private let state = Mutex(State())
 
     init(bundleIdentifiers: [String: String] = [:]) {
         self.bundleIdentifiers = bundleIdentifiers
@@ -94,10 +94,8 @@ final class FakePorts: PortSystem, @unchecked Sendable {
         bundleIdentifiers[path]
     }
 
-    private func locked<Value>(_ body: (inout State) -> Value) -> Value {
-        lock.lock()
-        defer { lock.unlock() }
-        return body(&state)
+    private func locked<Value: Sendable>(_ body: (inout sending State) -> sending Value) -> Value {
+        state.withLock(body)
     }
 }
 
