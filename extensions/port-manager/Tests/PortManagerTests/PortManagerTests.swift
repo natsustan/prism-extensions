@@ -105,16 +105,6 @@ struct PortManagerTests {
         #expect(interface.emptyMessage?.title == "No Ports on a Specific Interface")
     }
 
-    @Test("when only the user's own sockets could be read, the list says so")
-    func currentUserOnly() async throws {
-        let fake = FakePorts()
-        fake.listen(node, at: ("127.0.0.1", 3000))
-        fake.showOnlyCurrentUser()
-        let list = try await PrismTestHost(PortManager(fake: fake)).list(command)
-        #expect(list.items.map(\.title) == ["node"])
-        #expect(list.error == "Showing only your own processes.")
-    }
-
     @Test("the user's own process can be killed, force killed, have its parent killed, or opened on each port")
     func ownActions() async throws {
         let list = try await PrismTestHost(PortManager(fake: typicalMac())).list(command)

@@ -60,7 +60,7 @@ struct PortManager: PrismExtension {
             throw PrismExtensionError("Port Manager has no list “\(command)”.")
         }
         let names = PortNames(context.preferences.string(PreferenceID.portNames))
-        let (listeners, scan) = await listeningProcesses()
+        let listeners = await listeningProcesses()
         try Task.checkCancellation()
 
         // A filter keeps the processes with a port that reaches that far, and
@@ -79,10 +79,7 @@ struct PortManager: PrismExtension {
             },
             searchPlaceholder: "Search by port, process, or address",
             filters: PortRows.filters,
-            emptyMessage: PortRows.emptyMessage(for: exposure),
-            error: scan.isCurrentUserOnly
-                ? "Showing only your own processes."
-                : nil
+            emptyMessage: PortRows.emptyMessage(for: exposure)
         )
     }
 
@@ -92,7 +89,7 @@ struct PortManager: PrismExtension {
         }
         // The row may be minutes old: its ID names the process by PID and
         // start time, so act only if that same process still listens.
-        guard let listener = await listeningProcesses().listeners.first(where: { $0.id == item }) else {
+        guard let listener = await listeningProcesses().first(where: { $0.id == item }) else {
             return .reload(message: "That process is no longer listening.")
         }
         switch action {
@@ -130,9 +127,8 @@ struct PortManager: PrismExtension {
 
     // MARK: - Reading and stopping
 
-    private func listeningProcesses() async -> (listeners: [ListeningProcess], scan: SocketScan) {
-        let scan = await system.listeningSockets()
-        return (ListeningProcess.group(scan.sockets, processes: system.process), scan)
+    private func listeningProcesses() async -> [ListeningProcess] {
+        ListeningProcess.group(await system.listeningSockets(), processes: system.process)
     }
 
     static func exposure(for filter: String?) -> Exposure? {

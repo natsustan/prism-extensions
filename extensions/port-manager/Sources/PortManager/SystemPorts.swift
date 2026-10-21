@@ -13,14 +13,14 @@ struct SystemPorts: PortSystem {
     /// that isn't signed with a Developer ID, such as a local build: it
     /// prints its header and no sockets. The current user's own sockets,
     /// which are the ones that can be killed, are always read through libproc
-    /// as well.
-    func listeningSockets() async -> SocketScan {
+    /// as well, so the list is never empty for that reason.
+    func listeningSockets() async -> [SocketListener] {
         let data = try? await CommandRunner.output(
             of: Netstat.executable, arguments: Netstat.arguments, timeout: Self.netstatTimeout
         )
         let everyone = data.flatMap { Netstat.listeners(in: String(decoding: $0, as: UTF8.self)) } ?? []
         let own = ProcessTable.currentUserListeners()
-        return SocketScan(sockets: Self.merge(everyone, own), isCurrentUserOnly: everyone.isEmpty && !own.isEmpty)
+        return Self.merge(everyone, own)
     }
 
     /// The `netstat` sockets, then any it missed; `netstat`'s copy wins, as

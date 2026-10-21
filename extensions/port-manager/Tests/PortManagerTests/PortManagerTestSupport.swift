@@ -12,7 +12,6 @@ final class FakePorts: PortSystem, @unchecked Sendable {
     private struct State {
         var sockets: [SocketListener] = []
         var processes: [pid_t: RunningProcess] = [:]
-        var isCurrentUserOnly = false
         var ignoresTerminate: Set<pid_t> = []
         var refusesSignals: Set<pid_t> = []
         var signals: [Sent] = []
@@ -58,12 +57,11 @@ final class FakePorts: PortSystem, @unchecked Sendable {
 
     func ignoreTerminate(_ pid: pid_t) { locked { _ = $0.ignoresTerminate.insert(pid) } }
     func refuseSignals(_ pid: pid_t) { locked { _ = $0.refusesSignals.insert(pid) } }
-    func showOnlyCurrentUser() { locked { $0.isCurrentUserOnly = true } }
 
     // MARK: - PortSystem
 
-    func listeningSockets() async -> SocketScan {
-        locked { SocketScan(sockets: $0.sockets, isCurrentUserOnly: $0.isCurrentUserOnly) }
+    func listeningSockets() async -> [SocketListener] {
+        locked { $0.sockets }
     }
 
     func process(_ pid: pid_t) -> RunningProcess? {

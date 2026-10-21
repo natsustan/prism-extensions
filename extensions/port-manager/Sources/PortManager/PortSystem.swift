@@ -6,7 +6,7 @@ import Foundation
 protocol PortSystem: Sendable {
     var currentUserID: uid_t { get }
     /// Every listening TCP socket that can be seen.
-    func listeningSockets() async -> SocketScan
+    func listeningSockets() async -> [SocketListener]
     /// The process with this PID, or nil when there is none.
     func process(_ pid: pid_t) -> RunningProcess?
     /// Sends `signal` to the process only while its PID still belongs to it.
@@ -30,13 +30,6 @@ struct SocketListener: Hashable, Sendable {
     /// The short name the socket table gives, used when the process can't be
     /// read.
     var processName: String?
-}
-
-struct SocketScan: Sendable {
-    var sockets: [SocketListener]
-    /// Whether only the current user's processes could be seen, because the
-    /// system-wide socket table couldn't be read.
-    var isCurrentUserOnly = false
 }
 
 /// A PID and its start time: together they name one process even after the
