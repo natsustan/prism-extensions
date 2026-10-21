@@ -1,0 +1,17 @@
+{
+  "protocol": 1,
+  "id": "prism.port-manager",
+  "name": "Port Manager",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "See which programs listen on which TCP ports, how far each port reaches, and kill the process behind one.",
+  "icon": { "symbol": "network", "tint": "teal" },
+  "executable": ".build/release/PortManager",
+  "commands": [
+    { "id": "open-ports", "title": "Open Ports", "subtitle": "Port Manager", "mode": "list", "keywords": ["port manager", "ports", "listening", "kill port", "free port", "localhost", "lsof", "netstat", "端口"] }
+  ],
+  "preferences": [
+    { "id": "portNames", "type": "text", "title": "Port Names", "caption": "Names to show beside ports you use often, separated by commas, such as “3000 Web, 5432 Postgres”.", "default": "" }
+  ],
+  "capabilities": ["inspectProcesses", "spawnProcesses"]
+}
