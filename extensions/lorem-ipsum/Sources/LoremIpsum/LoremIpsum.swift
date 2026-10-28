@@ -42,7 +42,7 @@ struct LoremIpsum: PrismExtension {
         guard command == CommandID.generate else {
             throw PrismExtensionError("Lorem Ipsum has no list “\(command)”.")
         }
-        let language = await Self.language(choosing: filter, context: context)
+        let language = try await Self.language(choosing: filter, context: context)
         // Prism shows the first filter as chosen until the user picks one,
         // so the language last picked goes first.
         let filters = ([language] + LoremLanguage.allCases.filter { $0 != language }).map {
@@ -139,9 +139,11 @@ struct LoremIpsum: PrismExtension {
     // MARK: - Language
 
     /// The language picked with ⌘P, kept so the list reopens in it.
-    private static func language(choosing filter: String?, context: PrismContext) async -> LoremLanguage {
+    private static func language(choosing filter: String?, context: PrismContext) async throws -> LoremLanguage {
         let saved = await language(context)
         guard let picked = filter.flatMap(LoremLanguage.init(rawValue:)) else { return saved }
+        // A newer load has taken over; its choice is the one to keep.
+        try Task.checkCancellation()
         if picked != saved {
             await context.setState(.string(picked.rawValue), for: StateKey.language)
         }
