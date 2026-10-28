@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Installs on Prism 0.1.0, which already pastes.
+
 ## 1.0.0
 
 - Generate Lorem Ipsum: type how many paragraphs, sentences, or words, and
