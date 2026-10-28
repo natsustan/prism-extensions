@@ -571,7 +571,6 @@
           "tint" : "gray"
         },
         "id" : "prism.lorem-ipsum",
-        "minPrism" : "0.2.0",
         "name" : "Lorem Ipsum",
         "preferences" : [
           {
@@ -586,18 +585,18 @@
         "tasks" : [
 
         ],
-        "version" : "1.0.0",
+        "version" : "1.0.1",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "b89a90bc5ace561f190fe89949b9aa5c5c6acc62a203da7f7625f459d2583806",
-        "size" : 481063,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.lorem-ipsum%401.0.0/prism.lorem-ipsum-1.0.0.prismextension"
+        "sha256" : "cf07e73f52583a8e1c7ae0b95f3ed2466aeab613de9540404f79847166e149e9",
+        "size" : 481087,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.lorem-ipsum%401.0.1/prism.lorem-ipsum-1.0.1.prismextension"
       },
-      "publishedAt" : 1793160272,
-      "releaseNotes" : "- Generate Lorem Ipsum: type how many paragraphs, sentences, or words, and\n  paste or copy them, with a preview and word count in the detail pane.\n- Placeholder text in Latin, Chinese, Japanese, Korean, German, or French,\n  picked with ⌘P.\n- Start with “Lorem ipsum”: begin Latin text with the classic opening, or not.",
+      "publishedAt" : 1793160983,
+      "releaseNotes" : "- Installs on Prism 0.1.0, which already pastes.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/lorem-ipsum"
     },
     {
@@ -671,7 +670,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1793160272,
+  "generatedAt" : 1793160983,
   "revoked" : [
 
   ]
