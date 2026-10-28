@@ -1,0 +1,17 @@
+{
+  "protocol": 1,
+  "id": "prism.lorem-ipsum",
+  "name": "Lorem Ipsum",
+  "version": "1.0.0",
+  "author": "Prism",
+  "minPrism": "0.2.0",
+  "description": "Paste placeholder paragraphs, sentences, or words in Latin, Chinese, Japanese, Korean, German, or French.",
+  "icon": { "symbol": "text.alignleft", "tint": "gray" },
+  "executable": ".build/release/LoremIpsum",
+  "commands": [
+    { "id": "generate", "title": "Generate Lorem Ipsum", "mode": "list", "keywords": ["placeholder", "dummy text", "filler", "paragraphs", "sentences", "words", "假文", "jiawen", "占位文字", "zhanwei", "ダミーテキスト", "더미 텍스트", "Blindtext", "faux texte"] }
+  ],
+  "preferences": [
+    { "id": "startsWithLorem", "type": "bool", "title": "Start with “Lorem ipsum”", "caption": "Begin Latin text with “Lorem ipsum dolor sit amet, consectetur adipiscing elit.”", "default": true }
+  ]
+}
