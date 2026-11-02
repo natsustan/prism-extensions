@@ -1,0 +1,20 @@
+{
+  "protocol": 1,
+  "id": "prism.1password",
+  "name": "1Password",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Search your 1Password items, paste passwords and one-time passwords, and generate new passwords, through the 1Password CLI.",
+  "minPrism": "0.1.1",
+  "icon": { "symbol": "key.fill", "tint": "blue", "app": "com.1password.1password" },
+  "executable": ".build/release/OnePassword",
+  "commands": [
+    { "id": "search", "title": "Search 1Password", "subtitle": "1Password", "mode": "list", "keywords": ["1password", "one password", "onepassword", "password", "passwords", "login", "logins", "vault", "otp", "totp", "one-time password", "密码", "mima"], "searchesApp": "com.1password.1password" },
+    { "id": "generate", "title": "Generate Password", "subtitle": "1Password", "mode": "list", "keywords": ["1password", "one password", "onepassword", "password", "generate", "random", "new password", "pin", "生成密码", "shengcheng mima"] }
+  ],
+  "preferences": [
+    { "id": "returnPastes", "type": "bool", "title": "Paste on Return", "caption": "Return pastes a login’s password into the app you opened Prism over. When off, Return copies it, and ⌘⇧V pastes.", "default": true },
+    { "id": "cliPath", "type": "text", "title": "1Password CLI Path", "caption": "Leave blank to find op in your PATH, /usr/local/bin, or /opt/homebrew/bin.", "default": "" }
+  ],
+  "capabilities": ["spawnProcesses"]
+}
