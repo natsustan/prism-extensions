@@ -62,7 +62,9 @@ struct ArabicNumber: Equatable, Sendable {
     /// signs other apps copy, as their ASCII forms.
     private static func halfWidth(_ character: Character) -> Character {
         switch character {
-        case "０"..."９": return Character(String(character.wholeNumberValue!))
+        // 1️ with a variation selector falls in this range but has no value;
+        // it stays as typed, and isn't a digit.
+        case "０"..."９": return character.wholeNumberValue.map { Character(String($0)) } ?? character
         case "．", "。": return "."
         case "，": return ","
         case "－", "−", "—": return "-"

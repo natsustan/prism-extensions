@@ -56,7 +56,7 @@ struct ChineseNumberFormatterTests {
 
     @Test("text that isn't a number, or is too large, is refused")
     func refusals() {
-        for text in ["", "-", ".", "1.2.3", "12a", "1e5", "一百", "$100", "1.234,56", "1.2 3", "1️⃣"] {
+        for text in ["", "-", ".", "1.2.3", "12a", "1e5", "一百", "$100", "1.234,56", "1.2 3", "1️⃣", "\u{FF11}\u{FE0F}", "2\u{FF13}\u{0301}"] {
             #expect(throws: ArabicNumber.ParseError.notANumber) { try ArabicNumber(parsing: text) }
         }
         #expect(throws: ArabicNumber.ParseError.tooLarge) { try ArabicNumber(parsing: "10000000000000000") }
