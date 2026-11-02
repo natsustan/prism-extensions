@@ -36,10 +36,10 @@ on your Mac from the system's secure random source and handled the same way.
    guide and the Homebrew command.
 2. In 1Password, choose Settings → Developer and turn on
    **Integrate with 1Password CLI**. Until then, the list says so.
-3. Open Search 1Password. When the CLI has no session, the extension asks
-   the 1Password app for one (`op account get`, as Raycast's extension
-   does), and 1Password asks you to allow Prism. If that takes longer than a
-   list may wait, the list shows **Sign In**, which waits for you.
+3. Open Search 1Password. When the CLI has no session, as after 1Password
+   locks, the list shows **Sign In**. It closes the launcher and asks the
+   1Password app for a session (`op account get`, as Raycast's extension
+   does); approve Prism in 1Password and the items appear.
 
 Set **1Password CLI Path** when `op` is somewhere other than your `PATH`,
 `/usr/local/bin`, or `/opt/homebrew/bin`. Turn off **Paste on Return** for

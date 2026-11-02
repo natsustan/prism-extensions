@@ -64,6 +64,17 @@ struct SearchTests {
         #expect(github.actions.prefix(2).map(\.id) == [ActionID.copyPassword, ActionID.pastePassword])
     }
 
+    @Test("an item without a password opens in 1Password on Return even when it has a website")
+    func websiteWithoutPassword() {
+        let note = OnePasswordItem(
+            id: "router", title: "Router", category: "SECURE_NOTE", vault: .init(id: "personal", name: "Personal"),
+            urls: [.init(href: "https://192.168.1.1", primary: true)]
+        )
+        let account = OnePasswordAccount(url: "my.1password.com", email: "ada@example.com", accountUUID: "ACCOUNT1")
+        let actions = OnePasswordRows.actions(for: note, account: account, returnPastes: true).map(\.id)
+        #expect(actions == [ActionID.view, ActionID.openWebsite])
+    }
+
     @Test("items without a password open in 1Password on Return")
     func otherActions() async throws {
         let prism = try await host(Fixture.cli())
@@ -97,16 +108,6 @@ struct SearchTests {
         #expect(list.items.map(\.section) == Array(repeating: "ada@example.com", count: 4) + ["ada@work.example"])
         #expect(list.items.last?.id == "ACCOUNT2/private/jira")
         #expect(list.filters.last?.title == "Private (ada@work.example)")
-    }
-
-    @Test("once the CLI has a session, every account is still listed")
-    func accountsWithSession() async throws {
-        let cli = Fixture.cli()
-        cli.answer("account list", json: Fixture.twoAccounts)
-        cli.answer("item list @ACCOUNT2", json: Fixture.workItems)
-        let list = try await host(cli).list(OnePassword.CommandID.search)
-        #expect(list.items.count == 5)
-        #expect(list.items.last?.section == "ada@work.example")
     }
 
     @Test("an account that fails leaves the others, and says so")
@@ -168,45 +169,15 @@ struct SetupTests {
         #expect(list.items.first?.actions.last?.kind == .copy(text: "brew install 1password-cli"))
     }
 
-    @Test("without a CLI session, the list asks the 1Password app for one, as Raycast does")
-    func appSession() async throws {
+    @Test("without a CLI session, the list offers Sign In and asks 1Password nothing itself")
+    func noSession() async throws {
         let cli = Fixture.cli()
         cli.fail("whoami", stderr: Fixture.noSession)
-        cli.answer("account get", json: #"{"id": "ACCOUNT1", "name": "Ada", "domain": "my", "type": "INDIVIDUAL"}"#)
         let list = try await host(cli).list(OnePassword.CommandID.search)
-        #expect(list.items.count == 4)
-        // `account list` runs alongside the others, so only the rest keep their order.
-        #expect(cli.runs.map { $0.prefix { !$0.hasPrefix("--") }.joined(separator: " ") }.filter { $0 != "account list" }
-            == ["whoami", "account get", "item list"])
-        #expect(cli.runs.last == ["item", "list", "--account", "ACCOUNT1", "--format", "json"])
-    }
-
-    @Test("while 1Password waits for the user, the list shows a waiting row and reloads once they allow Prism")
-    func waitsForApproval() async throws {
-        let cli = Fixture.cli()
-        cli.fail("whoami", stderr: Fixture.noSession)
-        let allow = cli.hold("account get")
-        let prism = try await PrismTestHost(
-            OnePassword(cli: cli, generator: .secure, authorizationWait: .milliseconds(50)), extensionID: "prism.1password"
-        )
-        let waiting = try await prism.list(OnePassword.CommandID.search)
-        #expect(waiting.items.map(\.id) == ["setup-waiting"])
-        #expect(waiting.items.first?.isLoading == true)
-        // A reload while 1Password still waits asks nothing new.
-        _ = try await prism.list(OnePassword.CommandID.search)
-        #expect(cli.runs.filter { $0.starts(with: ["account", "get"]) }.count == 1)
-
-        allow(#"{"id": "ACCOUNT1", "domain": "my"}"#)
-        // The list showed the waiting row, so the extension tells Prism to
-        // reload, which the test host reads with a later request.
-        let deadline = ContinuousClock.now + .seconds(10)
-        var list = try await prism.list(OnePassword.CommandID.search)
-        while await prism.changedLists.isEmpty, ContinuousClock.now < deadline {
-            try await Task.sleep(for: .milliseconds(20))
-            list = try await prism.list(OnePassword.CommandID.search)
-        }
-        #expect(list.items.count == 4)
-        #expect(await prism.changedLists == [OnePassword.CommandID.search])
+        #expect(list.items.map(\.id) == ["setup-sign-in"])
+        #expect(list.items.first?.actions.first?.interactive == true)
+        let commands = cli.runs.map { $0.prefix { !$0.hasPrefix("--") }.joined(separator: " ") }
+        #expect(!commands.contains("account get"))
     }
 
     @Test("an account the app hands a session for is named by its email")
@@ -218,34 +189,35 @@ struct SetupTests {
         #expect(accounts.map(\.name) == ["ada@work.example"])
     }
 
+    @Test("with several accounts and none chosen, Sign In uses every one")
+    func signInSeveralAccounts() async throws {
+        let cli = Fixture.cli()
+        cli.useTwoAccounts()
+        cli.fail("account get", stderr: "[ERROR] 2026/01/15 12:00:00 multiple accounts found. Use the --account flag")
+        let accounts = try await OnePasswordClient(cli: cli, executable: "").appAccounts(timeout: .seconds(1))
+        #expect(accounts.map(\.accountUUID) == ["ACCOUNT1", "ACCOUNT2"])
+    }
+
     @Test("with no account, the list says how to turn on the CLI integration")
     func integrationOff() async throws {
         let cli = Fixture.cli()
-        cli.fail("whoami", stderr: Fixture.noSession)
-        cli.fail("account get", stderr: "[ERROR] 2026/01/15 12:00:00 no account found for filter")
+        cli.fail("whoami", stderr: "[ERROR] 2026/01/15 12:00:00 No accounts configured for use with 1Password CLI.")
         let list = try await host(cli).list(OnePassword.CommandID.search)
         #expect(list.items.map(\.id) == ["setup-integration"])
         #expect(list.items.first?.actions.first?.kind == .open(url: URL(string: "onepassword://settings")!))
     }
 
-    @Test("a dismissed prompt or a locked 1Password offers Sign In")
-    func signedOut() async throws {
-        for stderr in [
-            "[ERROR] 2026/01/15 12:00:00 authorization prompt dismissed, please try again",
-            "[ERROR] 2026/01/15 12:00:00 account is not signed in",
-        ] {
-            let cli = Fixture.cli()
-            cli.fail("whoami", stderr: Fixture.noSession)
-            cli.fail("account get", stderr: stderr)
-            let list = try await host(cli).list(OnePassword.CommandID.search)
-            #expect(list.items.map(\.id) == ["setup-sign-in"])
-            #expect(list.items.first?.actions.first?.interactive == true)
-        }
+    @Test("a dismissed prompt or a slow 1Password makes Sign In say what to do")
+    func signInFails() async throws {
         let cli = Fixture.cli()
         cli.fail("whoami", stderr: Fixture.noSession)
+        cli.fail("account get", stderr: "[ERROR] 2026/01/15 12:00:00 authorization prompt dismissed, please try again")
+        let prism = try await host(cli)
+        #expect(try await prism.perform(ActionID.signIn, on: "setup-sign-in", in: OnePassword.CommandID.search)
+            == ExtensionActionResult(.failed(message: "Unlock 1Password and approve Prism, then try again.")))
         cli.timeOut("account get")
-        let list = try await host(cli).list(OnePassword.CommandID.search)
-        #expect(list.items.first?.subtitle == "1Password didn’t answer in time. Unlock it, then approve Prism.")
+        #expect(try await prism.perform(ActionID.signIn, on: "setup-sign-in", in: OnePassword.CommandID.search)
+            == ExtensionActionResult(.failed(message: "1Password didn’t answer in time. Unlock it, then try again.")))
     }
 
     @Test("Sign In asks the 1Password app for a session, then reloads the list")
@@ -258,10 +230,6 @@ struct SetupTests {
         #expect(result == ExtensionActionResult(.hud(message: "Signed In to 1Password")))
         #expect(cli.runs.contains(["account", "get", "--format", "json"]))
         #expect(await prism.changedLists == [OnePassword.CommandID.search])
-
-        cli.fail("account get", stderr: "[ERROR] 2026/01/15 12:00:00 authorization prompt dismissed, please try again")
-        #expect(try await prism.perform(ActionID.signIn, on: "setup-sign-in", in: OnePassword.CommandID.search)
-            == ExtensionActionResult(.failed(message: "Unlock 1Password and approve Prism, then try again.")))
     }
 
     @Test("any other failure is shown as a message, without op's error prefix")

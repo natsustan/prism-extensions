@@ -23,21 +23,16 @@ struct OnePassword: PrismExtension {
     let cli: any OnePasswordCLI
     let generator: PasswordGenerator
     let library: VaultLibrary
-    let authorization: AppAuthorization
     let generated = GeneratedPasswords()
 
     init() {
         self.init(cli: InstalledOnePasswordCLI(), generator: .secure)
     }
 
-    init(
-        cli: any OnePasswordCLI, generator: PasswordGenerator, now: @escaping @Sendable () -> Date = Date.init,
-        authorizationWait: Duration = .seconds(2)
-    ) {
+    init(cli: any OnePasswordCLI, generator: PasswordGenerator, now: @escaping @Sendable () -> Date = Date.init) {
         self.cli = cli
         self.generator = generator
         self.library = VaultLibrary(now: now)
-        self.authorization = AppAuthorization(quickWait: authorizationWait)
     }
 
     private func client(_ context: PrismContext) -> OnePasswordClient {
@@ -66,22 +61,10 @@ struct OnePassword: PrismExtension {
             } else {
                 CLIFailures.reset()
                 let client = client(context)
-                let accounts: [OnePasswordAccount]
-                if let signedIn = try await client.signedInAccounts() {
-                    accounts = signedIn
-                } else {
-                    let outcome = await authorization.accounts(client) {
-                        await context.listChanged(CommandID.search)
-                    }
-                    guard let outcome else {
-                        try Task.checkCancellation()
-                        return ExtensionList(
-                            items: [OnePasswordRows.waitingItem], searchPlaceholder: placeholder,
-                            filters: OnePasswordRows.filters(for: nil)
-                        )
-                    }
-                    accounts = try outcome.get()
-                }
+                // Without a session the list offers Sign In rather than asking
+                // 1Password itself: its prompt can wait on the user far longer
+                // than a list load may keep `op` running.
+                guard let accounts = try await client.signedInAccounts() else { throw OnePasswordError.notSignedIn }
                 try Task.checkCancellation()
                 snapshot = try await library.load(client, accounts: accounts)
             }

@@ -202,10 +202,9 @@ final class CLIProcess: @unchecked Sendable {
 }
 
 /// Every `op` still running, stopped when the extension exits normally, as
-/// it does when Prism closes its input: a request for 1Password's approval
-/// outlives the list load that started it, and must not outlive the
-/// extension. A signal from Prism ends `op` with the rest of the process
-/// group instead.
+/// it does when Prism closes its input mid-request, such as while Sign In
+/// waits for 1Password's approval. A signal from Prism ends `op` with the
+/// rest of the process group instead.
 enum RunningCLIProcesses {
     private static let lock = NSLock()
     nonisolated(unsafe) private static var processes: [ObjectIdentifier: CLIProcess] = [:]

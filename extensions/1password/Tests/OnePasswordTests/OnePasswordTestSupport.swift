@@ -132,10 +132,8 @@ enum Fixture {
 }
 
 extension FakeCLI {
-    /// 1Password has several accounts and the CLI is signed in to none.
+    /// 1Password has two accounts; `whoami` names only the first.
     func useTwoAccounts() {
-        fail("whoami", stderr: Fixture.noSession)
-        fail("account get", stderr: "[ERROR] 2026/01/15 12:00:00 multiple accounts found. Use the --account flag")
         answer("account list", json: Fixture.twoAccounts)
     }
 }

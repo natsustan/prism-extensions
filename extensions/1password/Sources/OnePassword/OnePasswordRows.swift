@@ -114,16 +114,20 @@ enum OnePasswordRows {
                 shortcut: ExtensionShortcut("ctrl+cmd+v"), interactive: true
             ))
         }
+        let view = ExtensionAction(
+            id: ActionID.view, title: "Open in 1Password", symbol: "arrow.up.forward.app",
+            kind: .open(url: link(item: item, account: account)), shortcut: ExtensionShortcut("cmd+shift+o")
+        )
+        // Anything without a password opens in 1Password on Return, even with a website.
+        let opensInApp = actions.isEmpty
+        if opensInApp { actions.append(view) }
         if let website = item.website {
             actions.append(ExtensionAction(
                 id: ActionID.openWebsite, title: "Open in Browser", symbol: "safari",
                 kind: .open(url: website), shortcut: ExtensionShortcut("cmd+o")
             ))
         }
-        actions.append(ExtensionAction(
-            id: ActionID.view, title: "Open in 1Password", symbol: "arrow.up.forward.app",
-            kind: .open(url: link(item: item, account: account)), shortcut: ExtensionShortcut("cmd+shift+o")
-        ))
+        if !opensInApp { actions.append(view) }
         return actions
     }
 
@@ -259,13 +263,6 @@ enum OnePasswordRows {
 
     /// Shown while 1Password asks the user to allow Prism; the list loads
     /// again once they answer.
-    static let waitingItem = ExtensionListItem(
-        id: "setup-waiting", title: "Waiting for 1Password…",
-        subtitle: "Allow Prism in 1Password’s window, and your items appear here.",
-        icon: ExtensionIcon(symbol: "lock.open", tint: "blue", app: appBundleID),
-        actions: [ExtensionAction(id: ActionID.openApp, title: "Open 1Password", symbol: "arrow.up.forward.app", kind: .open(url: app))],
-        isLoading: true
-    )
 
     static func failureMessage(_ error: OnePasswordError) -> ExtensionListMessage {
         ExtensionListMessage(

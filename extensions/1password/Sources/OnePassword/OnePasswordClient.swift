@@ -38,8 +38,8 @@ struct OnePasswordClient: Sendable {
     func signedInAccount() async throws -> OnePasswordAccount? {
         do {
             return try await decode(OnePasswordAccount.self, ["whoami", "--format", "json"], timeout: .seconds(2))
-        } catch OnePasswordError.notInstalled {
-            throw OnePasswordError.notInstalled
+        } catch let error as OnePasswordError where error == .notInstalled || error == .noAccounts {
+            throw error
         } catch {
             // With the app integration and no `op signin` session, `whoami`
             // fails although the app would hand out a session.
