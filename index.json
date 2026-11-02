@@ -414,6 +414,73 @@
             "aliases" : [
 
             ],
+            "id" : "convert",
+            "interactive" : false,
+            "keywords" : [
+              "chinese numbers",
+              "数字",
+              "大写",
+              "小写",
+              "金额",
+              "人民币",
+              "shuzi",
+              "daxie",
+              "xiaoxie",
+              "jine",
+              "renminbi",
+              "rmb",
+              "amount in words"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "subtitle" : "Chinese Numbers",
+            "title" : "Convert to Chinese Numbers"
+          }
+        ],
+        "description" : "Write numbers in Chinese, in lowercase, uppercase, or as an amount in words, and read Chinese numbers back as digits.",
+        "executable" : "bin/ChineseNumbers",
+        "folders" : [
+
+        ],
+        "icon" : {
+          "symbol" : "textformat.123",
+          "tint" : "red"
+        },
+        "id" : "prism.chinese-numbers",
+        "minPrism" : "0.1.1",
+        "name" : "Chinese Numbers",
+        "preferences" : [
+
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "0a0b2583fbddb21cb114ffaa830c3cb868d418a2070bba758bacc33b7ed8422b",
+        "size" : 474919,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.chinese-numbers%401.0.0/prism.chinese-numbers-1.0.0.prismextension"
+      },
+      "publishedAt" : 1793630856,
+      "releaseNotes" : "- Convert to Chinese Numbers: type digits to get them in Chinese lowercase,\n  uppercase, and as an amount in words, or type a Chinese number to get its\n  digits. Return pastes; ⌘⇧C copies.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/chinese-numbers"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
+
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
             "id" : "pick-color",
             "interactive" : true,
             "keywords" : [
@@ -775,7 +842,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1793626443,
+  "generatedAt" : 1793630856,
   "revoked" : [
 
   ]
