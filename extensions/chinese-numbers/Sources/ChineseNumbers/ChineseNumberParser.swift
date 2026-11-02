@@ -57,33 +57,32 @@ enum ChineseNumberParser {
             yuan = value
             rest = rest[rest.index(after: index)...]
         }
-        // Zeros are skipped, so 0 means "not seen yet".
-        var jiao = 0, fen = 0
+        // 角 and 分 each take the digit before them, or an explicit 零
+        // (壹元零角伍分, 壹元壹角零分); a 零 before a digit is only a gap
+        // (壹佰元零伍分). Each comes once, 角 before 分.
+        var jiao: Int?, fen: Int?
         var pending: Int?
         var afterZero = false
         for character in rest {
             if let digit = digits[character] {
-                if digit == 0 && pending == nil {
-                    afterZero = true
-                    continue
-                }
                 guard pending == nil else { return nil }
-                pending = digit
-            } else if character == "角", pending == nil, afterZero, jiao == 0, fen == 0 {
-                // 壹佰元零角伍分, as some cheques write it.
+                if digit == 0 { afterZero = true } else { pending = digit }
+            } else if character == "角" || character == "分" {
+                guard let digit = pending ?? (afterZero ? 0 : nil), fen == nil else { return nil }
+                if character == "角" {
+                    guard jiao == nil else { return nil }
+                    jiao = digit
+                } else {
+                    fen = digit
+                }
+                pending = nil
                 afterZero = false
-            } else if character == "角", let digit = pending, jiao == 0, fen == 0 {
-                jiao = digit
-                pending = nil
-            } else if character == "分", let digit = pending, fen == 0 {
-                fen = digit
-                pending = nil
             } else {
                 return nil
             }
         }
         guard pending == nil else { return nil }
-        var fraction = "\(jiao)\(fen)"
+        var fraction = "\(jiao ?? 0)\(fen ?? 0)"
         while fraction.last == "0" { fraction.removeLast() }
         return ArabicNumber(integer: yuan, fraction: fraction)
     }
