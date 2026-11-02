@@ -4,6 +4,111 @@
       "manifest" : {
         "author" : "Prism",
         "capabilities" : [
+          "spawnProcesses"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "search",
+            "interactive" : false,
+            "keywords" : [
+              "1password",
+              "one password",
+              "onepassword",
+              "password",
+              "passwords",
+              "login",
+              "logins",
+              "vault",
+              "otp",
+              "totp",
+              "one-time password",
+              "密码",
+              "mima"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "com.1password.1password",
+            "subtitle" : "1Password",
+            "title" : "Search 1Password"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "generate",
+            "interactive" : false,
+            "keywords" : [
+              "1password",
+              "one password",
+              "onepassword",
+              "password",
+              "generate",
+              "random",
+              "new password",
+              "pin",
+              "生成密码",
+              "shengcheng mima"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "subtitle" : "1Password",
+            "title" : "Generate Password"
+          }
+        ],
+        "description" : "Search your 1Password items, paste passwords and one-time passwords, and generate new passwords, through the 1Password CLI.",
+        "executable" : "bin/OnePassword",
+        "folders" : [
+
+        ],
+        "icon" : {
+          "app" : "com.1password.1password",
+          "symbol" : "key.fill",
+          "tint" : "blue"
+        },
+        "id" : "prism.1password",
+        "minPrism" : "0.1.1",
+        "name" : "1Password",
+        "preferences" : [
+          {
+            "caption" : "Return pastes a login’s password into the app you opened Prism over. When off, Return copies it, and ⌘⇧V pastes.",
+            "default" : true,
+            "id" : "returnPastes",
+            "title" : "Paste on Return",
+            "type" : "bool"
+          },
+          {
+            "caption" : "Leave blank to find op in your PATH, /usr/local/bin, or /opt/homebrew/bin.",
+            "default" : "",
+            "id" : "cliPath",
+            "title" : "1Password CLI Path",
+            "type" : "text"
+          }
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "b4c6d9f04628ca081bdb1b1317e3f3b171344101bbfa104e953551ad14c35f03",
+        "size" : 571095,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.1password%401.0.0/prism.1password-1.0.0.prismextension"
+      },
+      "publishedAt" : 1793626443,
+      "releaseNotes" : "- Search 1Password: every account’s items, most recently changed first,\n  with usernames, vaults, and favorites, narrowed by favorites, category, or\n  vault with ⌘P.\n- Paste or copy a login’s password, username, or one-time password, open\n  its website, or open it in 1Password, with Raycast’s shortcuts. Passwords\n  stay out of clipboard histories and are cleared after 90 seconds.\n- Generate Password: random passwords and PINs to paste or copy.\n- Signs in through the 1Password app as Raycast’s extension does: Sign In\n  waits while 1Password asks you to allow Prism. Setup rows cover a missing\n  CLI and the integration being off.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/1password"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
           "network",
           "readHomeFiles",
           "keychainRead",
@@ -670,7 +775,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1793160983,
+  "generatedAt" : 1793626443,
   "revoked" : [
 
   ]
