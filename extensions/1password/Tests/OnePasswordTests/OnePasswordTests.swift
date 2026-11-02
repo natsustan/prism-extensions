@@ -183,19 +183,34 @@ struct SetupTests {
     @Test("an account the app hands a session for is named by its email")
     func appAccountEmail() async throws {
         let cli = Fixture.cli()
-        cli.useTwoAccounts()
+        cli.answer("account list", json: #"[{"url": "work.1password.com", "email": "ada@work.example", "account_uuid": "ACCOUNT2"}]"#)
         cli.answer("account get", json: #"{"id": "ACCOUNT2", "domain": "work"}"#)
         let accounts = try await OnePasswordClient(cli: cli, executable: "").appAccounts(timeout: .seconds(1))
         #expect(accounts.map(\.name) == ["ada@work.example"])
     }
 
-    @Test("with several accounts and none chosen, Sign In uses every one")
+    @Test("with several accounts, Sign In asks for each by name and keeps the ones allowed")
     func signInSeveralAccounts() async throws {
         let cli = Fixture.cli()
         cli.useTwoAccounts()
         cli.fail("account get", stderr: "[ERROR] 2026/01/15 12:00:00 multiple accounts found. Use the --account flag")
+        cli.answer("account get @ACCOUNT1", json: #"{"id": "ACCOUNT1", "domain": "my"}"#)
+        cli.fail("account get @ACCOUNT2", stderr: "[ERROR] 2026/01/15 12:00:00 authorization prompt dismissed, please try again")
         let accounts = try await OnePasswordClient(cli: cli, executable: "").appAccounts(timeout: .seconds(1))
-        #expect(accounts.map(\.accountUUID) == ["ACCOUNT1", "ACCOUNT2"])
+        #expect(accounts.map(\.accountUUID) == ["ACCOUNT1"])
+        #expect(cli.runs.filter { $0.starts(with: ["account", "get"]) }.map { $0.contains("--account") } == [true, true])
+    }
+
+    @Test("with several accounts, the list shows those the CLI has a session for")
+    func someAccountsSignedIn() async throws {
+        let cli = Fixture.cli()
+        cli.useTwoAccounts()
+        cli.fail("whoami", stderr: "[ERROR] 2026/01/15 12:00:00 multiple accounts found. Use the --account flag")
+        cli.answer("whoami @ACCOUNT1", json: Fixture.whoami)
+        cli.fail("whoami @ACCOUNT2", stderr: Fixture.noSession)
+        let list = try await host(cli).list(OnePassword.CommandID.search)
+        #expect(list.items.count == 4)
+        #expect(list.items.allSatisfy { $0.section == nil })
     }
 
     @Test("with no account, the list says how to turn on the CLI integration")

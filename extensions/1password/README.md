@@ -45,7 +45,8 @@ Set **1Password CLI Path** when `op` is somewhere other than your `PATH`,
 `/usr/local/bin`, or `/opt/homebrew/bin`. Turn off **Paste on Return** for
 Return to copy a login's password instead.
 
-With several accounts and none chosen, every account's items are listed.
+With several accounts, Sign In asks 1Password for each in turn, and the list
+shows the items of every account you allow.
 
 Item lists are kept in memory for 30 seconds while the extension runs, so
 reopening the list is instant, and never written to disk.

@@ -34,51 +34,75 @@ struct OnePasswordClient: Sendable {
 
     /// The account the CLI already has a session for, or nil. `whoami`
     /// only reads the CLI's own session, so it answers quickly and never
-    /// asks the user anything.
-    func signedInAccount() async throws -> OnePasswordAccount? {
+    /// asks the user anything. `account` names one of several accounts.
+    func signedInAccount(_ account: String? = nil) async throws -> OnePasswordAccount? {
         do {
-            return try await decode(OnePasswordAccount.self, ["whoami", "--format", "json"], timeout: .seconds(2))
+            let scope = account.map { ["--account", $0] } ?? []
+            return try await decode(OnePasswordAccount.self, ["whoami"] + scope + ["--format", "json"], timeout: .seconds(2))
         } catch let error as OnePasswordError where error == .notInstalled || error == .noAccounts {
             throw error
         } catch {
-            // With the app integration and no `op signin` session, `whoami`
-            // fails although the app would hand out a session.
+            // With the app integration and no session, `whoami` fails
+            // although the app would hand one out.
             return nil
         }
     }
 
-    /// The accounts the 1Password app hands a session for. `op account get`
-    /// shows 1Password's prompt when it needs one and waits for the user;
-    /// once allowed, later calls, `whoami` included, have the session. When
-    /// 1Password has several accounts and none is chosen, every one is used.
-    func appAccounts(timeout: Duration) async throws -> [OnePasswordAccount] {
-        // `account get` names no email, which sections and messages show;
-        // `account list` asks nothing, so it runs alongside.
-        async let listed = try? listedAccounts()
-        do {
-            let account = try await decode(AppAccount.self, ["account", "get", "--format", "json"], timeout: timeout)
-            let known = await listed?.first { $0.accountUUID == account.id }
-            return [known ?? OnePasswordAccount(url: "\(account.domain).1password.com", email: "", accountUUID: account.id)]
-        } catch OnePasswordError.failed(let message) where message.lowercased().contains("multiple accounts") {
-            let accounts = await listed ?? []
-            guard !accounts.isEmpty else { throw OnePasswordError.noAccounts }
-            return accounts
+    /// The accounts the CLI has a session for, or nil when none. With
+    /// several accounts, `whoami` answers only for one named with
+    /// `--account`, so each is asked on its own.
+    func signedInAccounts() async throws -> [OnePasswordAccount]? {
+        let listed = (try? await listedAccounts()) ?? []
+        guard listed.count > 1 else { return try await signedInAccount().map { [$0] } }
+        let signedIn = try await withThrowingTaskGroup(of: (Int, Bool).self) { group in
+            for (index, account) in listed.enumerated() {
+                group.addTask { (index, try await signedInAccount(account.accountUUID) != nil) }
+            }
+            var signedIn = Set<Int>()
+            for try await (index, isSignedIn) in group where isSignedIn { signedIn.insert(index) }
+            return signedIn
         }
+        let accounts = listed.indices.filter(signedIn.contains).map { listed[$0] }
+        return accounts.isEmpty ? nil : accounts
+    }
+
+    /// Asks the 1Password app for a session: `op account get` shows
+    /// 1Password's prompt when it needs one and waits for the user. With
+    /// several accounts, each is asked for by name, and every account the
+    /// user allows is used.
+    func appAccounts(timeout: Duration) async throws -> [OnePasswordAccount] {
+        // `account get` names no email, which sections and messages show.
+        let listed = (try? await listedAccounts()) ?? []
+        guard listed.count > 1 else {
+            let account = try await authorize(nil, timeout: timeout)
+            return [listed.first { $0.accountUUID == account.id }
+                ?? OnePasswordAccount(url: "\(account.domain).1password.com", email: "", accountUUID: account.id)]
+        }
+        // One at a time, so 1Password shows one prompt after another.
+        var allowed = [OnePasswordAccount]()
+        var firstError: (any Error)?
+        for account in listed {
+            do {
+                _ = try await authorize(account.accountUUID, timeout: timeout)
+                allowed.append(account)
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                firstError = firstError ?? error
+            }
+        }
+        if allowed.isEmpty, let firstError { throw firstError }
+        return allowed
+    }
+
+    private func authorize(_ account: String?, timeout: Duration) async throws -> AppAccount {
+        let scope = account.map { ["--account", $0] } ?? []
+        return try await decode(AppAccount.self, ["account", "get"] + scope + ["--format", "json"], timeout: timeout)
     }
 
     func accounts(timeout: Duration) async throws -> [OnePasswordAccount] {
         if let accounts = try await signedInAccounts() { return accounts }
         return try await appAccounts(timeout: timeout)
-    }
-
-    /// Every account, once the CLI has a session: `whoami` names only one,
-    /// but the app's session covers them all, so the list keeps each
-    /// account's items however it was reached.
-    func signedInAccounts() async throws -> [OnePasswordAccount]? {
-        async let listing = try? listedAccounts()
-        guard let account = try await signedInAccount() else { return nil }
-        let listed = await listing ?? []
-        return listed.contains { $0.accountUUID == account.accountUUID } ? listed : [account]
     }
 
     /// The accounts `op` knows, which asks the user nothing.
