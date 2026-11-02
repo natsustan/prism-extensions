@@ -1,0 +1,20 @@
+{
+  "protocol": 1,
+  "id": "prism.chinese-numbers",
+  "name": "Chinese Numbers",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Write numbers in Chinese, in lowercase, uppercase, or as an amount in words, and read Chinese numbers back as digits.",
+  "icon": { "symbol": "textformat.123", "tint": "red" },
+  "minPrism": "0.1.1",
+  "executable": ".build/release/ChineseNumbers",
+  "commands": [
+    {
+      "id": "convert",
+      "title": "Convert to Chinese Numbers",
+      "subtitle": "Chinese Numbers",
+      "mode": "list",
+      "keywords": ["chinese numbers", "数字", "大写", "小写", "金额", "人民币", "shuzi", "daxie", "xiaoxie", "jine", "renminbi", "rmb", "amount in words"]
+    }
+  ]
+}
