@@ -39,6 +39,15 @@ fi
 # would show only English.
 build_system=(--build-system swiftbuild)
 
+# Builds a Swift extension where its manifest looks for it. Swift Build before
+# Swift 6.4 leaves the product in .build/out without a .build/release link.
+build_extension() {
+    swift build --package-path "$1" -c release "${build_system[@]}"
+    if [[ ! -e "$1/.build/release" ]]; then
+        ln -s "$(swift build --package-path "$1" -c release "${build_system[@]}" --show-bin-path)" "$1/.build/release"
+    fi
+}
+
 swift build --package-path tools -c release
 tool="$ROOT/tools/.build/release/prism-extension"
 packages="$(mktemp -d)"
@@ -81,7 +90,7 @@ for folder in extensions/*/; do
     echo "==> $tag"
 
     if [[ -f "$folder/Package.swift" ]]; then
-        swift build --package-path "$folder" -c release "${build_system[@]}"
+        build_extension "$folder"
         executable="$folder/$(manifest_field "$folder" executable)"
         if [[ "$id" == prism.* && -n "${DEVELOPER_ID_IDENTITY:-}" ]]; then
             # Prism's own code keeps one signing identity across versions, so
