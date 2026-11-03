@@ -149,7 +149,12 @@ brand mark on a tile for the extension's own icon.
 Prism runs in `en`, `zh-Hans`, or `zh-Hant`; translations are optional,
 except that Prism's own (`prism.`) extensions translate all manifest text
 into both `zh-Hans` and `zh-Hant` (`zh-Hant` in Taiwan terms, matching
-Prism's own catalog: 檔案, 設定, 小工具, 金鑰).
+Prism's own catalog: 檔案, 設定, 小工具, 金鑰). Translate the way people
+talk, not word for word: keep brand and product names (Caffeinate, GitHub,
+1Password), keep the developer terms people already say in English (PR,
+Issue, Token), and let a playful extension stay playful (Caffeinate's
+command is 喝杯咖啡, not 保持唤醒). Put the literal terms in `keywords` so
+they still find the command.
 Manifest text (name, description, command titles and keywords, preference
 rows and sections, widget titles, folder reasons) goes in the manifest's
 `localizations`, keyed by ID; `prism-extension lint` fails on unknown IDs,

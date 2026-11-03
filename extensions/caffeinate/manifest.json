@@ -25,35 +25,35 @@
   "capabilities": ["hostTasks", "inspectProcesses"],
   "localizations": {
     "zh-Hans": {
-      "name": "保持唤醒",
-      "description": "从启动器、快捷键或小组件让你的 Mac 保持唤醒。",
+      "name": "Caffeinate",
+      "description": "给 Mac 喝杯咖啡，让它保持清醒。启动器、快捷键或小组件都能开关。",
       "commands": {
-        "caffeinate": {"title": "保持唤醒", "subtitle": "咖啡", "keywords": ["防止睡眠", "不睡眠", "唤醒", "咖啡因"]},
-        "caffeinate-status": {"title": "保持唤醒状态", "subtitle": "咖啡", "keywords": ["唤醒", "睡眠", "咖啡因"]},
-        "decaffeinate": {"title": "允许睡眠", "subtitle": "咖啡", "keywords": ["允许睡眠", "停止保持唤醒", "咖啡因"]},
-        "toggle-caffeinate": {"title": "切换保持唤醒", "subtitle": "咖啡", "keywords": ["防止睡眠", "允许睡眠", "咖啡因"]}
+        "caffeinate": {"title": "喝杯咖啡", "subtitle": "咖啡", "keywords": ["保持唤醒", "防止睡眠", "不睡眠", "咖啡因"]},
+        "caffeinate-status": {"title": "咖啡状态", "subtitle": "咖啡", "keywords": ["保持唤醒", "睡眠", "咖啡因"]},
+        "decaffeinate": {"title": "放下咖啡", "subtitle": "咖啡", "keywords": ["允许睡眠", "停止保持唤醒", "咖啡因"]},
+        "toggle-caffeinate": {"title": "咖啡开关", "subtitle": "咖啡", "keywords": ["保持唤醒", "防止睡眠", "允许睡眠", "咖啡因"]}
       },
       "preferences": {
-        "preventDiskSleep": {"title": "防止磁盘睡眠", "caption": "下次开始保持唤醒时，防止磁盘闲置睡眠。不会阻止屏幕锁定，也不会阻止合上盖子后的睡眠。"}
+        "preventDiskSleep": {"title": "也别让磁盘打盹", "caption": "下次喝咖啡时，磁盘也不会闲置睡眠。屏幕照样会锁定，合上盖子照样会睡眠。"}
       },
       "widgets": {
-        "toggle": {"title": "保持唤醒", "subtitle": "让你的 Mac 保持唤醒"}
+        "toggle": {"title": "Caffeinate", "subtitle": "给 Mac 喝杯咖啡"}
       }
     },
     "zh-Hant": {
-      "name": "保持喚醒",
-      "description": "從啟動器、快速鍵或小工具讓你的 Mac 保持喚醒。",
+      "name": "Caffeinate",
+      "description": "給 Mac 喝杯咖啡，讓它保持清醒。啟動器、快速鍵或小工具都能開關。",
       "commands": {
-        "caffeinate": {"title": "保持喚醒", "subtitle": "咖啡", "keywords": ["防止睡眠", "不睡眠", "喚醒", "咖啡因"]},
-        "caffeinate-status": {"title": "保持喚醒狀態", "subtitle": "咖啡", "keywords": ["喚醒", "睡眠", "咖啡因"]},
-        "decaffeinate": {"title": "允許睡眠", "subtitle": "咖啡", "keywords": ["允許睡眠", "停止保持喚醒", "咖啡因"]},
-        "toggle-caffeinate": {"title": "切換保持喚醒", "subtitle": "咖啡", "keywords": ["防止睡眠", "允許睡眠", "咖啡因"]}
+        "caffeinate": {"title": "喝杯咖啡", "subtitle": "咖啡", "keywords": ["保持喚醒", "防止睡眠", "不睡眠", "咖啡因"]},
+        "caffeinate-status": {"title": "咖啡狀態", "subtitle": "咖啡", "keywords": ["保持喚醒", "睡眠", "咖啡因"]},
+        "decaffeinate": {"title": "放下咖啡", "subtitle": "咖啡", "keywords": ["允許睡眠", "停止保持喚醒", "咖啡因"]},
+        "toggle-caffeinate": {"title": "咖啡開關", "subtitle": "咖啡", "keywords": ["保持喚醒", "防止睡眠", "允許睡眠", "咖啡因"]}
       },
       "preferences": {
-        "preventDiskSleep": {"title": "防止磁碟睡眠", "caption": "下次開始保持喚醒時，防止磁碟閒置睡眠。不會阻止螢幕鎖定，也不會阻止闔上螢幕後的睡眠。"}
+        "preventDiskSleep": {"title": "也別讓磁碟打盹", "caption": "下次喝咖啡時，磁碟也不會閒置睡眠。螢幕照樣會鎖定，闔上螢幕照樣會睡眠。"}
       },
       "widgets": {
-        "toggle": {"title": "保持喚醒", "subtitle": "讓你的 Mac 保持喚醒"}
+        "toggle": {"title": "Caffeinate", "subtitle": "給 Mac 喝杯咖啡"}
       }
     }
   }

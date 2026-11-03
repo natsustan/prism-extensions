@@ -3,8 +3,8 @@
 ## 1.2.0
 
 - When Prism runs in Simplified or Traditional Chinese, it shows this
-  extension's name, description, commands, setting, and widget in that language, and Chinese
-  words find its commands in search.
+  extension's commands, setting, and widget in that language (the name stays
+  Caffeinate), and Chinese words such as 保持唤醒 find its commands in search.
 
 ## 1.1.0
 
