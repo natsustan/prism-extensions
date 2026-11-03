@@ -1,5 +1,6 @@
 import Foundation
 import PrismExtensionKit
+import Synchronization
 
 /// The rows of Search 1Password and Generate Password, and the setup rows
 /// shown in their place when the CLI can't answer.
@@ -54,11 +55,12 @@ enum OnePasswordRows {
     static func item(
         _ item: OnePasswordItem, account: OnePasswordAccount, section: String?, returnPastes: Bool
     ) -> ExtensionListItem {
+        let titles = RowTitles.current
         var accessories = [ExtensionListAccessory]()
         if item.favorite == true {
-            accessories.append(ExtensionListAccessory(symbol: "star.fill", tint: "gold", help: localized("Favorite")))
+            accessories.append(ExtensionListAccessory(symbol: "star.fill", tint: "gold", help: titles.favorite))
         }
-        accessories.append(ExtensionListAccessory(text: item.vault.name, help: localized("Vault")))
+        accessories.append(ExtensionListAccessory(text: item.vault.name, help: titles.vault))
         let subtitle = item.additionalInformation.flatMap { $0.isEmpty ? nil : $0 }
         return ExtensionListItem(
             id: itemID(item, account: account),
@@ -66,7 +68,12 @@ enum OnePasswordRows {
             subtitle: subtitle,
             icon: ExtensionIcon(symbol: OnePasswordCategory.symbol(item.category), tint: OnePasswordCategory.tint(item.category)),
             accessories: accessories,
-            keywords: [OnePasswordCategory.title(item.category), item.vault.name]
+            // The category in English too ("ssh key"), so Latin typing finds it in any language.
+            keywords: [
+                OnePasswordCategory.title(item.category),
+                item.category.replacingOccurrences(of: "_", with: " ").lowercased(),
+                item.vault.name,
+            ]
                 + (item.urls ?? []).compactMap { URL(string: $0.href)?.host() }
                 + (item.tags ?? []),
             section: section,
@@ -79,17 +86,18 @@ enum OnePasswordRows {
     /// asks, never put in the list, and those actions run with the launcher
     /// closed so 1Password's prompt can take focus and wait for the user.
     static func actions(for item: OnePasswordItem, account: OnePasswordAccount, returnPastes: Bool) -> [ExtensionAction] {
+        let titles = RowTitles.current
         // Shortcuts follow Raycast's 1Password extension, so hands that
         // know it know these; Open in Browser takes ⌘O, since Prism's
         // shortcuts need ⌘ or ⌃ and Raycast's is ⌥↵.
         var actions = [ExtensionAction]()
         if OnePasswordCategory.withPassword.contains(item.category) {
             let paste = ExtensionAction(
-                id: ActionID.pastePassword, title: localized("Paste Password"), symbol: "doc.on.clipboard",
+                id: ActionID.pastePassword, title: titles.pastePassword, symbol: "doc.on.clipboard",
                 shortcut: ExtensionShortcut("cmd+option+v"), interactive: true
             )
             let copy = ExtensionAction(
-                id: ActionID.copyPassword, title: localized("Copy Password"), symbol: "doc.on.doc",
+                id: ActionID.copyPassword, title: titles.copyPassword, symbol: "doc.on.doc",
                 shortcut: ExtensionShortcut("cmd+option+c"), interactive: true
             )
             actions += returnPastes ? [paste, copy] : [copy, paste]
@@ -97,25 +105,25 @@ enum OnePasswordRows {
         if item.category == "LOGIN" {
             if let username = item.additionalInformation, !username.isEmpty {
                 actions.append(ExtensionAction(
-                    id: ActionID.copyUsername, title: localized("Copy Username"), symbol: "person",
+                    id: ActionID.copyUsername, title: titles.copyUsername, symbol: "person",
                     kind: .copy(text: username), shortcut: ExtensionShortcut("cmd+shift+c")
                 ))
                 actions.append(ExtensionAction(
-                    id: ActionID.pasteUsername, title: localized("Paste Username"), symbol: "person.text.rectangle",
+                    id: ActionID.pasteUsername, title: titles.pasteUsername, symbol: "person.text.rectangle",
                     shortcut: ExtensionShortcut("cmd+shift+v"), interactive: true
                 ))
             }
             actions.append(ExtensionAction(
-                id: ActionID.copyOneTimePassword, title: localized("Copy One-Time Password"), symbol: "clock",
+                id: ActionID.copyOneTimePassword, title: titles.copyOneTimePassword, symbol: "clock",
                 shortcut: ExtensionShortcut("ctrl+cmd+c"), interactive: true
             ))
             actions.append(ExtensionAction(
-                id: ActionID.pasteOneTimePassword, title: localized("Paste One-Time Password"), symbol: "clock.badge.checkmark",
+                id: ActionID.pasteOneTimePassword, title: titles.pasteOneTimePassword, symbol: "clock.badge.checkmark",
                 shortcut: ExtensionShortcut("ctrl+cmd+v"), interactive: true
             ))
         }
         let view = ExtensionAction(
-            id: ActionID.view, title: localized("Open in 1Password"), symbol: "arrow.up.forward.app",
+            id: ActionID.view, title: titles.openInApp, symbol: "arrow.up.forward.app",
             kind: .open(url: link(item: item, account: account)), shortcut: ExtensionShortcut("cmd+shift+o")
         )
         // Anything without a password opens in 1Password on Return, even with a website.
@@ -123,7 +131,7 @@ enum OnePasswordRows {
         if opensInApp { actions.append(view) }
         if let website = item.website {
             actions.append(ExtensionAction(
-                id: ActionID.openWebsite, title: localized("Open in Browser"), symbol: "safari",
+                id: ActionID.openWebsite, title: titles.openInBrowser, symbol: "safari",
                 kind: .open(url: website), shortcut: ExtensionShortcut("cmd+o")
             ))
         }
@@ -301,5 +309,41 @@ enum OnePasswordRows {
                 ),
             ]
         )
+    }
+}
+
+/// Row text that is the same for every item, looked up once per language:
+/// a vault can hold thousands of items, each with up to ten of these.
+struct RowTitles: Sendable {
+    let favorite: String
+    let vault: String
+    let pastePassword: String
+    let copyPassword: String
+    let copyUsername: String
+    let pasteUsername: String
+    let copyOneTimePassword: String
+    let pasteOneTimePassword: String
+    let openInApp: String
+    let openInBrowser: String
+
+    private static let cache = Mutex<[String: RowTitles]>([:])
+
+    static var current: RowTitles {
+        let language = PrismLocalization.language ?? ""
+        if let titles = cache.withLock({ $0[language] }) { return titles }
+        let titles = RowTitles(
+            favorite: localized("Favorite"),
+            vault: localized("Vault"),
+            pastePassword: localized("Paste Password"),
+            copyPassword: localized("Copy Password"),
+            copyUsername: localized("Copy Username"),
+            pasteUsername: localized("Paste Username"),
+            copyOneTimePassword: localized("Copy One-Time Password"),
+            pasteOneTimePassword: localized("Paste One-Time Password"),
+            openInApp: localized("Open in 1Password"),
+            openInBrowser: localized("Open in Browser")
+        )
+        cache.withLock { $0[language] = titles }
+        return titles
     }
 }

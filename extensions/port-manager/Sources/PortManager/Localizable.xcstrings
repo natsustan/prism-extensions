@@ -1,54 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "%@ already quit." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@已经退出了。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@已經結束了。"
-          }
-        }
-      }
-    },
-    "%@ is still running." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@仍在运行。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@仍在執行。"
-          }
-        }
-      }
-    },
-    "%@ is still running. Force Kill (⌘⇧⌫) stops it at once." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@仍在运行。强制结束（⌘⇧⌫）可以立即停止它。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@仍在執行。強制結束（⌘⇧⌫）可以立即停止它。"
-          }
-        }
-      }
-    },
     "%@ quits at once, without a chance to clean up." : {
       "localizations" : {
         "zh-Hans" : {
@@ -193,18 +145,18 @@
         }
       }
     },
-    "Couldn’t kill %@: %@." : {
+    "Couldn’t kill “%@”: %@." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法结束%1$@：%2$@。"
+            "value" : "无法结束“%1$@”：%2$@。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法結束%1$@：%2$@。"
+            "value" : "無法結束「%1$@」：%2$@。"
           }
         }
       }
@@ -289,18 +241,18 @@
         }
       }
     },
-    "Killed %@." : {
+    "Killed “%@”." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已结束%@。"
+            "value" : "已结束“%@”。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已結束%@。"
+            "value" : "已結束「%@」。"
           }
         }
       }
@@ -913,34 +865,18 @@
         }
       }
     },
-    "You don’t have permission to kill %@." : {
+    "You don’t have permission to kill “%@”." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你没有权限结束%@。"
+            "value" : "你没有权限结束“%@”。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你沒有權限結束%@。"
-          }
-        }
-      }
-    },
-    "“%@”" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@”"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「%@」"
+            "value" : "你沒有權限結束「%@」。"
           }
         }
       }
@@ -973,6 +909,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "啟動了「%3$@」的「%1$@」（PID %2$@）將結束。"
+          }
+        }
+      }
+    },
+    "“%@” already quit." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”已经退出了。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」已經結束了。"
+          }
+        }
+      }
+    },
+    "“%@” is still running." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”仍在运行。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」仍在執行。"
+          }
+        }
+      }
+    },
+    "“%@” is still running. Force Kill (⌘⇧⌫) stops it at once." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”仍在运行。强制结束（⌘⇧⌫）可以立即停止它。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」仍在執行。強制結束（⌘⇧⌫）可以立即停止它。"
           }
         }
       }

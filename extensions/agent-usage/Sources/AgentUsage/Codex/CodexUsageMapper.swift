@@ -134,11 +134,9 @@ enum CodexUsageMapper {
 
         var title: String {
             switch self {
-            case .session: return localized("5h Limit")
-            case .weekly: return localized("Weekly Limit")
-            case let .other(seconds):
-                let window = AgentUsageFormat.durationText(TimeInterval(seconds))
-                return localized("\(window) Limit")
+            case .session: localized("5h Limit")
+            case .weekly: localized("Weekly Limit")
+            case let .other(seconds): localized("\(AgentUsageFormat.durationText(TimeInterval(seconds))) Limit")
             }
         }
     }
@@ -211,11 +209,12 @@ enum CodexUsageMapper {
             now: fetchedAt
         )
         for limit in response.additionalRateLimits ?? [] {
-            let name = limit.limitName ?? limit.meteredFeature ?? localized("Additional Limit")
+            let name = limit.limitName ?? limit.meteredFeature
             metrics += windowMetrics(
                 from: limit.rateLimit,
-                idPrefix: "limit-\(slug(name))-",
-                titlePrefix: name,
+                // The ID stays in English whatever the language: it is identity.
+                idPrefix: "limit-\(slug(name ?? "Additional Limit"))-",
+                titlePrefix: name ?? localized("Additional Limit"),
                 section: .perModel,
                 now: fetchedAt
             )

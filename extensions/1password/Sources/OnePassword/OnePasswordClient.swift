@@ -183,7 +183,7 @@ struct OnePasswordClient: Sendable {
         if lowered.contains("one-time password") || lowered.contains("totp") || lowered.contains("does not have a field") {
             return .missingField
         }
-        return .failed(message.isEmpty ? "1Password CLI failed." : message)
+        return .failed(message.isEmpty ? localized("1Password CLI failed.") : message)
     }
 
     /// `op` puts the cause on its first `[ERROR] <date> <time>` line and

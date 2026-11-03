@@ -67,8 +67,7 @@ struct LoremIpsum: PrismExtension {
             return ExtensionList(
                 items: [], filtering: .extension, searchPlaceholder: placeholder, filters: filters,
                 emptyMessage: ExtensionListMessage(
-                    title: localized("Try Another Number"),
-                    message: localized("Type a number from 1 to 1,000."),
+                    title: localized("Try Another Number"), message: localized("Type a number from 1 to 1,000."),
                     symbol: "number"
                 )
             )
@@ -89,16 +88,10 @@ struct LoremIpsum: PrismExtension {
         let text = Self.text(request, seed: await Self.seed(context), startsWithLorem: Self.startsWithLorem(context))
         // A word count means nothing in Chinese or Japanese, which don't space words.
         let words = request.language.countsCharacters
-            ? [] : [ExtensionMetadataRow(
-                label: localized("Words"),
-                value: Self.formatted(Self.wordCount(text))
-            )]
+            ? [] : [ExtensionMetadataRow(label: localized("Words"), value: Self.formatted(Self.wordCount(text)))]
         return ExtensionDetail(
             markdown: text,
-            metadata: words + [ExtensionMetadataRow(
-                label: localized("Characters"),
-                value: Self.formatted(text.count)
-            )]
+            metadata: words + [ExtensionMetadataRow(label: localized("Characters"), value: Self.formatted(text.count))]
         )
     }
 
@@ -174,14 +167,9 @@ struct LoremIpsum: PrismExtension {
             id: request.id,
             title: request.kind.title(count: request.count, in: request.language),
             icon: ExtensionIcon(symbol: request.kind.symbol, tint: "gray"),
-            accessories: [ExtensionListAccessory(
-                text: localized("\(formatted(text.count)) characters")
-            )],
+            accessories: [ExtensionListAccessory(text: localized("\(formatted(text.count)) characters"))],
             actions: [
-                ExtensionAction(
-                    id: ActionID.paste, title: localized("Paste to Active App"),
-                    symbol: "doc.on.clipboard"
-                ),
+                ExtensionAction(id: ActionID.paste, title: localized("Paste to Active App"), symbol: "doc.on.clipboard"),
                 ExtensionAction(
                     id: ActionID.copy, title: localized("Copy to Clipboard"), symbol: "doc.on.doc",
                     shortcut: ExtensionShortcut("cmd+shift+c")

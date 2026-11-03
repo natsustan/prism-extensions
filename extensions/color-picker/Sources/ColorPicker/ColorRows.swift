@@ -112,8 +112,10 @@ enum ColorRows {
         ColorFormat.allCases.map { $0.string(for: color) } + [name.name]
     }
 
-    private static var saveAction: ExtensionAction { ExtensionAction(
-        id: ColorPicker.ActionID.save, title: localized("Save to Colors"), symbol: "square.and.arrow.down",
-        shortcut: ExtensionShortcut("cmd+s")
-    ) }
+    private static var saveAction: ExtensionAction {
+        ExtensionAction(
+            id: ColorPicker.ActionID.save, title: localized("Save to Colors"), symbol: "square.and.arrow.down",
+            shortcut: ExtensionShortcut("cmd+s")
+        )
+    }
 }

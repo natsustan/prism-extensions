@@ -48,9 +48,7 @@ struct AppleNotes: PrismExtension {
         do {
             notes = try library.notes(from: store, pinyin: pinyinCache, directory: context.dataDirectory)
         } catch NoteStoreError.accessDenied {
-            return ExtensionList(
-                items: [Self.allowAccessItem], filtering: .extension, searchPlaceholder: Self.searchPlaceholder
-            )
+            return ExtensionList(items: [Self.allowAccessItem], filtering: .extension, searchPlaceholder: Self.searchPlaceholder)
         } catch NoteStoreError.missing {
             notes = []
         } catch let NoteStoreError.unreadable(reason) {
@@ -155,16 +153,18 @@ struct AppleNotes: PrismExtension {
     /// macOS protects the Notes library. Prism asks the user to choose the
     /// folder declared in the manifest, which lets Prism, and this extension,
     /// read it from then on; the list reloads afterwards.
-    static var allowAccessItem: ExtensionListItem { ExtensionListItem(
-        id: allowAccessItemID,
-        title: localized("Allow Access to Your Notes"),
-        subtitle: localized("Choose the Notes folder once, and Prism can search your notes"),
-        icon: ExtensionIcon(symbol: "lock.open", tint: "gray"),
-        actions: [ExtensionAction(
-            id: ActionID.allowAccess, title: localized("Allow Access…"), symbol: "folder.badge.plus",
-            kind: .grantFolder(id: notesFolderID)
-        )]
-    ) }
+    static var allowAccessItem: ExtensionListItem {
+        ExtensionListItem(
+            id: allowAccessItemID,
+            title: localized("Allow Access to Your Notes"),
+            subtitle: localized("Choose the Notes folder once, and Prism can search your notes"),
+            icon: ExtensionIcon(symbol: "lock.open", tint: "gray"),
+            actions: [ExtensionAction(
+                id: ActionID.allowAccess, title: localized("Allow Access…"), symbol: "folder.badge.plus",
+                kind: .grantFolder(id: notesFolderID)
+            )]
+        )
+    }
 
     private static func openWithWorkspace(_ url: URL) async throws {
         _ = try await NSWorkspace.shared.open(url, configuration: NSWorkspace.OpenConfiguration())

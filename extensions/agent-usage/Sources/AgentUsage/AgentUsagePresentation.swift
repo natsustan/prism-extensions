@@ -66,9 +66,7 @@ enum AgentUsagePresentation {
                     )
                 }
             } else {
-                sections = [ExtensionDetailSection(
-                    rows: report.metrics.map { self.row(for: $0, showsRemaining: showsRemaining) }
-                )]
+                sections = [ExtensionDetailSection(rows: report.metrics.map { self.row(for: $0, showsRemaining: showsRemaining) })]
             }
         }
         let empty = row.metrics.isEmpty && row.failure == nil
@@ -120,7 +118,7 @@ enum AgentUsagePresentation {
         return .normal
     }
 
-    /// The localized("Copy Usage Summary") text: absolute times, and a status line while
+    /// The "Copy Usage Summary" text: absolute times, and a status line while
     /// the numbers are cached from before a failed refresh.
     static func summary(for row: AgentUsageRow) -> String? {
         guard let report = row.report else { return nil }

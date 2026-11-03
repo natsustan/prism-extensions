@@ -81,6 +81,22 @@
         }
       }
     },
+    "1Password CLI failed." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1Password CLI 运行失败。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1Password CLI 執行失敗。"
+          }
+        }
+      }
+    },
     "1Password didn’t answer in time. Unlock it, then approve Prism." : {
       "localizations" : {
         "zh-Hans" : {

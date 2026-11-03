@@ -149,15 +149,14 @@ struct OnePassword: PrismExtension {
                 throw PrismExtensionError(localized("1Password has no action “\(action)”."))
             }
         } catch OnePasswordError.missingField {
-            let message = switch (action, listed?.title) {
-            case (ActionID.pasteUsername, let title?): localized("“\(title)” has no username.")
-            case (ActionID.pasteUsername, nil): localized("This item has no username.")
-            case (ActionID.copyOneTimePassword, let title?), (ActionID.pasteOneTimePassword, let title?):
-                localized("“\(title)” has no one-time password.")
-            case (ActionID.copyOneTimePassword, nil), (ActionID.pasteOneTimePassword, nil):
-                localized("This item has no one-time password.")
-            case (_, let title?): localized("“\(title)” has no password.")
-            case (_, nil): localized("This item has no password.")
+            let message = switch action {
+            case ActionID.pasteUsername:
+                listed.map { localized("“\($0.title)” has no username.") } ?? localized("This item has no username.")
+            case ActionID.copyOneTimePassword, ActionID.pasteOneTimePassword:
+                listed.map { localized("“\($0.title)” has no one-time password.") }
+                    ?? localized("This item has no one-time password.")
+            default:
+                listed.map { localized("“\($0.title)” has no password.") } ?? localized("This item has no password.")
             }
             return ExtensionActionResult(.failed(message: message))
         } catch let error as OnePasswordError {

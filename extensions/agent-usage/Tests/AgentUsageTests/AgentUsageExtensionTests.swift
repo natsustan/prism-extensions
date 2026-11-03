@@ -109,9 +109,9 @@ struct AgentUsageExtensionTests {
         #expect(list.items[0].actions.first?.title == "重新整理")
         #expect(list.items[0].detail?.sections.first?.rows.first?.value == "已用 42%")
         PrismLocalization.$language.withValue("zh-Hant") {
-            #expect(AgentUsageFormat.durationText(3 * 86_400 + 4 * 3600) == "3 天 4 小時")
+            #expect(AgentUsageFormat.durationText(3 * 86_400 + 4 * 3600) == "3天4時")
             #expect(AgentUsageFormat.resetText(resetsAt: Date(timeIntervalSince1970: 200_000), now: Date(timeIntervalSince1970: 0))
-                == "2 天 7 小時 33 分鐘後重置")
+                == "2天7時33分後重置")
             #expect(AgentUsageFailure.network("x").shortStatusText == "離線")
             #expect(AgentUsageMetric.Section.creditsAndResets.title == "額度與重置")
         }
@@ -191,6 +191,20 @@ struct AgentUsageExtensionTests {
         #expect(list.items[0].accessories.last?.text == "58%")
         await second.settle()
         #expect(await second.codex.fetchCount() == 0)
+    }
+
+    @Test("a restart in another language fetches again instead of showing rows written in the old one")
+    func cacheLanguage() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("agent-usage-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let first = try await AgentUsageFixture(dataDirectory: directory, language: "zh-Hans")
+        _ = try await first.prism.list("usage")
+        await first.settle()
+
+        let second = try await AgentUsageFixture(dataDirectory: directory)
+        _ = try await second.prism.list("usage")
+        await second.settle()
+        #expect(await second.codex.fetchCount() == 1)
     }
 }
 

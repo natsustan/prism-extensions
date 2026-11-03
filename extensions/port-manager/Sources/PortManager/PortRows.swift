@@ -13,12 +13,14 @@ enum PortRows {
     /// How many ports get their own Open in Browser action.
     static let browserPorts = 5
 
-    static var filters: [ExtensionListFilter] { [
-        ExtensionListFilter(id: FilterID.all, title: localized("All Ports"), symbol: "network"),
-        ExtensionListFilter(id: FilterID.localhost, title: localized("Localhost Only"), symbol: Exposure.localhost.symbol),
-        ExtensionListFilter(id: FilterID.network, title: localized("Reachable from Network"), symbol: Exposure.network.symbol),
-        ExtensionListFilter(id: FilterID.interface, title: localized("Specific Interface"), symbol: Exposure.interface.symbol),
-    ] }
+    static var filters: [ExtensionListFilter] {
+        [
+            ExtensionListFilter(id: FilterID.all, title: localized("All Ports"), symbol: "network"),
+            ExtensionListFilter(id: FilterID.localhost, title: localized("Localhost Only"), symbol: Exposure.localhost.symbol),
+            ExtensionListFilter(id: FilterID.network, title: localized("Reachable from Network"), symbol: Exposure.network.symbol),
+            ExtensionListFilter(id: FilterID.interface, title: localized("Specific Interface"), symbol: Exposure.interface.symbol),
+        ]
+    }
 
     static func emptyMessage(for exposure: Exposure?) -> ExtensionListMessage {
         switch exposure {
@@ -176,10 +178,7 @@ enum PortRows {
             ExtensionListAccessory(
                 text: "\(port.port)",
                 tint: port.exposure.tint,
-                help: Self.help(
-                    [names[port.port], port.addresses.joined(separator: ", ")].compactMap { $0 }.joined(separator: ", "),
-                    port.exposure.help
-                ),
+                help: localized("\(Self.portHelp(port, names: names)): \(port.exposure.help)"),
                 style: .tag
             )
         }
@@ -192,9 +191,9 @@ enum PortRows {
         return accessories
     }
 
-    /// “3000, 127.0.0.1:3000: reachable only from this Mac”.
-    private static func help(_ port: String, _ reach: String) -> String {
-        localized("\(port): \(reach)")
+    /// “Web, 127.0.0.1:3000”: the port's name and addresses, before its reach.
+    private static func portHelp(_ port: ListeningPort, names: PortNames) -> String {
+        [names[port.port], port.addresses.joined(separator: ", ")].compactMap { $0 }.joined(separator: ", ")
     }
 
     /// Typing a port, a port's name, an address, the process, its PID, path,
@@ -270,8 +269,8 @@ enum PortRows {
     /// listed the way Prism's language lists things.
     static func portList(_ ports: [ListeningPort]) -> String {
         let numbers = ports.map { "\($0.port)" }
-        if numbers.count == 1, let number = numbers.first {
-            return localized("port \(number)")
+        if numbers.count == 1 {
+            return localized("port \(numbers[0])")
         }
         let list = numbers.formatted(.list(type: .and).locale(PrismLocalization.locale))
         return localized("ports \(list)")

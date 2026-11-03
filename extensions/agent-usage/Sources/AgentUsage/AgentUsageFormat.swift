@@ -16,8 +16,7 @@ enum AgentUsageFormat {
             let remaining = percentText(min(max(100 - value, 0), 100))
             return localized("\(remaining) remaining")
         }
-        let used = percentText(value)
-        return localized("\(used) used")
+        return localized("\(percentText(value)) used")
     }
 
     /// Just the number, for the list row's trailing badge.
@@ -58,15 +57,13 @@ enum AgentUsageFormat {
                 let remaining = percentText(min(max(100 - value, 0), 100))
                 return localized("\(remaining) left")
             }
-            let used = percentText(value)
-            return localized("\(used) used")
+            return localized("\(percentText(value)) used")
         case .count:
             if showsRemaining {
                 let remaining = countText(max(limit - clampedUsed, 0))
                 return localized("\(remaining) left")
             }
-            let used = countText(clampedUsed)
-            return localized("\(used) used")
+            return localized("\(countText(clampedUsed)) used")
         case .currency:
             let amount = String(format: "$%.2f", showsRemaining ? max(limit - clampedUsed, 0) : clampedUsed)
             return showsRemaining ? localized("\(amount) left") : localized("\(amount) used")
@@ -144,8 +141,7 @@ enum AgentUsageFormat {
             let date = resetsAt.formatted(dayAndTime)
             return localized("Resets \(date)")
         }
-        let duration = durationText(interval)
-        return localized("Resets in \(duration)")
+        return localized("Resets in \(durationText(interval))")
     }
 
     /// "Oct 4 10:01 AM" in Prism's language.
@@ -157,23 +153,17 @@ enum AgentUsageFormat {
     static func durationText(_ interval: TimeInterval) -> String {
         guard let wholeMinutes = Int(exactly: (interval / 60).rounded()) else { return "—" }
         let totalMinutes = max(wholeMinutes, 1)
-        let days = totalMinutes / (24 * 60)
-        let hours = (totalMinutes % (24 * 60)) / 60
-        let minutes = totalMinutes % 60
-        // Whole units drop their empty tail, so a one-hour window reads "1h"
-        // rather than "1h 0m".
-        var parts = [String]()
-        if days > 0 { parts.append(localized("\(days)d")) }
-        if hours > 0 || (days > 0 && minutes > 0) { parts.append(localized("\(hours)h")) }
-        if minutes > 0 || parts.isEmpty { parts.append(localized("\(minutes)m")) }
-        return parts.joined(separator: " ")
+        // Empty units drop out, so a one-hour window reads "1h" rather than
+        // "1h 0m"; the format style spaces and names the units per language.
+        return Duration.seconds(totalMinutes * 60).formatted(
+            .units(allowed: [.days, .hours, .minutes], width: .narrow).locale(PrismLocalization.locale)
+        )
     }
 
     /// Footer freshness line: "Updated just now", "Updated 3m ago".
     static func updatedText(fetchedAt: Date, now: Date) -> String {
         let interval = now.timeIntervalSince(fetchedAt)
         guard interval > 45 else { return localized("Updated just now") }
-        let duration = durationText(interval)
-        return localized("Updated \(duration) ago")
+        return localized("Updated \(durationText(interval)) ago")
     }
 }

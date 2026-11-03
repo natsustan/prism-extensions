@@ -414,6 +414,7 @@ struct LanguageTests {
         #expect(list.filters.suffix(2).map(\.title) == ["Personal", "Shared"])
         let github = try #require(list.items.first { $0.title == "GitHub" })
         #expect(github.actions.prefix(2).map(\.title) == ["粘贴密码", "拷贝密码"])
+        #expect(github.keywords.prefix(2) == ["登录信息", "login"])
         let empty = try await prism.list(OnePassword.CommandID.search, filter: "category:SSH_KEY")
         #expect(empty.emptyMessage?.title == "没有 SSH 密钥")
         let generated = try await prism.list(OnePassword.CommandID.generate)

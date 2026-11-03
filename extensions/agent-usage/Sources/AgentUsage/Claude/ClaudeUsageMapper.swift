@@ -184,8 +184,6 @@ enum ClaudeUsageMapper {
     /// Pay-as-you-go spend past the plan limits. Amounts arrive in minor units
     /// (`decimal_places`, cents by default). Only US dollars render as a meter,
     /// because the shared currency format is dollar-denominated.
-    private static func dollars(_ value: Double) -> String { String(format: "$%.2f", value) }
-
     static func extraUsageMetric(_ value: Any?) -> AgentUsageMetric? {
         guard let extra = value as? [String: Any],
               let isEnabled = AgentUsageParse.bool(extra["is_enabled"])
@@ -215,7 +213,7 @@ enum ClaudeUsageMapper {
                 id: "extra-usage",
                 title: localized("Extra Usage"),
                 section: .creditsAndResets,
-                value: .text(localized("\(dollars(used)) used"))
+                value: .text(localized("\(String(format: "$%.2f", used)) used"))
             )
         }
         let usedText = String(format: "%.2f", used)
@@ -223,10 +221,8 @@ enum ClaudeUsageMapper {
             id: "extra-usage",
             title: localized("Extra Usage"),
             section: .creditsAndResets,
-            value: .text(limit.map { limit in
-                let limitText = String(format: "%.2f", limit)
-                return localized("\(usedText) of \(limitText) \(currency)")
-            } ?? "\(usedText) \(currency)")
+            value: .text(limit.map { localized("\(usedText) of \(String(format: "%.2f", $0)) \(currency)") }
+                ?? "\(usedText) \(currency)")
         )
     }
 

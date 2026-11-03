@@ -153,16 +153,16 @@ struct PortManager: PrismExtension {
     /// signal can still be caught or ignored.
     private func stop(_ process: RunningProcess?, with signal: Int32) async throws -> ExtensionActionResult {
         guard let process else { return .reload(message: localized("The process already quit.")) }
-        let name = localized("“\(process.name)”")
+        let name = process.name
         do {
             try system.send(signal, to: process.identity)
         } catch .gone {
-            return .reload(message: localized("\(name) already quit."))
+            return .reload(message: localized("“\(name)” already quit."))
         } catch .notPermitted {
-            return ExtensionActionResult(.failed(message: localized("You don’t have permission to kill \(name).")), reload: true)
+            return ExtensionActionResult(.failed(message: localized("You don’t have permission to kill “\(name)”.")), reload: true)
         } catch let .failed(code) {
             let reason = String(cString: strerror(code))
-            return ExtensionActionResult(.failed(message: localized("Couldn’t kill \(name): \(reason).")), reload: true)
+            return ExtensionActionResult(.failed(message: localized("Couldn’t kill “\(name)”: \(reason).")), reload: true)
         }
 
         let clock = ContinuousClock()
@@ -170,11 +170,11 @@ struct PortManager: PrismExtension {
         while system.isRunning(process.identity) {
             guard clock.now < deadline else {
                 return .reload(message: signal == SIGKILL
-                    ? localized("\(name) is still running.")
-                    : localized("\(name) is still running. Force Kill (⌘⇧⌫) stops it at once."))
+                    ? localized("“\(name)” is still running.")
+                    : localized("“\(name)” is still running. Force Kill (⌘⇧⌫) stops it at once."))
             }
             try await Task.sleep(for: pollInterval)
         }
-        return .reload(message: localized("Killed \(name)."))
+        return .reload(message: localized("Killed “\(name)”."))
     }
 }

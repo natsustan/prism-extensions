@@ -91,7 +91,7 @@ enum GrokUsageMapper {
             id: "pay-as-you-go",
             title: localized("Pay as you go"),
             section: .creditsAndResets,
-            value: .badge(config.onDemandCap > 0 ? cap(config.onDemandCap) : localized("Disabled"))
+            value: .badge(config.onDemandCap > 0 ? localized("\(formatUnits(config.onDemandCap)) cap") : localized("Disabled"))
         ))
         return AgentUsageReport(
             providerID: .grok,
@@ -101,12 +101,6 @@ enum GrokUsageMapper {
             metrics: metrics,
             fetchedAt: fetchedAt
         )
-    }
-
-    /// "2500 cap": the on-demand spending cap.
-    private static func cap(_ value: Double) -> String {
-        let units = formatUnits(value)
-        return localized("\(units) cap")
     }
 
     private static func formatUnits(_ value: Double) -> String {
