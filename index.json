@@ -69,6 +69,88 @@
           "tint" : "blue"
         },
         "id" : "prism.1password",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "generate" : {
+                "keywords" : [
+                  "生成密码",
+                  "随机密码",
+                  "新密码",
+                  "shengchengmima",
+                  "scmm"
+                ],
+                "subtitle" : "1Password",
+                "title" : "生成密码"
+              },
+              "search" : {
+                "keywords" : [
+                  "密码",
+                  "登录",
+                  "保险库",
+                  "一次性密码",
+                  "验证码",
+                  "sousuo1password",
+                  "ss1"
+                ],
+                "subtitle" : "1Password",
+                "title" : "搜索 1Password"
+              }
+            },
+            "description" : "通过 1Password CLI 搜索你的 1Password 项目，粘贴密码和一次性密码，并生成新密码。",
+            "name" : "1Password",
+            "preferences" : {
+              "cliPath" : {
+                "caption" : "留空则在 PATH、/usr/local/bin 或 /opt/homebrew/bin 中查找 op。",
+                "title" : "1Password CLI 路径"
+              },
+              "returnPastes" : {
+                "caption" : "按 Return 键会把登录项的密码粘贴到你打开 Prism 前所在的 App。关闭后，Return 键改为拷贝，⌘⇧V 粘贴。",
+                "title" : "按 Return 键粘贴"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "generate" : {
+                "keywords" : [
+                  "產生密碼",
+                  "隨機密碼",
+                  "新密碼",
+                  "chanshengmima",
+                  "csmm"
+                ],
+                "subtitle" : "1Password",
+                "title" : "產生密碼"
+              },
+              "search" : {
+                "keywords" : [
+                  "密碼",
+                  "登入",
+                  "保險庫",
+                  "一次性密碼",
+                  "驗證碼",
+                  "souxun1password",
+                  "sx1"
+                ],
+                "subtitle" : "1Password",
+                "title" : "搜尋 1Password"
+              }
+            },
+            "description" : "透過 1Password CLI 搜尋你的 1Password 項目，貼上密碼和一次性密碼，並產生新密碼。",
+            "name" : "1Password",
+            "preferences" : {
+              "cliPath" : {
+                "caption" : "留空則在 PATH、/usr/local/bin 或 /opt/homebrew/bin 中尋找 op。",
+                "title" : "1Password CLI 路徑"
+              },
+              "returnPastes" : {
+                "caption" : "按 Return 鍵會把登入項目的密碼貼上到你打開 Prism 前所在的 App。關閉後，Return 鍵改為拷貝，⌘⇧V 貼上。",
+                "title" : "按 Return 鍵貼上"
+              }
+            }
+          }
+        },
         "minPrism" : "0.1.1",
         "name" : "1Password",
         "preferences" : [
@@ -91,18 +173,18 @@
         "tasks" : [
 
         ],
-        "version" : "1.0.0",
+        "version" : "1.1.0",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "b4c6d9f04628ca081bdb1b1317e3f3b171344101bbfa104e953551ad14c35f03",
-        "size" : 571095,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.1password%401.0.0/prism.1password-1.0.0.prismextension"
+        "sha256" : "750bf32f4e001f8d7e5bddcdaf84e6e89b8aba467e99005a0c288c6428ebddc2",
+        "size" : 638480,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.1password%401.1.0/prism.1password-1.1.0.prismextension"
       },
-      "publishedAt" : 1793626443,
-      "releaseNotes" : "- Search 1Password: every account’s items, most recently changed first,\n  with usernames, vaults, and favorites, narrowed by favorites, category, or\n  vault with ⌘P.\n- Paste or copy a login’s password, username, or one-time password, open\n  its website, or open it in 1Password, with Raycast’s shortcuts. Passwords\n  stay out of clipboard histories and are cleared after 90 seconds.\n- Generate Password: random passwords and PINs to paste or copy.\n- Signs in through the 1Password app as Raycast’s extension does: Sign In\n  waits while 1Password asks you to allow Prism. Setup rows cover a missing\n  CLI and the integration being off.",
+      "publishedAt" : 1793674029,
+      "releaseNotes" : "- When Prism runs in Simplified or Traditional Chinese, it shows this\n  extension's name, description, commands, and settings in that language,\n  and Chinese words find its commands in search.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/1password"
     },
     {
@@ -146,6 +228,126 @@
           "tint" : "indigo"
         },
         "id" : "prism.agent-usage",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "usage" : {
+                "keywords" : [
+                  "用量",
+                  "额度",
+                  "配额",
+                  "限额",
+                  "agentyongliang",
+                  "ayl"
+                ],
+                "subtitle" : "AI 额度",
+                "title" : "Agent 用量"
+              }
+            },
+            "description" : "在启动器和小组件中查看 AI 编程 Agent 的额度：Codex、Claude、Grok、Amp、Antigravity、Devin 和 Z.ai。",
+            "name" : "Agent 用量",
+            "preferences" : {
+              "agents" : {
+                "caption" : "拖移以重新排序。小组件显示第一个已启用的 Agent，或前两个。已配置的 Agent 在这台 Mac 上已有登录信息或密钥；其他 Agent 需通过各自的 CLI 登录。",
+                "title" : "显示的 Agent"
+              },
+              "showsRemaining" : {
+                "caption" : "关闭后改为显示每个时间窗口已用的额度。",
+                "title" : "显示剩余额度"
+              },
+              "zaiKey" : {
+                "caption" : "只发送给 Z.ai。留空则使用 ZAI_API_KEY、~/.config/zai/key.json，或指向 z.ai 的 Claude Code 令牌。",
+                "title" : "API 密钥"
+              }
+            },
+            "sections" : {
+              "Agents" : "Agent",
+              "Display" : "显示",
+              "Z.ai" : "Z.ai"
+            },
+            "widgets" : {
+              "bars" : {
+                "subtitle" : "以带标签的条形显示两个 Agent 的额度",
+                "title" : "AI 用量条"
+              },
+              "numbers" : {
+                "subtitle" : "以数字显示两个 Agent 的额度",
+                "title" : "AI 用量数字"
+              },
+              "rings" : {
+                "subtitle" : "以圆环显示两个 Agent 的额度",
+                "title" : "AI 用量圆环"
+              },
+              "singleNumber" : {
+                "subtitle" : "第一个 Agent 的额度",
+                "title" : "单个 AI 用量数字"
+              },
+              "singleRing" : {
+                "subtitle" : "以圆环显示第一个 Agent 的额度",
+                "title" : "单个 AI 用量圆环"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "usage" : {
+                "keywords" : [
+                  "用量",
+                  "額度",
+                  "配額",
+                  "限額",
+                  "agentyongliang",
+                  "ayl"
+                ],
+                "subtitle" : "AI 額度",
+                "title" : "Agent 用量"
+              }
+            },
+            "description" : "在啟動器和小工具中查看 AI 程式設計 Agent 的額度：Codex、Claude、Grok、Amp、Antigravity、Devin 和 Z.ai。",
+            "name" : "Agent 用量",
+            "preferences" : {
+              "agents" : {
+                "caption" : "拖移以重新排序。小工具顯示第一個已啟用的 Agent，或前兩個。已設定的 Agent 在這台 Mac 上已有登入資訊或金鑰；其他 Agent 需透過各自的 CLI 登入。",
+                "title" : "顯示的 Agent"
+              },
+              "showsRemaining" : {
+                "caption" : "關閉後改為顯示每個時間區間已用的額度。",
+                "title" : "顯示剩餘額度"
+              },
+              "zaiKey" : {
+                "caption" : "只會傳送給 Z.ai。留空則使用 ZAI_API_KEY、~/.config/zai/key.json，或指向 z.ai 的 Claude Code 權杖。",
+                "title" : "API 金鑰"
+              }
+            },
+            "sections" : {
+              "Agents" : "Agent",
+              "Display" : "顯示",
+              "Z.ai" : "Z.ai"
+            },
+            "widgets" : {
+              "bars" : {
+                "subtitle" : "以加上標籤的長條顯示兩個 Agent 的額度",
+                "title" : "AI 用量長條"
+              },
+              "numbers" : {
+                "subtitle" : "以數字顯示兩個 Agent 的額度",
+                "title" : "AI 用量數字"
+              },
+              "rings" : {
+                "subtitle" : "以圓環顯示兩個 Agent 的額度",
+                "title" : "AI 用量圓環"
+              },
+              "singleNumber" : {
+                "subtitle" : "第一個 Agent 的額度",
+                "title" : "單個 AI 用量數字"
+              },
+              "singleRing" : {
+                "subtitle" : "以圓環顯示第一個 Agent 的額度",
+                "title" : "單個 AI 用量圓環"
+              }
+            }
+          }
+        },
         "name" : "Agent Usage",
         "preferences" : [
           {
@@ -175,7 +377,7 @@
         "tasks" : [
 
         ],
-        "version" : "1.1.0",
+        "version" : "1.2.0",
         "widgets" : [
           {
             "id" : "numbers",
@@ -210,12 +412,12 @@
         ]
       },
       "package" : {
-        "sha256" : "425e803de68bac2ddbc27f4795108de24630ddc2b8fcaf6c8ae09714166acf5d",
-        "size" : 880842,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.agent-usage%401.1.0/prism.agent-usage-1.1.0.prismextension"
+        "sha256" : "51e073dba4e153bb31b0c05a741a061f9effdc9e53b91b85a5fbc39771f77d7f",
+        "size" : 987514,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.agent-usage%401.2.0/prism.agent-usage-1.2.0.prismextension"
       },
-      "publishedAt" : 1792052364,
-      "releaseNotes" : "- Runs as its own process, built with PrismExtensionKit, instead of inside\n  Prism. The list, detail, widgets, and settings are unchanged.\n- Keeps the last results and the refresh throttle in its data folder, so a\n  restarted process shows them at once without fetching again.\n- Brand icons ship with the extension.",
+      "publishedAt" : 1793674091,
+      "releaseNotes" : "- When Prism runs in Simplified or Traditional Chinese, it shows this\n  extension's name, description, command, settings, and widgets in that\n  language, and Chinese words find its command in search.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/agent-usage"
     },
     {
@@ -261,6 +463,52 @@
           "tint" : "gold"
         },
         "id" : "prism.apple-notes",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "search-notes" : {
+                "keywords" : [
+                  "备忘录",
+                  "笔记",
+                  "查找备忘录",
+                  "sousuobeiwanglu",
+                  "ssbwl"
+                ],
+                "subtitle" : "备忘录",
+                "title" : "搜索备忘录"
+              }
+            },
+            "description" : "按标题、文件夹、内容、标签或拼音搜索你的 Apple 备忘录，并在“备忘录”中打开。",
+            "folders" : {
+              "notes" : {
+                "reason" : "此扩展在这个文件夹中搜索你的备忘录，从不更改它们。"
+              }
+            },
+            "name" : "备忘录"
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "search-notes" : {
+                "keywords" : [
+                  "備忘錄",
+                  "筆記",
+                  "尋找備忘錄",
+                  "souxunbeiwanglu",
+                  "sxbwl"
+                ],
+                "subtitle" : "備忘錄",
+                "title" : "搜尋備忘錄"
+              }
+            },
+            "description" : "依標題、檔案夾、內容、標籤或拼音搜尋你的 Apple 備忘錄，並在「備忘錄」中打開。",
+            "folders" : {
+              "notes" : {
+                "reason" : "此延伸功能在這個檔案夾中搜尋你的備忘錄，從不更改它們。"
+              }
+            },
+            "name" : "備忘錄"
+          }
+        },
         "name" : "Apple Notes",
         "preferences" : [
 
@@ -269,18 +517,18 @@
         "tasks" : [
 
         ],
-        "version" : "1.0.0",
+        "version" : "1.1.0",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "e60c202502d23fd7923f8d22908b9039cc8354cebfd6ab605ae49c16cb49e030",
-        "size" : 490725,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.apple-notes%401.0.0/prism.apple-notes-1.0.0.prismextension"
+        "sha256" : "53734a020182a381f1df40681d817e4a81a47d476c3b5330ef5f5ebb9d0712ee",
+        "size" : 573409,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.apple-notes%401.1.0/prism.apple-notes-1.1.0.prismextension"
       },
-      "publishedAt" : 1792383186,
-      "releaseNotes" : "- Search Notes: search every note by title, content, folder, tags, or\n  pinyin, title matches first, and open them in Notes.\n- Tab on Notes' own row in root search opens Search Notes.",
+      "publishedAt" : 1793674151,
+      "releaseNotes" : "- When Prism runs in Simplified or Traditional Chinese, it shows this\n  extension's name, description, command, and the request for access to the\n  Notes folder in that language, and Chinese words find its command in\n  search.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/apple-notes"
     },
     {
@@ -366,6 +614,136 @@
           "tint" : "brown"
         },
         "id" : "prism.caffeinate",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "caffeinate" : {
+                "keywords" : [
+                  "保持唤醒",
+                  "防止睡眠",
+                  "不睡眠",
+                  "咖啡因",
+                  "hebeikafei",
+                  "hbkf"
+                ],
+                "subtitle" : "咖啡",
+                "title" : "喝杯咖啡"
+              },
+              "caffeinate-status" : {
+                "keywords" : [
+                  "保持唤醒",
+                  "睡眠",
+                  "咖啡因",
+                  "kafeizhuangtai",
+                  "kfzt"
+                ],
+                "subtitle" : "咖啡",
+                "title" : "咖啡状态"
+              },
+              "decaffeinate" : {
+                "keywords" : [
+                  "允许睡眠",
+                  "停止保持唤醒",
+                  "咖啡因",
+                  "fangxiakafei",
+                  "fxkf"
+                ],
+                "subtitle" : "咖啡",
+                "title" : "放下咖啡"
+              },
+              "toggle-caffeinate" : {
+                "keywords" : [
+                  "保持唤醒",
+                  "防止睡眠",
+                  "允许睡眠",
+                  "咖啡因",
+                  "kafeikaiguan",
+                  "kfkg"
+                ],
+                "subtitle" : "咖啡",
+                "title" : "咖啡开关"
+              }
+            },
+            "description" : "给 Mac 喝杯咖啡，让它保持清醒。启动器、快捷键或小组件都能开关。",
+            "name" : "Caffeinate",
+            "preferences" : {
+              "preventDiskSleep" : {
+                "caption" : "下次喝咖啡时，磁盘也不会闲置睡眠。屏幕照样会锁定，合上盖子照样会睡眠。",
+                "title" : "也别让磁盘打盹"
+              }
+            },
+            "widgets" : {
+              "toggle" : {
+                "subtitle" : "给 Mac 喝杯咖啡",
+                "title" : "Caffeinate"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "caffeinate" : {
+                "keywords" : [
+                  "保持喚醒",
+                  "防止睡眠",
+                  "不睡眠",
+                  "咖啡因",
+                  "hebeikafei",
+                  "hbkf"
+                ],
+                "subtitle" : "咖啡",
+                "title" : "喝杯咖啡"
+              },
+              "caffeinate-status" : {
+                "keywords" : [
+                  "保持喚醒",
+                  "睡眠",
+                  "咖啡因",
+                  "kafeizhuangtai",
+                  "kfzt"
+                ],
+                "subtitle" : "咖啡",
+                "title" : "咖啡狀態"
+              },
+              "decaffeinate" : {
+                "keywords" : [
+                  "允許睡眠",
+                  "停止保持喚醒",
+                  "咖啡因",
+                  "fangxiakafei",
+                  "fxkf"
+                ],
+                "subtitle" : "咖啡",
+                "title" : "放下咖啡"
+              },
+              "toggle-caffeinate" : {
+                "keywords" : [
+                  "保持喚醒",
+                  "防止睡眠",
+                  "允許睡眠",
+                  "咖啡因",
+                  "kafeikaiguan",
+                  "kfkg"
+                ],
+                "subtitle" : "咖啡",
+                "title" : "咖啡開關"
+              }
+            },
+            "description" : "給 Mac 喝杯咖啡，讓它保持清醒。啟動器、快速鍵或小工具都能開關。",
+            "name" : "Caffeinate",
+            "preferences" : {
+              "preventDiskSleep" : {
+                "caption" : "下次喝咖啡時，磁碟也不會閒置睡眠。螢幕照樣會鎖定，闔上螢幕照樣會睡眠。",
+                "title" : "也別讓磁碟打盹"
+              }
+            },
+            "widgets" : {
+              "toggle" : {
+                "subtitle" : "給 Mac 喝杯咖啡",
+                "title" : "Caffeinate"
+              }
+            }
+          }
+        },
         "name" : "Caffeinate",
         "preferences" : [
           {
@@ -384,7 +762,7 @@
             "survivesHost" : true
           }
         ],
-        "version" : "1.1.0",
+        "version" : "1.2.0",
         "widgets" : [
           {
             "id" : "toggle",
@@ -395,12 +773,12 @@
         ]
       },
       "package" : {
-        "sha256" : "651c0c301833609e219f19bb3814f5a11583553162ce62493756c4fb035e427f",
-        "size" : 427974,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.caffeinate%401.1.0/prism.caffeinate-1.1.0.prismextension"
+        "sha256" : "d5a0e920e13797362c02d1218ca47375f56812ff9c2b76980a4639b1a655a9e4",
+        "size" : 536696,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.caffeinate%401.2.0/prism.caffeinate-1.2.0.prismextension"
       },
-      "publishedAt" : 1792052393,
-      "releaseNotes" : "- Runs as its own process, built with PrismExtensionKit, instead of inside\n  Prism. Commands, the status row, the widget, and the preference are\n  unchanged.",
+      "publishedAt" : 1793674192,
+      "releaseNotes" : "- When Prism runs in Simplified or Traditional Chinese, it shows this\n  extension's commands, setting, and widget in that language (the name stays\n  Caffeinate), and Chinese words such as 保持唤醒 find its commands in search.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/caffeinate"
     },
     {
@@ -447,6 +825,46 @@
           "tint" : "red"
         },
         "id" : "prism.chinese-numbers",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "convert" : {
+                "keywords" : [
+                  "中文数字",
+                  "大写金额",
+                  "阿拉伯数字",
+                  "zhuanhuanweizhongwenshuzi",
+                  "zhwzwsz"
+                ],
+                "subtitle" : "中文数字",
+                "title" : "转换为中文数字"
+              }
+            },
+            "description" : "把数字写成中文小写、大写或金额大写，也能把中文数字转回阿拉伯数字。",
+            "name" : "中文数字"
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "convert" : {
+                "keywords" : [
+                  "中文數字",
+                  "數字",
+                  "大寫",
+                  "小寫",
+                  "金額",
+                  "大寫金額",
+                  "阿拉伯數字",
+                  "zhuanhuanweizhongwenshuzi",
+                  "zhwzwsz"
+                ],
+                "subtitle" : "中文數字",
+                "title" : "轉換為中文數字"
+              }
+            },
+            "description" : "把數字寫成中文小寫、大寫或金額大寫，也能把中文數字轉回阿拉伯數字。",
+            "name" : "中文數字"
+          }
+        },
         "minPrism" : "0.1.1",
         "name" : "Chinese Numbers",
         "preferences" : [
@@ -456,18 +874,18 @@
         "tasks" : [
 
         ],
-        "version" : "1.0.0",
+        "version" : "1.1.0",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "0a0b2583fbddb21cb114ffaa830c3cb868d418a2070bba758bacc33b7ed8422b",
-        "size" : 474919,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.chinese-numbers%401.0.0/prism.chinese-numbers-1.0.0.prismextension"
+        "sha256" : "3e54be23f8dd83c11cd20836d0cc031b3ddfac2341b6225c972d2290f7dcdec5",
+        "size" : 543574,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.chinese-numbers%401.1.0/prism.chinese-numbers-1.1.0.prismextension"
       },
-      "publishedAt" : 1793630856,
-      "releaseNotes" : "- Convert to Chinese Numbers: type digits to get them in Chinese lowercase,\n  uppercase, and as an amount in words, or type a Chinese number to get its\n  digits. Return pastes; ⌘⇧C copies.",
+      "publishedAt" : 1793674229,
+      "releaseNotes" : "- When Prism runs in Simplified or Traditional Chinese, it shows this\n  extension's name, description, and command in that language, and Chinese\n  words find its command in search.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/chinese-numbers"
     },
     {
@@ -542,6 +960,98 @@
           "tint" : "pink"
         },
         "id" : "prism.color-picker",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "colors" : {
+                "keywords" : [
+                  "已存储的颜色",
+                  "收藏的颜色",
+                  "历史记录",
+                  "调色板",
+                  "yanse",
+                  "ys"
+                ],
+                "subtitle" : "取色器",
+                "title" : "颜色"
+              },
+              "convert-color" : {
+                "keywords" : [
+                  "颜色转换",
+                  "颜色名称",
+                  "zhuanhuanyanse",
+                  "zhys"
+                ],
+                "subtitle" : "取色器",
+                "title" : "转换颜色"
+              },
+              "pick-color" : {
+                "keywords" : [
+                  "取色",
+                  "吸管",
+                  "屏幕取色",
+                  "颜色",
+                  "shiquyanse",
+                  "sqys"
+                ],
+                "title" : "拾取颜色"
+              }
+            },
+            "description" : "拾取屏幕上任意位置的颜色并保存，以 HEX、RGB、HSL、OKLCH、LCH、Display P3 或 SwiftUI 格式拷贝。",
+            "name" : "取色器",
+            "preferences" : {
+              "formats" : {
+                "caption" : "拖移以重新排序。“拾取颜色”拷贝第一个已打开的格式；已存储的颜色提供所有已打开的格式。",
+                "title" : "格式"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "colors" : {
+                "keywords" : [
+                  "已儲存的顏色",
+                  "喜好的顏色",
+                  "歷史記錄",
+                  "調色盤",
+                  "yanse",
+                  "ys"
+                ],
+                "subtitle" : "取色器",
+                "title" : "顏色"
+              },
+              "convert-color" : {
+                "keywords" : [
+                  "顏色轉換",
+                  "顏色名稱",
+                  "zhuanhuanyanse",
+                  "zhys"
+                ],
+                "subtitle" : "取色器",
+                "title" : "轉換顏色"
+              },
+              "pick-color" : {
+                "keywords" : [
+                  "取色",
+                  "滴管",
+                  "螢幕取色",
+                  "顏色",
+                  "tiaoxuanyanse",
+                  "txys"
+                ],
+                "title" : "挑選顏色"
+              }
+            },
+            "description" : "挑選螢幕上任何位置的顏色並儲存，以 HEX、RGB、HSL、OKLCH、LCH、Display P3 或 SwiftUI 格式拷貝。",
+            "name" : "取色器",
+            "preferences" : {
+              "formats" : {
+                "caption" : "拖移以重新排序。「挑選顏色」拷貝第一個已開啟的格式；已儲存的顏色提供所有已開啟的格式。",
+                "title" : "格式"
+              }
+            }
+          }
+        },
         "name" : "Color Picker",
         "preferences" : [
           {
@@ -555,18 +1065,18 @@
         "tasks" : [
 
         ],
-        "version" : "1.0.0",
+        "version" : "1.1.0",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "457a1a7901313967a46c738f0bfdca196a1b5323f9918db84dc5a27362040b39",
-        "size" : 507954,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.color-picker%401.0.0/prism.color-picker-1.0.0.prismextension"
+        "sha256" : "d5b5edfde440ecc60fb6825065b4904e04e0f0054535bdba79267b6ceb7ba47d",
+        "size" : 584087,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.color-picker%401.1.0/prism.color-picker-1.1.0.prismextension"
       },
-      "publishedAt" : 1792483135,
-      "releaseNotes" : "- Pick Color: pick a color anywhere on screen and copy it in your first format.\n- Colors: the colors you picked, with favorites, names, and every format.\n- Convert Color: type or paste a color or a CSS color name and copy it in any\n  format.\n- Formats: choose and order HEX, RGB, HSL, OKLCH, LCH, Display P3, and SwiftUI.",
+      "publishedAt" : 1793674274,
+      "releaseNotes" : "- When Prism runs in Simplified or Traditional Chinese, it shows this\n  extension's name, description, commands, and setting in that language, and\n  Chinese words find its commands in search.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/color-picker"
     },
     {
@@ -663,6 +1173,124 @@
           "tint" : "graphite"
         },
         "id" : "prism.github",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "issues" : {
+                "keywords" : [
+                  "问题",
+                  "缺陷",
+                  "wodeissue",
+                  "wdi"
+                ],
+                "subtitle" : "GitHub",
+                "title" : "我的 Issue"
+              },
+              "notifications" : {
+                "keywords" : [
+                  "通知",
+                  "未读",
+                  "githubtongzhi",
+                  "gtz"
+                ],
+                "subtitle" : "GitHub",
+                "title" : "GitHub 通知"
+              },
+              "pull-requests" : {
+                "keywords" : [
+                  "合并请求",
+                  "代码审查",
+                  "wodepr",
+                  "wdp"
+                ],
+                "subtitle" : "GitHub",
+                "title" : "我的 PR"
+              },
+              "repositories" : {
+                "keywords" : [
+                  "仓库",
+                  "星标",
+                  "githubcangku",
+                  "gck"
+                ],
+                "subtitle" : "GitHub",
+                "title" : "GitHub 仓库"
+              }
+            },
+            "description" : "GitHub.com 或 GitHub Enterprise 上的通知、PR、Issue 和仓库。",
+            "name" : "GitHub",
+            "preferences" : {
+              "server" : {
+                "caption" : "保持 https://github.com，或填你的 GitHub Enterprise Server 地址。",
+                "title" : "服务器"
+              },
+              "token" : {
+                "caption" : "需要 repo、read:org 和 notifications 权限的 classic token，只会发给你的 GitHub 服务器。留空就用 GitHub CLI（gh）的登录。",
+                "title" : "Personal Access Token"
+              }
+            },
+            "sections" : {
+              "Account" : "账户"
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "issues" : {
+                "keywords" : [
+                  "問題",
+                  "錯誤",
+                  "wodeissue",
+                  "wdi"
+                ],
+                "subtitle" : "GitHub",
+                "title" : "我的 Issue"
+              },
+              "notifications" : {
+                "keywords" : [
+                  "通知",
+                  "未讀",
+                  "githubtongzhi",
+                  "gtz"
+                ],
+                "subtitle" : "GitHub",
+                "title" : "GitHub 通知"
+              },
+              "pull-requests" : {
+                "keywords" : [
+                  "合併請求",
+                  "程式碼審查",
+                  "wodepr",
+                  "wdp"
+                ],
+                "subtitle" : "GitHub",
+                "title" : "我的 PR"
+              },
+              "repositories" : {
+                "keywords" : [
+                  "儲存庫",
+                  "星號"
+                ],
+                "subtitle" : "GitHub",
+                "title" : "GitHub Repo"
+              }
+            },
+            "description" : "GitHub.com 或 GitHub Enterprise 上的通知、PR、Issue 和 Repo。",
+            "name" : "GitHub",
+            "preferences" : {
+              "server" : {
+                "caption" : "保持 https://github.com，或填你的 GitHub Enterprise Server 位址。",
+                "title" : "伺服器"
+              },
+              "token" : {
+                "caption" : "需要 repo、read:org 和 notifications 權限的 classic token，只會傳給你的 GitHub 伺服器。留空就用 GitHub CLI（gh）的登入資訊。",
+                "title" : "Personal Access Token"
+              }
+            },
+            "sections" : {
+              "Account" : "帳號"
+            }
+          }
+        },
         "name" : "GitHub",
         "preferences" : [
           {
@@ -685,18 +1313,18 @@
         "tasks" : [
 
         ],
-        "version" : "1.0.1",
+        "version" : "1.1.0",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "408ae7abb78445919d17bb92b8ef6186bec2ef5a47f8ca07d3c3a48f9bfda682",
-        "size" : 594466,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.github%401.0.1/prism.github-1.0.1.prismextension"
+        "sha256" : "6e78d02172a59aa6dec3597423b5f9af5b4866ca41e0b8aec2f2b7fe1348a29b",
+        "size" : 672043,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.github%401.1.0/prism.github-1.1.0.prismextension"
       },
-      "publishedAt" : 1792390045,
-      "releaseNotes" : "- The Gallery shows the GitHub mark before the extension is installed.",
+      "publishedAt" : 1793674309,
+      "releaseNotes" : "- When Prism runs in Simplified or Traditional Chinese, it shows this\n  extension's name, description, commands, and settings in that language,\n  and Chinese words find its commands in search.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/github"
     },
     {
@@ -743,6 +1371,54 @@
           "tint" : "gray"
         },
         "id" : "prism.lorem-ipsum",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "generate" : {
+                "keywords" : [
+                  "假文",
+                  "填充文字",
+                  "段落",
+                  "句子",
+                  "shengchengloremipsum",
+                  "scli"
+                ],
+                "title" : "生成 Lorem Ipsum"
+              }
+            },
+            "description" : "粘贴拉丁文、中文、日文、韩文、德文或法文的占位段落、句子或单词。",
+            "name" : "Lorem Ipsum",
+            "preferences" : {
+              "startsWithLorem" : {
+                "caption" : "拉丁文文本以“Lorem ipsum dolor sit amet, consectetur adipiscing elit.”开头。",
+                "title" : "以“Lorem ipsum”开头"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "generate" : {
+                "keywords" : [
+                  "填充文字",
+                  "佔位文字",
+                  "段落",
+                  "句子",
+                  "chanshengloremipsum",
+                  "csli"
+                ],
+                "title" : "產生 Lorem Ipsum"
+              }
+            },
+            "description" : "貼上拉丁文、中文、日文、韓文、德文或法文的假文段落、句子或單字。",
+            "name" : "Lorem Ipsum",
+            "preferences" : {
+              "startsWithLorem" : {
+                "caption" : "拉丁文假文以「Lorem ipsum dolor sit amet, consectetur adipiscing elit.」開頭。",
+                "title" : "以「Lorem ipsum」開頭"
+              }
+            }
+          }
+        },
         "name" : "Lorem Ipsum",
         "preferences" : [
           {
@@ -757,18 +1433,18 @@
         "tasks" : [
 
         ],
-        "version" : "1.0.1",
+        "version" : "1.1.0",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "cf07e73f52583a8e1c7ae0b95f3ed2466aeab613de9540404f79847166e149e9",
-        "size" : 481087,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.lorem-ipsum%401.0.1/prism.lorem-ipsum-1.0.1.prismextension"
+        "sha256" : "7faf5d838fffe7e36e47e692078da84b3479549b6b6d6a7ff6529d447bde9edd",
+        "size" : 554629,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.lorem-ipsum%401.1.0/prism.lorem-ipsum-1.1.0.prismextension"
       },
-      "publishedAt" : 1793160983,
-      "releaseNotes" : "- Installs on Prism 0.1.0, which already pastes.",
+      "publishedAt" : 1793674348,
+      "releaseNotes" : "- When Prism runs in Simplified or Traditional Chinese, it shows this\n  extension's name, description, command, and setting in that language, and\n  Chinese words find its command in search.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/lorem-ipsum"
     },
     {
@@ -812,6 +1488,59 @@
           "tint" : "teal"
         },
         "id" : "prism.port-manager",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "open-ports" : {
+                "keywords" : [
+                  "端口",
+                  "监听",
+                  "结束端口",
+                  "释放端口",
+                  "占用端口",
+                  "duankouzhanyong",
+                  "dkzy"
+                ],
+                "subtitle" : "端口管理",
+                "title" : "端口占用"
+              }
+            },
+            "description" : "查看哪些程序占用了哪些 TCP 端口、每个端口对谁开放，并结束占用端口的进程。",
+            "name" : "端口管理",
+            "preferences" : {
+              "portNames" : {
+                "caption" : "在常用端口旁显示的名称，用逗号分隔，例如“3000 Web, 5432 Postgres”。",
+                "title" : "端口名称"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "open-ports" : {
+                "keywords" : [
+                  "連接埠",
+                  "埠",
+                  "監聽",
+                  "結束連接埠",
+                  "釋放連接埠",
+                  "端口",
+                  "lianjiebuzhanyong",
+                  "ljbzy"
+                ],
+                "subtitle" : "連接埠管理",
+                "title" : "連接埠佔用"
+              }
+            },
+            "description" : "查看哪些程式佔用了哪些 TCP 連接埠、每個連接埠對誰開放，並結束佔用連接埠的程序。",
+            "name" : "連接埠管理",
+            "preferences" : {
+              "portNames" : {
+                "caption" : "在常用連接埠旁顯示的名稱，以逗號分隔，例如「3000 Web, 5432 Postgres」。",
+                "title" : "連接埠名稱"
+              }
+            }
+          }
+        },
         "name" : "Port Manager",
         "preferences" : [
           {
@@ -826,23 +1555,23 @@
         "tasks" : [
 
         ],
-        "version" : "1.0.0",
+        "version" : "1.1.0",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "3cd34a7767bd9dbe3de0f816f56b700fb52ff0b424b9c39730503014f6024a77",
-        "size" : 538239,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.port-manager%401.0.0/prism.port-manager-1.0.0.prismextension"
+        "sha256" : "a51a542583cbbad79b0659fb5a48045247bbddd4149b432097c3db300438c4da",
+        "size" : 609430,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.port-manager%401.1.0/prism.port-manager-1.1.0.prismextension"
       },
-      "publishedAt" : 1792906121,
-      "releaseNotes" : "- Open Ports lists every process listening on a TCP port, with its ports as\n  tags colored by whether each is open to this Mac only, to the network, or\n  to one address.\n- Kill, force kill, or kill the parent of the process on a port, after a\n  confirmation; a process that ignores the request to quit is reported as\n  still running.\n- Open a port in your browser, show its program in Finder, or copy its PID,\n  path, or command line, from menus in ⌘K.\n- The detail lists every port, the owner, the parent, both programs’ paths,\n  and when the process started.\n- Name the ports you use often in Port Names.",
+      "publishedAt" : 1793674393,
+      "releaseNotes" : "- When Prism runs in Simplified or Traditional Chinese, it shows this\n  extension's name, description, command, and setting in that language, and\n  Chinese words find its command in search.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/port-manager"
     }
   ],
   "format" : 1,
-  "generatedAt" : 1793630856,
+  "generatedAt" : 1793674393,
   "revoked" : [
 
   ]
