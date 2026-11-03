@@ -19,7 +19,7 @@
       "name": "端口管理",
       "description": "查看哪些程序占用了哪些 TCP 端口、每个端口对谁开放，并结束占用端口的进程。",
       "commands": {
-        "open-ports": {"title": "端口占用", "subtitle": "端口管理", "keywords": ["端口", "监听", "结束端口", "释放端口", "占用端口"]}
+        "open-ports": {"title": "端口占用", "subtitle": "端口管理", "keywords": ["端口", "监听", "结束端口", "释放端口", "占用端口", "duankouzhanyong", "dkzy"]}
       },
       "preferences": {
         "portNames": {"title": "端口名称", "caption": "在常用端口旁显示的名称，用逗号分隔，例如“3000 Web, 5432 Postgres”。"}
@@ -29,7 +29,7 @@
       "name": "連接埠管理",
       "description": "查看哪些程式佔用了哪些 TCP 連接埠、每個連接埠對誰開放，並結束佔用連接埠的程序。",
       "commands": {
-        "open-ports": {"title": "連接埠佔用", "subtitle": "連接埠管理", "keywords": ["連接埠", "埠", "監聽", "結束連接埠", "釋放連接埠", "端口"]}
+        "open-ports": {"title": "連接埠佔用", "subtitle": "連接埠管理", "keywords": ["連接埠", "埠", "監聽", "結束連接埠", "釋放連接埠", "端口", "lianjiebuzhanyong", "ljbzy"]}
       },
       "preferences": {
         "portNames": {"title": "連接埠名稱", "caption": "在常用連接埠旁顯示的名稱，以逗號分隔，例如「3000 Web, 5432 Postgres」。"}

@@ -22,8 +22,8 @@
       "name": "1Password",
       "description": "通过 1Password CLI 搜索你的 1Password 项目，粘贴密码和一次性密码，并生成新密码。",
       "commands": {
-        "search": {"title": "搜索 1Password", "subtitle": "1Password", "keywords": ["密码", "登录", "保险库", "一次性密码", "验证码"]},
-        "generate": {"title": "生成密码", "subtitle": "1Password", "keywords": ["生成密码", "随机密码", "新密码"]}
+        "search": {"title": "搜索 1Password", "subtitle": "1Password", "keywords": ["密码", "登录", "保险库", "一次性密码", "验证码", "sousuo1password", "ss1"]},
+        "generate": {"title": "生成密码", "subtitle": "1Password", "keywords": ["生成密码", "随机密码", "新密码", "shengchengmima", "scmm"]}
       },
       "preferences": {
         "returnPastes": {"title": "按 Return 键粘贴", "caption": "按 Return 键会把登录项的密码粘贴到你打开 Prism 前所在的 App。关闭后，Return 键改为拷贝，⌘⇧V 粘贴。"},
@@ -34,8 +34,8 @@
       "name": "1Password",
       "description": "透過 1Password CLI 搜尋你的 1Password 項目，貼上密碼和一次性密碼，並產生新密碼。",
       "commands": {
-        "search": {"title": "搜尋 1Password", "subtitle": "1Password", "keywords": ["密碼", "登入", "保險庫", "一次性密碼", "驗證碼"]},
-        "generate": {"title": "產生密碼", "subtitle": "1Password", "keywords": ["產生密碼", "隨機密碼", "新密碼"]}
+        "search": {"title": "搜尋 1Password", "subtitle": "1Password", "keywords": ["密碼", "登入", "保險庫", "一次性密碼", "驗證碼", "souxun1password", "sx1"]},
+        "generate": {"title": "產生密碼", "subtitle": "1Password", "keywords": ["產生密碼", "隨機密碼", "新密碼", "chanshengmima", "csmm"]}
       },
       "preferences": {
         "returnPastes": {"title": "按 Return 鍵貼上", "caption": "按 Return 鍵會把登入項目的密碼貼上到你打開 Prism 前所在的 App。關閉後，Return 鍵改為拷貝，⌘⇧V 貼上。"},

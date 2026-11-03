@@ -28,7 +28,7 @@
       "name": "Agent 用量",
       "description": "在启动器和小组件中查看 AI 编程 Agent 的额度：Codex、Claude、Grok、Amp、Antigravity、Devin 和 Z.ai。",
       "commands": {
-        "usage": {"title": "Agent 用量", "subtitle": "AI 额度", "keywords": ["用量", "额度", "配额", "限额"]}
+        "usage": {"title": "Agent 用量", "subtitle": "AI 额度", "keywords": ["用量", "额度", "配额", "限额", "agentyongliang", "ayl"]}
       },
       "preferences": {
         "agents": {"title": "显示的 Agent", "caption": "拖移以重新排序。小组件显示第一个已启用的 Agent，或前两个。已配置的 Agent 在这台 Mac 上已有登录信息或密钥；其他 Agent 需通过各自的 CLI 登录。"},
@@ -48,7 +48,7 @@
       "name": "Agent 用量",
       "description": "在啟動器和小工具中查看 AI 程式設計 Agent 的額度：Codex、Claude、Grok、Amp、Antigravity、Devin 和 Z.ai。",
       "commands": {
-        "usage": {"title": "Agent 用量", "subtitle": "AI 額度", "keywords": ["用量", "額度", "配額", "限額"]}
+        "usage": {"title": "Agent 用量", "subtitle": "AI 額度", "keywords": ["用量", "額度", "配額", "限額", "agentyongliang", "ayl"]}
       },
       "preferences": {
         "agents": {"title": "顯示的 Agent", "caption": "拖移以重新排序。小工具顯示第一個已啟用的 Agent，或前兩個。已設定的 Agent 在這台 Mac 上已有登入資訊或金鑰；其他 Agent 需透過各自的 CLI 登入。"},

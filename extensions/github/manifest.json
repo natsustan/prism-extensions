@@ -23,10 +23,10 @@
       "name": "GitHub",
       "description": "GitHub.com 或 GitHub Enterprise 上的通知、PR、Issue 和仓库。",
       "commands": {
-        "notifications": {"title": "GitHub 通知", "subtitle": "GitHub", "keywords": ["通知", "未读"]},
-        "pull-requests": {"title": "我的 PR", "subtitle": "GitHub", "keywords": ["合并请求", "代码审查"]},
-        "issues": {"title": "我的 Issue", "subtitle": "GitHub", "keywords": ["问题", "缺陷"]},
-        "repositories": {"title": "GitHub 仓库", "subtitle": "GitHub", "keywords": ["仓库", "星标"]}
+        "notifications": {"title": "GitHub 通知", "subtitle": "GitHub", "keywords": ["通知", "未读", "githubtongzhi", "gtz"]},
+        "pull-requests": {"title": "我的 PR", "subtitle": "GitHub", "keywords": ["合并请求", "代码审查", "wodepr", "wdp"]},
+        "issues": {"title": "我的 Issue", "subtitle": "GitHub", "keywords": ["问题", "缺陷", "wodeissue", "wdi"]},
+        "repositories": {"title": "GitHub 仓库", "subtitle": "GitHub", "keywords": ["仓库", "星标", "githubcangku", "gck"]}
       },
       "preferences": {
         "token": {"title": "Personal Access Token", "caption": "需要 repo、read:org 和 notifications 权限的 classic token，只会发给你的 GitHub 服务器。留空就用 GitHub CLI（gh）的登录。"},
@@ -38,9 +38,9 @@
       "name": "GitHub",
       "description": "GitHub.com 或 GitHub Enterprise 上的通知、PR、Issue 和 Repo。",
       "commands": {
-        "notifications": {"title": "GitHub 通知", "subtitle": "GitHub", "keywords": ["通知", "未讀"]},
-        "pull-requests": {"title": "我的 PR", "subtitle": "GitHub", "keywords": ["合併請求", "程式碼審查"]},
-        "issues": {"title": "我的 Issue", "subtitle": "GitHub", "keywords": ["問題", "錯誤"]},
+        "notifications": {"title": "GitHub 通知", "subtitle": "GitHub", "keywords": ["通知", "未讀", "githubtongzhi", "gtz"]},
+        "pull-requests": {"title": "我的 PR", "subtitle": "GitHub", "keywords": ["合併請求", "程式碼審查", "wodepr", "wdp"]},
+        "issues": {"title": "我的 Issue", "subtitle": "GitHub", "keywords": ["問題", "錯誤", "wodeissue", "wdi"]},
         "repositories": {"title": "GitHub Repo", "subtitle": "GitHub", "keywords": ["儲存庫", "星號"]}
       },
       "preferences": {
