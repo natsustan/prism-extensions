@@ -4,10 +4,16 @@ import PrismExtensionProtocol
 /// Checks a manifest's `localizations`. Prism shows untranslated text for
 /// anything it cannot read, so these are the mistakes that would otherwise
 /// fail silently: misspelled keys, wrong types, IDs the manifest does not
-/// declare, and empty text. Translations are optional; gaps only warn.
+/// declare, and empty text. Translations are optional and gaps only warn,
+/// except in Prism's own extensions, which ship in every language Prism does.
 enum LocalizationLint {
     /// The languages Prism ships in. Others are kept but not shown yet.
     static let prismLanguages: Set<String> = ["en", "zh-Hans", "zh-Hant"]
+
+    /// The translations a first-party (`prism.`) extension must carry in full.
+    static func requiredLanguages(of manifest: ExtensionManifest) -> [String] {
+        manifest.id.isFirstParty ? ["zh-Hans", "zh-Hant"] : []
+    }
 
     struct Report {
         var errors: [String] = []
@@ -16,6 +22,10 @@ enum LocalizationLint {
 
     static func check(manifestData: Data, manifest: ExtensionManifest) -> Report {
         var report = Report()
+        let required = requiredLanguages(of: manifest)
+        for language in required where manifest.localizations[language] == nil {
+            report.errors.append("localizations.\(language) is missing; Prism's own extensions translate everything they show.")
+        }
         guard let object = try? JSONSerialization.jsonObject(with: manifestData) as? [String: Any],
               let raw = object["localizations"] else { return report }
         guard let languages = raw as? [String: Any] else {
@@ -42,7 +52,12 @@ enum LocalizationLint {
             }
             let missing = missingFields(entry, of: manifest)
             if !missing.isEmpty {
-                report.warnings.append("localizations.\(language) leaves untranslated: \(missing.joined(separator: ", ")).")
+                let problem = "localizations.\(language) leaves untranslated: \(missing.joined(separator: ", "))."
+                if required.contains(language) {
+                    report.errors.append(problem)
+                } else {
+                    report.warnings.append(problem)
+                }
             }
         }
         return report
