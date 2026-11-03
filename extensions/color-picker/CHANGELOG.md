@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- When Prism runs in Simplified or Traditional Chinese, it shows this
+  extension's name, description, commands, and setting in that language, and
+  Chinese words find its commands in search.
+
 ## 1.0.0
 
 - Pick Color: pick a color anywhere on screen and copy it in your first format.

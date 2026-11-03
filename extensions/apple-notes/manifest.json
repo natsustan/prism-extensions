@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.apple-notes",
   "name": "Apple Notes",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Prism",
   "description": "Search your Apple Notes by title, folder, content, tags, or pinyin, and open them in Notes.",
   "icon": { "symbol": "note.text", "tint": "gold", "app": "com.apple.Notes" },
@@ -13,5 +13,27 @@
   "folders": [
     { "id": "notes", "path": "~/Library/Group Containers/group.com.apple.notes", "reason": "Apple Notes searches your notes in this folder and never changes them." }
   ],
-  "capabilities": ["readHomeFiles"]
+  "capabilities": ["readHomeFiles"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "备忘录",
+      "description": "按标题、文件夹、内容、标签或拼音搜索你的 Apple 备忘录，并在“备忘录”中打开。",
+      "commands": {
+        "search-notes": {"title": "搜索备忘录", "subtitle": "备忘录", "keywords": ["备忘录", "笔记", "查找备忘录", "sousuobeiwanglu", "ssbwl"]}
+      },
+      "folders": {
+        "notes": {"reason": "此扩展在这个文件夹中搜索你的备忘录，从不更改它们。"}
+      }
+    },
+    "zh-Hant": {
+      "name": "備忘錄",
+      "description": "依標題、檔案夾、內容、標籤或拼音搜尋你的 Apple 備忘錄，並在「備忘錄」中打開。",
+      "commands": {
+        "search-notes": {"title": "搜尋備忘錄", "subtitle": "備忘錄", "keywords": ["備忘錄", "筆記", "尋找備忘錄", "souxunbeiwanglu", "sxbwl"]}
+      },
+      "folders": {
+        "notes": {"reason": "此延伸功能在這個檔案夾中搜尋你的備忘錄，從不更改它們。"}
+      }
+    }
+  }
 }

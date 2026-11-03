@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.agent-usage",
   "name": "Agent Usage",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Prism",
   "description": "Quotas for your AI coding agents — Codex, Claude, Grok, Amp, Antigravity, Devin, and Z.ai — in the launcher and in widgets.",
   "icon": { "symbol": "gauge.with.needle", "tint": "indigo" },
@@ -22,5 +22,47 @@
     { "id": "singleNumber", "title": "AI Usage Number", "subtitle": "The first agent's quota", "template": "quotaNumber" },
     { "id": "singleRing", "title": "AI Usage Ring", "subtitle": "The first agent's quota as a ring", "template": "quotaRing" }
   ],
-  "capabilities": ["network", "readHomeFiles", "keychainRead", "spawnProcesses"]
+  "capabilities": ["network", "readHomeFiles", "keychainRead", "spawnProcesses"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "Agent 用量",
+      "description": "在启动器和小组件中查看 AI 编程 Agent 的额度：Codex、Claude、Grok、Amp、Antigravity、Devin 和 Z.ai。",
+      "commands": {
+        "usage": {"title": "Agent 用量", "subtitle": "AI 额度", "keywords": ["用量", "额度", "配额", "限额", "agentyongliang", "ayl"]}
+      },
+      "preferences": {
+        "agents": {"title": "显示的 Agent", "caption": "拖移以重新排序。小组件显示第一个已启用的 Agent，或前两个。已配置的 Agent 在这台 Mac 上已有登录信息或密钥；其他 Agent 需通过各自的 CLI 登录。"},
+        "showsRemaining": {"title": "显示剩余额度", "caption": "关闭后改为显示每个时间窗口已用的额度。"},
+        "zaiKey": {"title": "API 密钥", "caption": "只发送给 Z.ai。留空则使用 ZAI_API_KEY、~/.config/zai/key.json，或指向 z.ai 的 Claude Code 令牌。"}
+      },
+      "sections": {"Agents": "Agent", "Display": "显示", "Z.ai": "Z.ai"},
+      "widgets": {
+        "numbers": {"title": "AI 用量数字", "subtitle": "以数字显示两个 Agent 的额度"},
+        "rings": {"title": "AI 用量圆环", "subtitle": "以圆环显示两个 Agent 的额度"},
+        "bars": {"title": "AI 用量条", "subtitle": "以带标签的条形显示两个 Agent 的额度"},
+        "singleNumber": {"title": "单个 AI 用量数字", "subtitle": "第一个 Agent 的额度"},
+        "singleRing": {"title": "单个 AI 用量圆环", "subtitle": "以圆环显示第一个 Agent 的额度"}
+      }
+    },
+    "zh-Hant": {
+      "name": "Agent 用量",
+      "description": "在啟動器和小工具中查看 AI 程式設計 Agent 的額度：Codex、Claude、Grok、Amp、Antigravity、Devin 和 Z.ai。",
+      "commands": {
+        "usage": {"title": "Agent 用量", "subtitle": "AI 額度", "keywords": ["用量", "額度", "配額", "限額", "agentyongliang", "ayl"]}
+      },
+      "preferences": {
+        "agents": {"title": "顯示的 Agent", "caption": "拖移以重新排序。小工具顯示第一個已啟用的 Agent，或前兩個。已設定的 Agent 在這台 Mac 上已有登入資訊或金鑰；其他 Agent 需透過各自的 CLI 登入。"},
+        "showsRemaining": {"title": "顯示剩餘額度", "caption": "關閉後改為顯示每個時間區間已用的額度。"},
+        "zaiKey": {"title": "API 金鑰", "caption": "只會傳送給 Z.ai。留空則使用 ZAI_API_KEY、~/.config/zai/key.json，或指向 z.ai 的 Claude Code 權杖。"}
+      },
+      "sections": {"Agents": "Agent", "Display": "顯示", "Z.ai": "Z.ai"},
+      "widgets": {
+        "numbers": {"title": "AI 用量數字", "subtitle": "以數字顯示兩個 Agent 的額度"},
+        "rings": {"title": "AI 用量圓環", "subtitle": "以圓環顯示兩個 Agent 的額度"},
+        "bars": {"title": "AI 用量長條", "subtitle": "以加上標籤的長條顯示兩個 Agent 的額度"},
+        "singleNumber": {"title": "單個 AI 用量數字", "subtitle": "第一個 Agent 的額度"},
+        "singleRing": {"title": "單個 AI 用量圓環", "subtitle": "以圓環顯示第一個 Agent 的額度"}
+      }
+    }
+  }
 }

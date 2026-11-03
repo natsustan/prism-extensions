@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.github",
   "name": "GitHub",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": "Prism",
   "description": "Your GitHub notifications, pull requests, issues, and repositories, on GitHub.com or GitHub Enterprise.",
   "icon": { "symbol": "chevron.left.forwardslash.chevron.right", "tint": "graphite", "image": "icons/github.svg", "style": "tile" },
@@ -17,5 +17,37 @@
     { "id": "token", "type": "secret", "title": "Personal Access Token", "section": "Account", "caption": "A classic token with the repo, read:org, and notifications scopes. Sent only to your GitHub server. Leave blank to use your GitHub CLI (gh) login." },
     { "id": "server", "type": "text", "title": "Server", "section": "Account", "caption": "Leave as https://github.com, or enter your GitHub Enterprise Server address.", "default": "https://github.com" }
   ],
-  "capabilities": ["network", "spawnProcesses"]
+  "capabilities": ["network", "spawnProcesses"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "GitHub",
+      "description": "GitHub.com 或 GitHub Enterprise 上的通知、PR、Issue 和仓库。",
+      "commands": {
+        "notifications": {"title": "GitHub 通知", "subtitle": "GitHub", "keywords": ["通知", "未读", "githubtongzhi", "gtz"]},
+        "pull-requests": {"title": "我的 PR", "subtitle": "GitHub", "keywords": ["合并请求", "代码审查", "wodepr", "wdp"]},
+        "issues": {"title": "我的 Issue", "subtitle": "GitHub", "keywords": ["问题", "缺陷", "wodeissue", "wdi"]},
+        "repositories": {"title": "GitHub 仓库", "subtitle": "GitHub", "keywords": ["仓库", "星标", "githubcangku", "gck"]}
+      },
+      "preferences": {
+        "token": {"title": "Personal Access Token", "caption": "需要 repo、read:org 和 notifications 权限的 classic token，只会发给你的 GitHub 服务器。留空就用 GitHub CLI（gh）的登录。"},
+        "server": {"title": "服务器", "caption": "保持 https://github.com，或填你的 GitHub Enterprise Server 地址。"}
+      },
+      "sections": {"Account": "账户"}
+    },
+    "zh-Hant": {
+      "name": "GitHub",
+      "description": "GitHub.com 或 GitHub Enterprise 上的通知、PR、Issue 和 Repo。",
+      "commands": {
+        "notifications": {"title": "GitHub 通知", "subtitle": "GitHub", "keywords": ["通知", "未讀", "githubtongzhi", "gtz"]},
+        "pull-requests": {"title": "我的 PR", "subtitle": "GitHub", "keywords": ["合併請求", "程式碼審查", "wodepr", "wdp"]},
+        "issues": {"title": "我的 Issue", "subtitle": "GitHub", "keywords": ["問題", "錯誤", "wodeissue", "wdi"]},
+        "repositories": {"title": "GitHub Repo", "subtitle": "GitHub", "keywords": ["儲存庫", "星號"]}
+      },
+      "preferences": {
+        "token": {"title": "Personal Access Token", "caption": "需要 repo、read:org 和 notifications 權限的 classic token，只會傳給你的 GitHub 伺服器。留空就用 GitHub CLI（gh）的登入資訊。"},
+        "server": {"title": "伺服器", "caption": "保持 https://github.com，或填你的 GitHub Enterprise Server 位址。"}
+      },
+      "sections": {"Account": "帳號"}
+    }
+  }
 }

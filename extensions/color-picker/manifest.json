@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.color-picker",
   "name": "Color Picker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Prism",
   "description": "Pick colors anywhere on screen, keep them, and copy them as HEX, RGB, HSL, OKLCH, LCH, Display P3, or SwiftUI.",
   "icon": { "symbol": "eyedropper", "tint": "pink" },
@@ -14,5 +14,31 @@
   ],
   "preferences": [
     { "id": "formats", "type": "orderedList", "title": "Formats", "caption": "Drag to reorder. Pick Color copies the first format that’s on; saved colors offer every format that’s on." }
-  ]
+  ],
+  "localizations": {
+    "zh-Hans": {
+      "name": "取色器",
+      "description": "拾取屏幕上任意位置的颜色并保存，以 HEX、RGB、HSL、OKLCH、LCH、Display P3 或 SwiftUI 格式拷贝。",
+      "commands": {
+        "pick-color": {"title": "拾取颜色", "keywords": ["取色", "吸管", "屏幕取色", "颜色", "shiquyanse", "sqys"]},
+        "colors": {"title": "颜色", "subtitle": "取色器", "keywords": ["已存储的颜色", "收藏的颜色", "历史记录", "调色板", "yanse", "ys"]},
+        "convert-color": {"title": "转换颜色", "subtitle": "取色器", "keywords": ["颜色转换", "颜色名称", "zhuanhuanyanse", "zhys"]}
+      },
+      "preferences": {
+        "formats": {"title": "格式", "caption": "拖移以重新排序。“拾取颜色”拷贝第一个已打开的格式；已存储的颜色提供所有已打开的格式。"}
+      }
+    },
+    "zh-Hant": {
+      "name": "取色器",
+      "description": "挑選螢幕上任何位置的顏色並儲存，以 HEX、RGB、HSL、OKLCH、LCH、Display P3 或 SwiftUI 格式拷貝。",
+      "commands": {
+        "pick-color": {"title": "挑選顏色", "keywords": ["取色", "滴管", "螢幕取色", "顏色", "tiaoxuanyanse", "txys"]},
+        "colors": {"title": "顏色", "subtitle": "取色器", "keywords": ["已儲存的顏色", "喜好的顏色", "歷史記錄", "調色盤", "yanse", "ys"]},
+        "convert-color": {"title": "轉換顏色", "subtitle": "取色器", "keywords": ["顏色轉換", "顏色名稱", "zhuanhuanyanse", "zhys"]}
+      },
+      "preferences": {
+        "formats": {"title": "格式", "caption": "拖移以重新排序。「挑選顏色」拷貝第一個已開啟的格式；已儲存的顏色提供所有已開啟的格式。"}
+      }
+    }
+  }
 }

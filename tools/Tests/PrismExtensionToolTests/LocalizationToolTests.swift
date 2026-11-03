@@ -22,10 +22,10 @@ struct TemporaryExtension {
         try? FileManager.default.removeItem(at: folder)
     }
 
-    static func manifest(executable: String = "bin/run", localizations: String) -> String {
+    static func manifest(id: String = "octocat.coffee", executable: String = "bin/run", localizations: String) -> String {
         """
         {
-          "protocol": 1, "id": "octocat.coffee", "name": "Coffee", "version": "1.0.0", "author": "Octocat",
+          "protocol": 1, "id": "\(id)", "name": "Coffee", "version": "1.0.0", "author": "Octocat",
           "description": "Keep your Mac awake.",
           "icon": { "symbol": "cup.and.saucer.fill", "tint": "brown" },
           "executable": "\(executable)",
@@ -39,8 +39,8 @@ struct TemporaryExtension {
 
 @Suite("Localization lint")
 struct LocalizationLintTests {
-    func report(_ localizations: String) throws -> LocalizationLint.Report {
-        let json = TemporaryExtension.manifest(localizations: localizations)
+    func report(_ localizations: String, id: String = "octocat.coffee") throws -> LocalizationLint.Report {
+        let json = TemporaryExtension.manifest(id: id, localizations: localizations)
         let data = Data(json.utf8)
         return LocalizationLint.check(manifestData: data, manifest: try JSONDecoder().decode(ExtensionManifest.self, from: data))
     }
@@ -64,6 +64,35 @@ struct LocalizationLintTests {
         #expect(report.warnings.contains {
             $0 == "localizations.zh-Hant leaves untranslated: description, commands.brew.title, commands.brew.subtitle, preferences.disk.title, sections.Power."
         })
+    }
+
+    @Test("Prism's own extensions must translate everything into both Chinese scripts")
+    func firstParty() throws {
+        let complete = """
+            { "name": "咖啡", "description": "让 Mac 保持唤醒。",
+              "commands": { "brew": { "title": "冲咖啡", "subtitle": "咖啡" } },
+              "preferences": { "disk": { "title": "磁盘" } }, "sections": { "Power": "电源" } }
+            """
+        #expect(try report("{ \"zh-Hans\": \(complete), \"zh-Hant\": \(complete) }", id: "prism.coffee").errors.isEmpty)
+
+        let untranslated = try report("{}", id: "prism.coffee")
+        #expect(untranslated.errors == [
+            "localizations.zh-Hans is missing; Prism's own extensions translate everything they show.",
+            "localizations.zh-Hant is missing; Prism's own extensions translate everything they show.",
+        ])
+        let partial = try report(#"{ "zh-Hans": { "name": "咖啡" } }"#, id: "prism.coffee")
+        #expect(partial.errors.contains { $0.hasPrefix("localizations.zh-Hans leaves untranslated: description,") })
+        #expect(partial.errors.contains { $0.hasPrefix("localizations.zh-Hant is missing") })
+        #expect(partial.warnings.isEmpty)
+
+        // A manifest without the key at all is held to the same rule.
+        var object = try #require(JSONSerialization.jsonObject(
+            with: Data(TemporaryExtension.manifest(id: "prism.coffee", localizations: "{}").utf8)
+        ) as? [String: Any])
+        object["localizations"] = nil
+        let bare = try JSONSerialization.data(withJSONObject: object)
+        let manifest = try JSONDecoder().decode(ExtensionManifest.self, from: bare)
+        #expect(LocalizationLint.check(manifestData: bare, manifest: manifest).errors == untranslated.errors)
     }
 
     @Test("Mistakes Prism would silently ignore are errors", arguments: [
