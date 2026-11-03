@@ -56,12 +56,13 @@ private final class FakeProcesses: CaffeinateProcesses {
 @Suite("Caffeinate")
 struct CaffeinateTests {
     private func host(
-        _ processes: FakeProcesses, preventDiskSleep: Bool = false
+        _ processes: FakeProcesses, preventDiskSleep: Bool = false, language: String = "en"
     ) async throws -> PrismTestHost {
         try await PrismTestHost(
             Caffeinate(processes: processes, startTimeout: .milliseconds(300), pollInterval: .milliseconds(5)),
             extensionID: "prism.caffeinate",
-            preferences: ["preventDiskSleep": .bool(preventDiskSleep)]
+            preferences: ["preventDiskSleep": .bool(preventDiskSleep)],
+            language: language
         )
     }
 
@@ -135,6 +136,31 @@ struct CaffeinateTests {
         _ = try await prism.run("decaffeinate")
         #expect(try await prism.status("caffeinate-status")?.text == "Decaffeinated")
         #expect(try await prism.run("caffeinate-status") == .keepOpen(message: "Caffeinate is off."))
+    }
+
+    @Test("in Simplified Chinese the messages, status row, and widget keep the coffee joke")
+    func simplifiedChinese() async throws {
+        let processes = FakeProcesses(running: true)
+        let prism = try await host(processes, language: "zh-Hans")
+        #expect(try await prism.status("caffeinate-status")?.text == "清醒中")
+        guard case let .toggleCard(card) = try await prism.widget("toggle") else {
+            Issue.record("The widget is a toggle card")
+            return
+        }
+        #expect(card.title == "保持清醒" && card.status == "开" && card.help == "放下咖啡")
+        #expect(try await prism.run("decaffeinate") == .completed(message: "咖啡放下了，Mac 可以睡了。", restoreFocus: true))
+        #expect(try await prism.status("caffeinate-status")?.text == "可以打盹")
+    }
+
+    @Test("Traditional Chinese has its own text, not Simplified's")
+    func traditionalChinese() async throws {
+        let prism = try await host(FakeProcesses(), language: "zh-Hant")
+        guard case let .toggleCard(card) = try await prism.widget("toggle") else {
+            Issue.record("The widget is a toggle card")
+            return
+        }
+        #expect(card.status == "關" && card.accessibilityLabel == "保持清醒已關閉，按一下以開啟")
+        #expect(try await prism.run("decaffeinate") == .completed(message: "咖啡早就放下了。", restoreFocus: true))
     }
 
     @Test("the system inspector finds nothing for an executable no one runs")

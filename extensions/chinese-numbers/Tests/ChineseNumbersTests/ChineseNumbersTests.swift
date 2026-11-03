@@ -5,8 +5,8 @@ import Testing
 
 @Suite("Convert to Chinese Numbers")
 struct ChineseNumbersTests {
-    private func list(_ query: String) async throws -> ExtensionList {
-        let prism = try await PrismTestHost(ChineseNumbers())
+    private func list(_ query: String, language: String = "en") async throws -> ExtensionList {
+        let prism = try await PrismTestHost(ChineseNumbers(), language: language)
         return try await prism.list(ChineseNumbers.CommandID.convert, query: query)
     }
 
@@ -50,6 +50,16 @@ struct ChineseNumbersTests {
         #expect(large.items.isEmpty && large.emptyMessage?.title == "Number Too Large")
         let text = try await list("hello")
         #expect(text.items.isEmpty && text.emptyMessage?.title == "Not a Number")
+    }
+
+    @Test("in Chinese the prompts and actions are Chinese, and Traditional captions use its own characters")
+    func chineseInterface() async throws {
+        let simplified = try await list("", language: "zh-Hans")
+        #expect(simplified.emptyMessage?.title == "输入数字")
+        #expect(simplified.searchPlaceholder == "12345.67 或 一万二千…")
+        let rows = try await list("12", language: "zh-Hant")
+        #expect(rows.items.map(\.subtitle) == ["小寫", "大寫", "金額大寫"])
+        #expect(rows.items[0].actions.map(\.title) == ["貼上", "拷貝"])
     }
 
     @Test("an unknown list is a failure")

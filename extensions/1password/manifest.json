@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.1password",
   "name": "1Password",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Prism",
   "description": "Search your 1Password items, paste passwords and one-time passwords, and generate new passwords, through the 1Password CLI.",
   "minPrism": "0.1.1",

@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 /// What a row generates. The raw value is part of the row’s item ID.
 enum LoremKind: String, CaseIterable, Sendable {
@@ -16,19 +17,43 @@ enum LoremKind: String, CaseIterable, Sendable {
         }
     }
 
+    /// Whole phrases rather than a number and a noun, so each language can
+    /// order and count them its own way.
     func title(count: Int, in language: LoremLanguage) -> String {
-        let noun = switch self {
-        case .paragraphs: count == 1 ? "Paragraph" : "Paragraphs"
-        case .sentences: count == 1 ? "Sentence" : "Sentences"
-        case .words where language.countsCharacters: count == 1 ? "Character" : "Characters"
-        case .words: count == 1 ? "Word" : "Words"
+        let one = count == 1
+        return switch self {
+        case .paragraphs:
+            one ? localized("1 Paragraph")
+                : localized("\(count) Paragraphs")
+        case .sentences:
+            one ? localized("1 Sentence")
+                : localized("\(count) Sentences")
+        case .words where language.countsCharacters:
+            one ? localized("1 Character")
+                : localized("\(count) Characters")
+        case .words:
+            one ? localized("1 Word")
+                : localized("\(count) Words")
         }
-        return "\(count) \(noun)"
     }
 
     /// The HUD after copying: “Copied 3 paragraphs”.
     func copiedMessage(count: Int, in language: LoremLanguage) -> String {
-        "Copied \(title(count: count, in: language).lowercased())"
+        let one = count == 1
+        return switch self {
+        case .paragraphs:
+            one ? localized("Copied 1 paragraph")
+                : localized("Copied \(count) paragraphs")
+        case .sentences:
+            one ? localized("Copied 1 sentence")
+                : localized("Copied \(count) sentences")
+        case .words where language.countsCharacters:
+            one ? localized("Copied 1 character")
+                : localized("Copied \(count) characters")
+        case .words:
+            one ? localized("Copied 1 word")
+                : localized("Copied \(count) words")
+        }
     }
 
     var symbol: String {

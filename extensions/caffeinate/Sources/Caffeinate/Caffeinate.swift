@@ -46,36 +46,36 @@ struct Caffeinate: PrismExtension {
         case CommandID.caffeinate:
             return try await start(context)
         case CommandID.status:
-            return .keepOpen(message: processes.isRunning() ? "Caffeinate is on." : "Caffeinate is off.")
+            return .keepOpen(message: processes.isRunning() ? localized("Caffeinate is on.") : localized("Caffeinate is off."))
         case CommandID.decaffeinate:
             return try stop()
         case CommandID.toggle:
             return try await processes.isRunning() ? stop() : start(context)
         default:
-            throw PrismExtensionError("This Caffeinate command is not available.")
+            throw PrismExtensionError(localized("This Caffeinate command is not available."))
         }
     }
 
     func status(for command: String, context: PrismContext) async throws -> ExtensionRowStatus? {
         guard command == CommandID.status else { return nil }
         return processes.isRunning()
-            ? ExtensionRowStatus(text: "Caffeinated", symbol: "checkmark", isLive: true)
-            : ExtensionRowStatus(text: "Decaffeinated", isLive: true)
+            ? ExtensionRowStatus(text: localized("Caffeinated"), symbol: "checkmark", isLive: true)
+            : ExtensionRowStatus(text: localized("Decaffeinated"), isLive: true)
     }
 
     func widget(_ widget: String, context: PrismContext) async throws -> ExtensionWidgetContent {
         guard widget == Self.widgetID else {
-            throw PrismExtensionError("Caffeinate has no widget “\(widget)”.")
+            throw PrismExtensionError(localized("Caffeinate has no widget “\(widget)”."))
         }
         let isOn = processes.isRunning()
         return .toggleCard(ExtensionToggleCard(
-            title: "Keep Awake",
-            status: isOn ? "On" : "Off",
+            title: localized("Keep Awake"),
+            status: isOn ? localized("On") : localized("Off"),
             symbol: "cup.and.heat.waves.fill",
             tint: "orange",
             isOn: isOn,
-            help: isOn ? "Turn Caffeinate off" : "Turn Caffeinate on",
-            accessibilityLabel: isOn ? "Keep Awake on, turn off" : "Keep Awake off, turn on",
+            help: isOn ? localized("Turn Caffeinate off") : localized("Turn Caffeinate on"),
+            accessibilityLabel: isOn ? localized("Keep Awake on, turn off") : localized("Keep Awake off, turn on"),
             toggleCommandID: CommandID.toggle
         ))
     }
@@ -84,7 +84,7 @@ struct Caffeinate: PrismExtension {
 
     private func start(_ context: PrismContext) async throws -> ExtensionCommandResult {
         guard !processes.isRunning() else {
-            return .completed(message: "Caffeinate is already on.", restoreFocus: true)
+            return .completed(message: localized("Caffeinate is already on."), restoreFocus: true)
         }
         // -d keeps the display awake, -i the system; -m the disk, if asked.
         let arguments = ["-d", "-i"] + (context.preferences.bool("preventDiskSleep") ? ["-m"] : [])
@@ -93,23 +93,23 @@ struct Caffeinate: PrismExtension {
         let deadline = clock.now.advanced(by: startTimeout)
         while clock.now < deadline {
             if processes.isRunning() {
-                return .completed(message: "Caffeinate is on.", restoreFocus: true)
+                return .completed(message: localized("Caffeinate is on."), restoreFocus: true)
             }
             try await Task.sleep(for: pollInterval)
         }
-        return .failed(message: "Caffeinate did not start.")
+        return .failed(message: localized("Caffeinate did not start."))
     }
 
     private func stop() throws -> ExtensionCommandResult {
         guard processes.isRunning() else {
-            return .completed(message: "Caffeinate is already off.", restoreFocus: true)
+            return .completed(message: localized("Caffeinate is already off."), restoreFocus: true)
         }
         do {
             try processes.stopAll()
         } catch {
-            return .failed(message: "Could not stop caffeinate: \(error.localizedDescription)")
+            return .failed(message: localized("Could not stop caffeinate: \(error.localizedDescription)"))
         }
-        let message = processes.isRunning() ? "Caffeinate is stopping." : "Caffeinate is off."
+        let message = processes.isRunning() ? localized("Caffeinate is stopping.") : localized("Caffeinate is off.")
         return .completed(message: message, restoreFocus: true)
     }
 }

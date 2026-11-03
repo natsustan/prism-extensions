@@ -11,6 +11,9 @@ final class AgentUsageSession {
     struct Saved: Codable, Equatable {
         var controller: AgentUsageController.Saved
         var zaiKeyFingerprint: String?
+        /// The language the rows' titles and messages were written in; nil in
+        /// caches from before they were translated, which were English.
+        var language: String?
     }
 
     static let cacheFileName = "cache.json"
@@ -51,7 +54,7 @@ final class AgentUsageSession {
 
     func widget(_ widget: String, context: PrismContext) throws -> ExtensionWidgetContent {
         guard let template = Self.widgetTemplates[widget] else {
-            throw PrismExtensionError("Agent Usage has no widget “\(widget)”.")
+            throw PrismExtensionError(localized("Agent Usage has no widget “\(widget)”."))
         }
         let controller = prepare(context)
         controller.refreshIfNeeded()
@@ -69,7 +72,7 @@ final class AgentUsageSession {
                 id: row.id.rawValue,
                 title: row.displayName,
                 icon: row.icon.extensionIcon,
-                badge: controller.isConfigured(row.id) ? "Configured" : nil,
+                badge: controller.isConfigured(row.id) ? localized("Configured") : nil,
                 isOn: controller.isDetected(row.id)
             )
         }
@@ -110,7 +113,11 @@ final class AgentUsageSession {
         controller.setFeatureEnabled(false)
         cacheURL = context.dataDirectory?.appendingPathComponent(Self.cacheFileName)
         if let saved = loadCache() {
-            controller.restore(saved.controller)
+            // Rows fetched in another language would mix it into this one's
+            // list; fetching again at once is better than showing them.
+            if (saved.language ?? "en") == Self.language {
+                controller.restore(saved.controller)
+            }
             zaiKeyFingerprint = saved.zaiKeyFingerprint
         }
         // A key saved before this process started counts like one on disk; a
@@ -150,6 +157,9 @@ final class AgentUsageSession {
 
     // MARK: - Cache
 
+    /// Prism's language, or English under a Prism that doesn't send one.
+    private static var language: String { PrismLocalization.language ?? "en" }
+
     private func loadCache() -> Saved? {
         guard let cacheURL, let data = try? Data(contentsOf: cacheURL) else { return nil }
         return try? JSONDecoder().decode(Saved.self, from: data)
@@ -157,7 +167,7 @@ final class AgentUsageSession {
 
     private func saveCache() {
         guard let cacheURL, let controller else { return }
-        let saved = Saved(controller: controller.saved(), zaiKeyFingerprint: zaiKeyFingerprint)
+        let saved = Saved(controller: controller.saved(), zaiKeyFingerprint: zaiKeyFingerprint, language: Self.language)
         guard let data = try? JSONEncoder().encode(saved) else { return }
         try? FileManager.default.createDirectory(
             at: cacheURL.deletingLastPathComponent(), withIntermediateDirectories: true

@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import AgentUsage
 
-@Suite("Amp auth store")
+@Suite("Amp auth store", .english)
 struct AmpAuthStoreTests {
     @Test("reads the ampcode.com apiKey entry from secrets.json")
     func readsSecretsFile() throws {
@@ -49,7 +49,7 @@ struct AmpAuthStoreTests {
     }
 }
 
-@Suite("Amp usage mapping")
+@Suite("Amp usage mapping", .english)
 struct AmpUsageMapperTests {
     private static let now = Date(timeIntervalSince1970: 1_700_000_000)
 
@@ -223,7 +223,7 @@ struct AmpUsageMapperTests {
     }
 }
 
-@Suite("Amp provider")
+@Suite("Amp provider", .english)
 struct AmpAgentUsageProviderTests {
     @Test("a 401 surfaces as expired auth")
     func unauthorized() async throws {

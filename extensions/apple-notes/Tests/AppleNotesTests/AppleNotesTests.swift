@@ -110,12 +110,13 @@ private final class OpenedURLs: Sendable {
 @Suite("Apple Notes")
 struct AppleNotesTests {
     private func host(
-        _ url: URL, opened: OpenedURLs = OpenedURLs(), dataDirectory: URL? = nil
+        _ url: URL, opened: OpenedURLs = OpenedURLs(), dataDirectory: URL? = nil, language: String = "en"
     ) async throws -> PrismTestHost {
         try await PrismTestHost(
             AppleNotes(store: NoteStore(url: url), openURL: { opened.open($0) }),
             extensionID: "prism.apple-notes",
-            dataDirectory: dataDirectory
+            dataDirectory: dataDirectory,
+            language: language
         )
     }
 
@@ -331,5 +332,36 @@ struct AppleNotesTests {
 
         #expect(list.items.isEmpty)
         #expect(list.emptyMessage?.title == "No Notes")
+    }
+
+    @Test("In Simplified Chinese, sections, actions, and help are Chinese; note text is untouched")
+    func simplifiedChinese() async throws {
+        let fixture = try NotesFixture()
+        let work = try fixture.folder("Work")
+        try fixture.note("Plan", folder: work, modified: 2, pinned: true)
+        try fixture.note("Ideas", folder: work, modified: 1, locked: true)
+
+        let list = try await host(fixture.url, language: "zh-Hans").list("search-notes")
+
+        #expect(list.items.map(\.section) == ["已置顶", "备忘录"])
+        #expect(list.items[0].title == "Plan")
+        #expect(list.items[0].actions.map(\.title) == ["在备忘录中打开", "拷贝备忘录链接", "拷贝备忘录标题"])
+        #expect(list.items[1].accessories.first?.help == "已锁定的备忘录")
+        #expect(list.searchPlaceholder == "按标题、文件夹、内容或标签搜索备忘录…")
+    }
+
+    @Test("In Traditional Chinese, the empty state and access row use Taiwan terms")
+    func traditionalChinese() async throws {
+        let missing = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AppleNotesTests-missing-\(UUID().uuidString)/NoteStore.sqlite")
+        #expect(try await host(missing, language: "zh-Hant").list("search-notes").emptyMessage?.title == "沒有備忘錄")
+
+        let fixture = try NotesFixture()
+        try fixture.note("Plan", folder: fixture.folder("Notes"), modified: 1)
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: fixture.url.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fixture.url.path) }
+        let row = try await host(fixture.url, language: "zh-Hant").list("search-notes").items[0]
+        #expect(row.title == "允許取用你的備忘錄")
+        #expect(row.primaryAction?.title == "允許取用…")
     }
 }

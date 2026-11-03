@@ -25,9 +25,9 @@ struct CodexAgentUsageProvider: AgentUsageProvider {
             credentials = try authStore.loadCredentials()
         } catch CodexAuthError.apiKeyOnly {
             return .failure(.notConfigured(
-                "Usage is not available for API-key logins. Run `codex login` to sign in with ChatGPT."))
+                localized("Usage is not available for API-key logins. Run `codex login` to sign in with ChatGPT.")))
         } catch {
-            return .failure(.notConfigured("Not signed in. Run `codex login` to connect this Mac."))
+            return .failure(.notConfigured(localized("Not signed in. Run `codex login` to connect this Mac.")))
         }
 
         let usageClient = CodexUsageClient(client: client)
@@ -59,15 +59,15 @@ struct CodexAgentUsageProvider: AgentUsageProvider {
     static func failure(from error: Error) -> AgentUsageFailure {
         switch error {
         case AgentUsageClientError.unauthorized:
-            return .authExpired("Codex rejected the saved login. Run `codex login` to refresh it.")
+            return .authExpired(localized("Codex rejected the saved login. Run `codex login` to refresh it."))
         case let AgentUsageClientError.http(status):
-            return .network("Codex usage request failed (HTTP \(status)). Try again in a moment.")
+            return .network(localized("Codex usage request failed (HTTP \(status)). Try again in a moment."))
         case AgentUsageClientError.transport:
-            return .network("Could not reach Codex. Check the connection and try again.")
+            return .network(localized("Could not reach Codex. Check the connection and try again."))
         case AgentUsageClientError.invalidResponse:
-            return .invalidResponse("Codex returned an unexpected response.")
+            return .invalidResponse(localized("Codex returned an unexpected response."))
         default:
-            return .invalidResponse("Codex usage could not be read.")
+            return .invalidResponse(localized("Codex usage could not be read."))
         }
     }
 }

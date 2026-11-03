@@ -312,4 +312,29 @@ struct PortManagerTests {
             == ExtensionActionResult(.failed(message: "You don’t have permission to kill “node”."), reload: true))
         #expect(fake.signals.isEmpty)
     }
+
+    // MARK: - Languages
+
+    @Test("in Simplified Chinese, filters, actions, the detail, and messages are Chinese, listed the Chinese way")
+    func simplifiedChinese() async throws {
+        let prism = try await PrismTestHost(PortManager(fake: typicalMac()), language: "zh-Hans")
+        let list = try await prism.list(command)
+        #expect(list.filters.map(\.title) == ["所有端口", "仅限本机", "网络可访问", "指定网络接口"])
+        let row = try #require(list.items.first { $0.id == nodeRow })
+        #expect(row.primaryAction?.title == "结束进程")
+        #expect(row.primaryAction?.confirmationMessage == "“node”（PID 4242）将停止监听端口 3000和9229 并退出。")
+        #expect(row.detail?.subtitle == "端口 3000, 9229")
+        #expect(row.detail?.metadata.first?.label == "端口 3000")
+        #expect(try await prism.perform(ActionID.kill, on: nodeRow, in: command) == .reload(message: "已结束“node”。"))
+    }
+
+    @Test("Traditional Chinese uses Taiwan terms and corner quotes")
+    func traditionalChinese() async throws {
+        let prism = try await PrismTestHost(PortManager(fake: typicalMac()), language: "zh-Hant")
+        let row = try #require(try await prism.list(command).items.first { $0.id == nodeRow })
+        #expect(row.detail?.metadata.first?.value == "127.0.0.1:3000, [::1]:3000 · 僅限這台 Mac")
+        #expect(try await prism.perform(ActionID.kill, on: nodeRow, in: command) == .reload(message: "已結束「node」。"))
+        let empty = try await PrismTestHost(PortManager(fake: FakePorts()), language: "zh-Hant")
+        #expect(try await empty.list(command).emptyMessage?.title == "沒有開放的連接埠")
+    }
 }

@@ -24,24 +24,29 @@ struct ChineseNumbers: PrismExtension {
 
     func list(command: String, query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
         guard command == CommandID.convert else {
-            throw PrismExtensionError("Chinese Numbers has no list “\(command)”.")
+            throw PrismExtensionError(localized("Chinese Numbers has no list “\(command)”."))
         }
         let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else {
-            return Self.list(empty: "Type a Number", "Digits such as 12345.67, or Chinese such as 一万二千.", symbol: "textformat.123")
+            return Self.list(
+                empty: localized("Type a Number"), localized("Digits such as 12345.67, or Chinese such as 一万二千."),
+                symbol: "textformat.123"
+            )
         }
         do {
             return Self.list(ConversionRows.items(for: try ArabicNumber(parsing: query)))
         } catch .tooLarge {
             return Self.list(
-                empty: "Number Too Large", "Chinese Numbers goes up to 16 digits before the point.",
+                empty: localized("Number Too Large"), localized("Chinese Numbers goes up to 16 digits before the point."),
                 symbol: "exclamationmark.triangle"
             )
         } catch {
             if let number = ChineseNumberParser.parse(query) {
                 return Self.list(ConversionRows.items(forChinese: number))
             }
-            return Self.list(empty: "Not a Number", "Try 12345.67, 一万二千, or 壹佰元伍角.", symbol: "questionmark")
+            return Self.list(
+                empty: localized("Not a Number"), localized("Try 12345.67, 一万二千, or 壹佰元伍角."), symbol: "questionmark"
+            )
         }
     }
 
@@ -56,5 +61,5 @@ struct ChineseNumbers: PrismExtension {
         )
     }
 
-    private static let placeholder = "12345.67 or 一万二千…"
+    private static var placeholder: String { localized("12345.67 or 一万二千…") }
 }

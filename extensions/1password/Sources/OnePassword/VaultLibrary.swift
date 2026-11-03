@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 /// The items of every account, as the last load found them.
 struct VaultSnapshot: Sendable {
@@ -71,11 +72,12 @@ actor VaultLibrary {
             }
         }
         if let firstError, loaded.isEmpty { throw firstError }
+        let failed = failedAccounts.formatted(.list(type: .and).locale(PrismLocalization.locale))
         let next = VaultSnapshot(
             accounts: loaded,
             // Kept items are as old as the load that found them.
             fetchedAt: keptSince ?? now(),
-            error: failedAccounts.isEmpty ? nil : "Couldn’t load \(ListFormatter.localizedString(byJoining: failedAccounts))."
+            error: failedAccounts.isEmpty ? nil : localized("Couldn’t load \(failed).")
         )
         snapshot = next
         return next

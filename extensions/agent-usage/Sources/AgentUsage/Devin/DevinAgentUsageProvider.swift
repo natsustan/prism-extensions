@@ -46,27 +46,27 @@ struct DevinAgentUsageProvider: AgentUsageProvider {
 
         if sawAuthFailure {
             return .failure(.authExpired(
-                "Devin rejected the saved login. Run `devin auth login` or sign in to the Devin app again."))
+                localized("Devin rejected the saved login. Run `devin auth login` or sign in to the Devin app again.")))
         }
         if sawCredentials {
             return .failure(Self.failure(from: lastError ?? DevinUsageError.quotaUnavailable))
         }
         return .failure(.notConfigured(
-            "Not signed in. Run `devin auth login` or sign in to the Devin app."))
+            localized("Not signed in. Run `devin auth login` or sign in to the Devin app.")))
     }
 
     static func failure(from error: Error) -> AgentUsageFailure {
         switch error {
         case let AgentUsageClientError.http(status):
-            return .network("Devin usage request failed (HTTP \(status)). Try again in a moment.")
+            return .network(localized("Devin usage request failed (HTTP \(status)). Try again in a moment."))
         case AgentUsageClientError.transport:
-            return .network("Could not reach Devin. Check the connection and try again.")
+            return .network(localized("Could not reach Devin. Check the connection and try again."))
         case DevinUsageError.quotaUnavailable:
-            return .invalidResponse("Devin quota data is unavailable. Try again later.")
+            return .invalidResponse(localized("Devin quota data is unavailable. Try again later."))
         case DevinUsageError.invalidResponse, AgentUsageClientError.invalidResponse:
-            return .invalidResponse("Devin returned an unexpected response.")
+            return .invalidResponse(localized("Devin returned an unexpected response."))
         default:
-            return .invalidResponse("Devin usage could not be read.")
+            return .invalidResponse(localized("Devin usage could not be read."))
         }
     }
 }

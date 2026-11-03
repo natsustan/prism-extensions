@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0
+
+- In Simplified or Traditional Chinese, the messages, the status row, and the
+  widget are in Chinese too, coffee jokes included.
+
 ## 1.2.0
 
 - When Prism runs in Simplified or Traditional Chinese, it shows this

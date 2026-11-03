@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0
+
+- In Simplified or Traditional Chinese, rows, actions, messages, and the
+  detail pane are in Chinese too (3 段, 已拷贝 3 句). The generated text is
+  unchanged.
+
 ## 1.1.0
 
 - When Prism runs in Simplified or Traditional Chinese, it shows this

@@ -199,7 +199,7 @@ final class AgentUsageController {
             zaiAPIKeyReadError = nil
             return key
         } catch {
-            zaiAPIKeyReadError = "Could not read the Z.ai API key from the Keychain. Unlock it and reopen this setting."
+            zaiAPIKeyReadError = localized("Could not read the Z.ai API key from the Keychain. Unlock it and reopen this setting.")
             return nil
         }
     }
@@ -224,7 +224,7 @@ final class AgentUsageController {
             try zaiSecrets.setAPIKey(trimmed)
         } catch {
             failedZAIAPIKeyDraft = value
-            zaiAPIKeySaveError = "Could not save the Z.ai API key in the Keychain. Your edit has been kept; try again."
+            zaiAPIKeySaveError = localized("Could not save the Z.ai API key in the Keychain. Your edit has been kept; try again.")
             return false
         }
         failedZAIAPIKeyDraft = nil
@@ -376,7 +376,7 @@ final class AgentUsageController {
         let tasks = targets.map { provider in
             let task = Task {
                 await previousRefresh?.value
-                guard !Task.isCancelled else { return Result<AgentUsageReport, AgentUsageFailure>.failure(.network("Cancelled.")) }
+                guard !Task.isCancelled else { return Result<AgentUsageReport, AgentUsageFailure>.failure(.network(localized("Cancelled."))) }
                 return await Self.fetchWithDeadline(provider)
             }
             providerTasks[provider.id] = task
@@ -467,9 +467,9 @@ final class AgentUsageController {
             group.addTask { await provider.fetchUsage() }
             group.addTask {
                 try? await Task.sleep(for: timing.refreshDeadline)
-                return .failure(.network("Timed out after \(timing.refreshDeadlineSeconds) seconds."))
+                return .failure(.network(localized("Timed out after \(timing.refreshDeadlineSeconds) seconds.")))
             }
-            let first = await group.next() ?? .failure(.network("Timed out."))
+            let first = await group.next() ?? .failure(.network(localized("Timed out.")))
             group.cancelAll()
             return first
         }

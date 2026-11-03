@@ -1,3 +1,5 @@
+import PrismExtensionKit
+
 /// The language the text looks like. The raw value is the ⌘P filter ID and
 /// starts the row's item ID. Every vocabulary is a word list written for this
 /// extension, so the text means nothing and quotes no one.
@@ -9,10 +11,11 @@ enum LoremLanguage: String, CaseIterable, Sendable {
     case german = "de"
     case french = "fr"
 
-    /// Each language's own name, as macOS lists languages.
+    /// Each language's own name, as macOS lists languages; Latin has no
+    /// speakers to name it, so it is named in Prism's language.
     var title: String {
         switch self {
-        case .latin: "Latin"
+        case .latin: localized("Latin")
         case .chinese: "中文"
         case .japanese: "日本語"
         case .korean: "한국어"

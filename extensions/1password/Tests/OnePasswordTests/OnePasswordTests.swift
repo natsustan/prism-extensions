@@ -6,11 +6,14 @@ import Testing
 
 typealias ActionID = OnePasswordRows.ActionID
 
-private func host(_ cli: FakeCLI, clock: TestClock = TestClock(), preferences: [String: ExtensionValue] = [:]) async throws -> PrismTestHost {
+private func host(
+    _ cli: FakeCLI, clock: TestClock = TestClock(), preferences: [String: ExtensionValue] = [:], language: String = "en"
+) async throws -> PrismTestHost {
     try await PrismTestHost(
         OnePassword(cli: cli, generator: .secure, now: { clock.now }),
         extensionID: "prism.1password",
-        preferences: preferences
+        preferences: preferences,
+        language: language
     )
 }
 
@@ -398,6 +401,34 @@ struct CLIMessageTests {
             == .notSignedIn)
         #expect(OnePasswordClient.error(from: "") == .failed("1Password CLI failed."))
         #expect(OnePasswordClient.message(from: "noise\n[ERROR] 2026/01/15 12:00:00 cause\n  fix it like this") == "cause\nfix it like this")
+    }
+}
+
+@Suite("Languages")
+struct LanguageTests {
+    @Test("in Simplified Chinese, filters, actions, and messages are Chinese; items and vaults keep their names")
+    func simplifiedChinese() async throws {
+        let prism = try await host(Fixture.cli(), language: "zh-Hans")
+        let list = try await prism.list(OnePassword.CommandID.search)
+        #expect(list.filters.prefix(3).map(\.title) == ["所有项目", "收藏", "登录信息"])
+        #expect(list.filters.suffix(2).map(\.title) == ["Personal", "Shared"])
+        let github = try #require(list.items.first { $0.title == "GitHub" })
+        #expect(github.actions.prefix(2).map(\.title) == ["粘贴密码", "拷贝密码"])
+        #expect(github.keywords.prefix(2) == ["登录信息", "login"])
+        let empty = try await prism.list(OnePassword.CommandID.search, filter: "category:SSH_KEY")
+        #expect(empty.emptyMessage?.title == "没有 SSH 密钥")
+        let generated = try await prism.list(OnePassword.CommandID.generate)
+        #expect(generated.items.first?.subtitle == "20 位，含字母、数字和符号")
+    }
+
+    @Test("Traditional Chinese uses Taiwan terms")
+    func traditionalChinese() async throws {
+        let prism = try await host(Fixture.cli(), language: "zh-Hant")
+        let list = try await prism.list(OnePassword.CommandID.search)
+        #expect(list.filters.prefix(3).map(\.title) == ["所有項目", "最愛", "登入資料"])
+        let empty = try await prism.list(OnePassword.CommandID.search, filter: "category:CREDIT_CARD")
+        #expect(empty.items.map(\.title) == ["Visa"])
+        #expect(try await prism.list(OnePassword.CommandID.search, filter: "category:DOCUMENT").emptyMessage?.title == "沒有文件")
     }
 }
 

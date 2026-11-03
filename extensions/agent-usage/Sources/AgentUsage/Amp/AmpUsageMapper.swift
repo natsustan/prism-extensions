@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 enum AmpUsageError: Error, Equatable, Sendable {
     /// The API answered `ok: false` with an auth rejection.
@@ -64,7 +65,7 @@ enum AmpUsageMapper {
         {
             metrics.append(AgentUsageMetric(
                 id: "credits",
-                title: "Credits",
+                title: localized("Credits"),
                 section: .creditsAndResets,
                 value: .text(dollarText(balance))))
         }
@@ -96,7 +97,7 @@ enum AmpUsageMapper {
             workspaceCounts[name] = occurrence + 1
             metrics.append(AgentUsageMetric(
                 id: "workspace-\(name)-\(occurrence)",
-                title: "Workspace \(name)",
+                title: localized("Workspace \(name)"),
                 section: .creditsAndResets,
                 value: .text(dollarText(balance))))
         }
@@ -183,14 +184,14 @@ enum AmpUsageMapper {
             return Subscription(plan: plan, metrics: [
                 AgentUsageMetric(
                     id: "subscription",
-                    title: "\(plan ?? "Subscription") Usage",
+                    title: plan.map { localized("\($0) Usage") } ?? localized("Subscription Usage"),
                     section: .limits,
                     value: .progress(
                         used: 100 - min(max(otherRemaining, 0), 100), limit: 100, format: .percent,
                         resetsAt: resetsAt, windowSeconds: windowSeconds(resetsAt: resetsAt, now: now))),
                 AgentUsageMetric(
                     id: "orb-usage",
-                    title: "Orb Usage",
+                    title: localized("Orb Usage"),
                     section: .perModel,
                     value: .progress(
                         used: 100 - min(max(orbRemaining, 0), 100), limit: 100, format: .percent,
@@ -211,7 +212,7 @@ enum AmpUsageMapper {
             let resetsAt = renewalDate(value: renewal, unit: captures[5], now: now)
             var metrics = [AgentUsageMetric(
                 id: "subscription",
-                title: "\(plan) Usage",
+                title: localized("\(plan) Usage"),
                 section: .limits,
                 value: .progress(
                     used: (limit - max(remaining, 0)) / limit * 100, limit: 100, format: .percent,
@@ -227,7 +228,7 @@ enum AmpUsageMapper {
             {
                 metrics.append(AgentUsageMetric(
                     id: "orb-usage",
-                    title: "Orb Usage",
+                    title: localized("Orb Usage"),
                     section: .perModel,
                     value: .progress(
                         used: (orbLimit - max(orbRemaining, 0)) / orbLimit * 100,

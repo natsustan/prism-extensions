@@ -77,7 +77,7 @@ struct PortManager: PrismExtension {
                     bundleIdentifier: system.bundleIdentifier(ofAppAt:)
                 )
             },
-            searchPlaceholder: "Search by port, process, or address",
+            searchPlaceholder: localized("Search by port, process, or address"),
             filters: PortRows.filters,
             emptyMessage: PortRows.emptyMessage(for: exposure)
         )
@@ -94,21 +94,21 @@ struct PortManager: PrismExtension {
         case ActionID.showParentInFinder: act = { await reveal($0.parent) }
         case ActionID.browserMenu, ActionID.finderMenu, ActionID.copyMenu:
             // A Prism without submenus runs the submenu itself.
-            return ExtensionActionResult(.failed(message: "Update Prism to open this menu."))
+            return ExtensionActionResult(.failed(message: localized("Update Prism to open this menu.")))
         default:
-            throw PrismExtensionError("Port Manager can’t do “\(action)”.")
+            throw PrismExtensionError(localized("Port Manager can’t do “\(action)”."))
         }
         // The row may be minutes old: its ID names the process by PID and
         // start time, so act only if that same process still listens.
         guard let listener = await listeningProcess(item) else {
-            return .reload(message: "That process is no longer listening.")
+            return .reload(message: localized("That process is no longer listening."))
         }
         return try await act(listener)
     }
 
     private static func check(_ command: String) throws {
         guard command == CommandID.openPorts else {
-            throw PrismExtensionError("Port Manager has no list “\(command)”.")
+            throw PrismExtensionError(localized("Port Manager has no list “\(command)”."))
         }
     }
 
@@ -116,12 +116,13 @@ struct PortManager: PrismExtension {
     /// program, otherwise the executable.
     private func reveal(_ process: RunningProcess?) async -> ExtensionActionResult {
         guard let path = process.flatMap({ $0.bundlePath ?? $0.path }) else {
-            return ExtensionActionResult(.failed(message: "The program’s location can’t be read."))
+            return ExtensionActionResult(.failed(message: localized("The program’s location can’t be read.")))
         }
         do {
             try await system.reveal(path)
         } catch {
-            return ExtensionActionResult(.failed(message: "Finder couldn’t show “\(URL(fileURLWithPath: path).lastPathComponent)”."))
+            let name = URL(fileURLWithPath: path).lastPathComponent
+            return ExtensionActionResult(.failed(message: localized("Finder couldn’t show “\(name)”.")))
         }
         return .done
     }
@@ -151,16 +152,17 @@ struct PortManager: PrismExtension {
     /// Sends the signal and waits for the process to quit, since a delivered
     /// signal can still be caught or ignored.
     private func stop(_ process: RunningProcess?, with signal: Int32) async throws -> ExtensionActionResult {
-        guard let process else { return .reload(message: "The process already quit.") }
-        let name = "“\(process.name)”"
+        guard let process else { return .reload(message: localized("The process already quit.")) }
+        let name = process.name
         do {
             try system.send(signal, to: process.identity)
         } catch .gone {
-            return .reload(message: "\(name) already quit.")
+            return .reload(message: localized("“\(name)” already quit."))
         } catch .notPermitted {
-            return ExtensionActionResult(.failed(message: "You don’t have permission to kill \(name)."), reload: true)
+            return ExtensionActionResult(.failed(message: localized("You don’t have permission to kill “\(name)”.")), reload: true)
         } catch let .failed(code) {
-            return ExtensionActionResult(.failed(message: "Couldn’t kill \(name): \(String(cString: strerror(code)))."), reload: true)
+            let reason = String(cString: strerror(code))
+            return ExtensionActionResult(.failed(message: localized("Couldn’t kill “\(name)”: \(reason).")), reload: true)
         }
 
         let clock = ContinuousClock()
@@ -168,11 +170,11 @@ struct PortManager: PrismExtension {
         while system.isRunning(process.identity) {
             guard clock.now < deadline else {
                 return .reload(message: signal == SIGKILL
-                    ? "\(name) is still running."
-                    : "\(name) is still running. Force Kill (⌘⇧⌫) stops it at once.")
+                    ? localized("“\(name)” is still running.")
+                    : localized("“\(name)” is still running. Force Kill (⌘⇧⌫) stops it at once."))
             }
             try await Task.sleep(for: pollInterval)
         }
-        return .reload(message: "Killed \(name).")
+        return .reload(message: localized("Killed “\(name)”."))
     }
 }

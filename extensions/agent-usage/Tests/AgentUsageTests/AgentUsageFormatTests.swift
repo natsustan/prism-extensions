@@ -3,7 +3,7 @@ import PrismExtensionKit
 import Testing
 @testable import AgentUsage
 
-@Suite("Agent usage formatting")
+@Suite("Agent usage formatting", .english)
 struct AgentUsageFormatTests {
     @Test("exported summaries use absolute timestamps for resets and expiry")
     func summaryTimestamps() {

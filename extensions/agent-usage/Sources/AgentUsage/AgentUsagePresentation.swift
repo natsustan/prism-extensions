@@ -9,10 +9,10 @@ enum AgentUsagePresentation {
     static func list(rows: [AgentUsageRow], showsRemaining: Bool) -> ExtensionList {
         ExtensionList(
             items: rows.map { item(for: $0, showsRemaining: showsRemaining) },
-            searchPlaceholder: "Filter agents…",
+            searchPlaceholder: localized("Filter agents…"),
             emptyMessage: ExtensionListMessage(
-                title: "No agents enabled",
-                message: "Turn your agents on in Settings → Extensions → Agent Usage to see their quotas here.",
+                title: localized("No agents enabled"),
+                message: localized("Turn your agents on in Settings → Extensions → Agent Usage to see their quotas here."),
                 symbol: "gauge.with.needle"
             ),
             showsDetail: true
@@ -35,10 +35,10 @@ enum AgentUsagePresentation {
                 meter: meter(used: used, limit: limit, showsRemaining: showsRemaining, resetsAt: resetsAt)
             ))
         }
-        var actions = [ExtensionAction(id: AgentUsage.ActionID.refresh, title: "Refresh", symbol: "arrow.clockwise")]
+        var actions = [ExtensionAction(id: AgentUsage.ActionID.refresh, title: localized("Refresh"), symbol: "arrow.clockwise")]
         if let summary = summary(for: row) {
             actions.append(ExtensionAction(
-                id: AgentUsage.ActionID.copySummary, title: "Copy Usage Summary", symbol: "doc.on.doc",
+                id: AgentUsage.ActionID.copySummary, title: localized("Copy Usage Summary"), symbol: "doc.on.doc",
                 kind: .copy(text: summary), shortcut: ExtensionShortcut("cmd+shift+c")
             ))
         }
@@ -78,7 +78,7 @@ enum AgentUsagePresentation {
             notice: row.failure.map { failure in
                 ExtensionNotice(text: failure.message, symbol: failure.symbol, tone: .warning)
             },
-            markdown: empty && !row.isRefreshing ? "No usage reported yet." : nil,
+            markdown: empty && !row.isRefreshing ? localized("No usage reported yet.") : nil,
             sections: sections
         )
     }
@@ -124,7 +124,8 @@ enum AgentUsagePresentation {
         guard let report = row.report else { return nil }
         var summary = report.summaryText
         if let failure = row.failure {
-            summary = "Status: \(failure.shortStatusText) — last refresh failed; showing cached usage.\n" + summary
+            let status = failure.shortStatusText
+            summary = localized("Status: \(status) — last refresh failed; showing cached usage.") + "\n" + summary
         }
         return summary
     }
@@ -147,11 +148,11 @@ enum AgentUsagePresentation {
                     value: metric.valueText,
                     // A failure keeps the last number under its status.
                     caption: metric.statusText == nil ? metric.resetText
-                        : (metric.fraction == nil ? nil : "Last \(metric.valueText)"),
+                        : (metric.fraction == nil ? nil : localized("Last \(metric.valueText)")),
                     status: metric.statusText
                 )
             },
-            emptyText: "No agents enabled",
+            emptyText: localized("No agents enabled"),
             openCommandID: openCommandID
         )
     }

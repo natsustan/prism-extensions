@@ -51,18 +51,33 @@ enum GitHubIssueKind: Sendable {
         }
     }
 
-    /// `Pull Requests` in titles, `Pull requests` in sentences.
-    var plural: String {
+    /// Whole phrases rather than a plural dropped into a sentence, so each
+    /// language can word them its own way.
+    var noneTitle: String {
         switch self {
-        case .pullRequest: "Pull Requests"
-        case .issue: "Issues"
+        case .pullRequest: localized("No Pull Requests")
+        case .issue: localized("No Issues")
         }
     }
 
-    var sentencePlural: String {
+    var noMatchTitle: String {
         switch self {
-        case .pullRequest: "Pull requests"
-        case .issue: "Issues"
+        case .pullRequest: localized("No Matching Pull Requests")
+        case .issue: localized("No Matching Issues")
+        }
+    }
+
+    var emptyMessage: String {
+        switch self {
+        case .pullRequest: localized("Pull requests you created, were assigned, or were mentioned in appear here.")
+        case .issue: localized("Issues you created, were assigned, or were mentioned in appear here.")
+        }
+    }
+
+    var searchPlaceholder: String {
+        switch self {
+        case .pullRequest: localized("Search your pull requests…")
+        case .issue: localized("Search your issues…")
         }
     }
 
@@ -80,23 +95,32 @@ enum GitHubIssueKind: Sendable {
         switch self {
         case .pullRequest:
             [
-                GitHubSection(id: "created", title: "Created", symbol: "person", qualifiers: "is:open author:@me"),
-                GitHubSection(id: "review-requested", title: "Review Requests", symbol: "eye", qualifiers: "is:open review-requested:@me"),
-                GitHubSection(id: "assigned", title: "Assigned", symbol: "person.badge.plus", qualifiers: "is:open assignee:@me"),
-                GitHubSection(id: "mentioned", title: "Mentioned", symbol: "at", qualifiers: "is:open mentions:@me"),
-                GitHubSection(id: "reviewed", title: "Reviewed", symbol: "checkmark.bubble", qualifiers: "is:open reviewed-by:@me"),
+                GitHubSection(id: "created", title: localized("Created"), symbol: "person", qualifiers: "is:open author:@me"),
                 GitHubSection(
-                    id: "recently-closed", title: "Recently Closed", symbol: "clock.arrow.circlepath",
+                    id: "review-requested", title: localized("Review Requests"), symbol: "eye",
+                    qualifiers: "is:open review-requested:@me"
+                ),
+                GitHubSection(
+                    id: "assigned", title: localized("Assigned"), symbol: "person.badge.plus", qualifiers: "is:open assignee:@me"
+                ),
+                GitHubSection(id: "mentioned", title: localized("Mentioned"), symbol: "at", qualifiers: "is:open mentions:@me"),
+                GitHubSection(
+                    id: "reviewed", title: localized("Reviewed"), symbol: "checkmark.bubble", qualifiers: "is:open reviewed-by:@me"
+                ),
+                GitHubSection(
+                    id: "recently-closed", title: localized("Recently Closed"), symbol: "clock.arrow.circlepath",
                     qualifiers: "is:closed involves:@me", closedWithinDays: 14
                 ),
             ]
         case .issue:
             [
-                GitHubSection(id: "created", title: "Created", symbol: "person", qualifiers: "is:open author:@me"),
-                GitHubSection(id: "assigned", title: "Assigned", symbol: "person.badge.plus", qualifiers: "is:open assignee:@me"),
-                GitHubSection(id: "mentioned", title: "Mentioned", symbol: "at", qualifiers: "is:open mentions:@me"),
+                GitHubSection(id: "created", title: localized("Created"), symbol: "person", qualifiers: "is:open author:@me"),
                 GitHubSection(
-                    id: "recently-closed", title: "Recently Closed", symbol: "clock.arrow.circlepath",
+                    id: "assigned", title: localized("Assigned"), symbol: "person.badge.plus", qualifiers: "is:open assignee:@me"
+                ),
+                GitHubSection(id: "mentioned", title: localized("Mentioned"), symbol: "at", qualifiers: "is:open mentions:@me"),
+                GitHubSection(
+                    id: "recently-closed", title: localized("Recently Closed"), symbol: "clock.arrow.circlepath",
                     qualifiers: "is:closed involves:@me", closedWithinDays: 60
                 ),
             ]
@@ -106,6 +130,6 @@ enum GitHubIssueKind: Sendable {
     /// What a typed search covers when no filter is chosen: anything the
     /// user took part in, open or closed.
     var involved: GitHubSection {
-        GitHubSection(id: "involved", title: "Results", symbol: "magnifyingglass", qualifiers: "involves:@me")
+        GitHubSection(id: "involved", title: localized("Results"), symbol: "magnifyingglass", qualifiers: "involves:@me")
     }
 }

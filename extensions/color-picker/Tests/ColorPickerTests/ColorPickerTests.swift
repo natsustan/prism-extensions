@@ -28,13 +28,15 @@ func makeHost(
     picking colors: [RGBColor?] = [],
     clipboard: FakeClipboard = FakeClipboard(),
     preferences: [String: ExtensionValue] = [:],
-    state: [String: ExtensionValue] = [:]
+    state: [String: ExtensionValue] = [:],
+    language: String = "en"
 ) async throws -> PrismTestHost {
     try await PrismTestHost(
         ColorPicker(sampler: FakeSampler(colors), clipboard: clipboard, now: { referenceDate }),
         extensionID: "prism.color-picker",
         preferences: preferences,
-        state: state
+        state: state,
+        language: language
     )
 }
 
@@ -277,5 +279,26 @@ struct ColorPickerTests {
         let items = try await prism.preferenceItems(ColorPicker.PreferenceID.formats)
         #expect(items.map(\.title) == ["HEX", "RGB", "HSL", "OKLCH", "LCH", "Display P3", "SwiftUI"])
         #expect(items.map(\.isOn) == [true, true, true, true, false, false, false])
+    }
+
+    // MARK: - Languages
+
+    @Test("in Simplified Chinese, sections, actions, and messages are Chinese; CSS names and formats stay")
+    func simplifiedChinese() async throws {
+        let clipboard = FakeClipboard()
+        let prism = try await makeHost(picking: [hex("#FF6040")], clipboard: clipboard, language: "zh-Hans")
+        #expect(try await prism.run(CommandID.pick) == .hud(message: "已拷贝 #FF6040"))
+        let row = try #require(try await prism.list(CommandID.colors).items.first)
+        #expect(row.section == "最近使用" && row.subtitle == "接近 Tomato")
+        #expect(row.actions.first?.title == "拷贝 HEX")
+        #expect(try await prism.list(CommandID.convert, query: "nope").emptyMessage?.title == "不是颜色")
+    }
+
+    @Test("Traditional Chinese says 最愛, as Prism does")
+    func traditionalChinese() async throws {
+        let prism = try await makeHost(language: "zh-Hant")
+        let empty = try await prism.list(CommandID.colors, filter: ColorPicker.FilterID.favorites)
+        #expect(empty.filters.map(\.title) == ["最愛"])
+        #expect(empty.emptyMessage?.title == "沒有最愛")
     }
 }

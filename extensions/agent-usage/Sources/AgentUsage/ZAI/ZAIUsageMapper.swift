@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 enum ZAIUsageError: Error, Equatable, Sendable {
     case invalidResponse
@@ -95,8 +96,8 @@ enum ZAIUsageMapper {
 
         var title: String {
             switch self {
-            case .session: "Session"
-            case .weekly: "Weekly"
+            case .session: localized("Session")
+            case .weekly: localized("Weekly")
             }
         }
 
@@ -165,7 +166,7 @@ enum ZAIUsageMapper {
         let resetsAt = epochMilliseconds(entry["nextResetTime"])
         return AgentUsageMetric(
             id: "web-searches",
-            title: "Web Searches",
+            title: localized("Web Searches"),
             section: .limits,
             value: .progress(
                 used: used,

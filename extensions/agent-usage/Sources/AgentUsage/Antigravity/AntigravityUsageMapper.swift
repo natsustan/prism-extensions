@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 /// One model's quota as any Cloud Code endpoint reports it, normalized before
 /// pooling. `remainingFraction` is 0…1 (1 = full); a model with no quota info
@@ -45,10 +46,10 @@ enum AntigravityUsageMapper {
 
         var title: String {
             switch self {
-            case .session: "Session"
-            case .weekly: "Weekly"
+            case .session: localized("Session")
+            case .weekly: localized("Weekly")
             case .claude: "Claude"
-            case .claudeWeekly: "Claude Weekly"
+            case .claudeWeekly: localized("Claude Weekly")
             }
         }
 

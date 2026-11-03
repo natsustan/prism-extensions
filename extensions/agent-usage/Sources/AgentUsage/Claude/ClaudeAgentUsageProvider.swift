@@ -22,13 +22,13 @@ struct ClaudeAgentUsageProvider: AgentUsageProvider {
         do {
             credentials = try await authStore.loadCredentials()
         } catch is CancellationError {
-            return .failure(.network("Cancelled."))
+            return .failure(.network(localized("Cancelled.")))
         } catch {
-            return .failure(.notConfigured("Not signed in. Run `claude` and sign in to connect this Mac."))
+            return .failure(.notConfigured(localized("Not signed in. Run `claude` and sign in to connect this Mac.")))
         }
         guard credentials.canReadUsage else {
             return .failure(.notConfigured(
-                "This Claude Code token cannot read usage. Run `claude` and use /login to sign in with claude.ai."))
+                localized("This Claude Code token cannot read usage. Run `claude` and use /login to sign in with claude.ai.")))
         }
 
         let usageClient = ClaudeUsageClient(client: client)
@@ -59,17 +59,17 @@ struct ClaudeAgentUsageProvider: AgentUsageProvider {
     static func failure(from error: Error) -> AgentUsageFailure {
         switch error {
         case AgentUsageClientError.unauthorized:
-            return .authExpired("Claude rejected the saved login. Run `claude` to refresh it.")
+            return .authExpired(localized("Claude rejected the saved login. Run `claude` to refresh it."))
         case AgentUsageClientError.http(429):
-            return .network("Claude is rate limiting usage requests. Try again in a few minutes.")
+            return .network(localized("Claude is rate limiting usage requests. Try again in a few minutes."))
         case let AgentUsageClientError.http(status):
-            return .network("Claude usage request failed (HTTP \(status)). Try again in a moment.")
+            return .network(localized("Claude usage request failed (HTTP \(status)). Try again in a moment."))
         case AgentUsageClientError.transport:
-            return .network("Could not reach Claude. Check the connection and try again.")
+            return .network(localized("Could not reach Claude. Check the connection and try again."))
         case AgentUsageClientError.invalidResponse:
-            return .invalidResponse("Claude returned an unexpected response.")
+            return .invalidResponse(localized("Claude returned an unexpected response."))
         default:
-            return .invalidResponse("Claude usage could not be read.")
+            return .invalidResponse(localized("Claude usage could not be read."))
         }
     }
 }

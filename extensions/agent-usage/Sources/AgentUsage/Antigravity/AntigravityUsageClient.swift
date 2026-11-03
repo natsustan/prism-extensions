@@ -125,7 +125,7 @@ private final class LoopbackAgentUsageHTTPClient: AgentUsageHTTPClient, @uncheck
         for (key, value) in request.headers { urlRequest.setValue(value, forHTTPHeaderField: key) }
         let (data, response) = try await session.data(for: urlRequest)
         guard let http = response as? HTTPURLResponse else {
-            throw AgentUsageFailure.network("Non-HTTP response.")
+            throw AgentUsageFailure.network(localized("Non-HTTP response."))
         }
         var headers: [String: String] = [:]
         for (key, value) in http.allHeaderFields {

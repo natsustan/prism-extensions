@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.chinese-numbers",
   "name": "Chinese Numbers",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Prism",
   "description": "Write numbers in Chinese, in lowercase, uppercase, or as an amount in words, and read Chinese numbers back as digits.",
   "icon": { "symbol": "textformat.123", "tint": "red" },

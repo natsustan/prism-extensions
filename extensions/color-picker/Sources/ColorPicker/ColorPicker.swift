@@ -47,7 +47,7 @@ struct ColorPicker: PrismExtension {
 
     func run(command: String, context: PrismContext) async throws -> ExtensionCommandResult {
         guard command == CommandID.pick else {
-            throw PrismExtensionError("Color Picker has no command “\(command)”.")
+            throw PrismExtensionError(localized("Color Picker has no command “\(command)”."))
         }
         guard let color = await sampler.sample() else { return .done }
         var saved = await SavedColors.load(from: context)
@@ -56,7 +56,7 @@ struct ColorPicker: PrismExtension {
         let text = Self.formats(context).on[0].string(for: color)
         await clipboard.copy(text)
         await context.listChanged(CommandID.colors)
-        return .hud(message: "Copied \(text)")
+        return .hud(message: localized("Copied \(text)"))
     }
 
     func list(command: String, query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
@@ -66,7 +66,7 @@ struct ColorPicker: PrismExtension {
         case CommandID.convert:
             return convert(query, formats: Self.formats(context))
         default:
-            throw PrismExtensionError("Color Picker has no list “\(command)”.")
+            throw PrismExtensionError(localized("Color Picker has no list “\(command)”."))
         }
     }
 
@@ -81,14 +81,14 @@ struct ColorPicker: PrismExtension {
             saved.removeRecent()
         case ActionID.save:
             guard let color = ColorRows.convertedColor(itemID: item) else {
-                throw PrismExtensionError("This color can’t be saved.")
+                throw PrismExtensionError(localized("This color can’t be saved."))
             }
             saved.add(color, at: now())
             try await saved.save(to: context)
             await context.listChanged(CommandID.colors)
-            return ExtensionActionResult(.keepOpen(message: "Saved \(color.hex) to Colors."))
+            return ExtensionActionResult(.keepOpen(message: localized("Saved \(color.hex) to Colors.")))
         default:
-            throw PrismExtensionError("Color Picker has no action “\(action)”.")
+            throw PrismExtensionError(localized("Color Picker has no action “\(action)”."))
         }
         try await saved.save(to: context)
         return .reload()
@@ -108,14 +108,14 @@ struct ColorPicker: PrismExtension {
         let formats = Self.formats(context).on
         return ExtensionList(
             items: colors.map { ColorRows.savedItem($0, formats: formats) },
-            searchPlaceholder: "Search colors…",
-            filters: [ExtensionListFilter(id: FilterID.favorites, title: "Favorites", symbol: "star")],
+            searchPlaceholder: localized("Search colors…"),
+            filters: [ExtensionListFilter(id: FilterID.favorites, title: localized("Favorites"), symbol: "star")],
             emptyMessage: showsFavorites
                 ? ExtensionListMessage(
-                    title: "No Favorites", message: "Add a color to Favorites with ⌘⇧F.", symbol: "star"
+                    title: localized("No Favorites"), message: localized("Add a color to Favorites with ⌘⇧F."), symbol: "star"
                 )
                 : ExtensionListMessage(
-                    title: "No Colors", message: "Colors you pick with Pick Color appear here.", symbol: "eyedropper"
+                    title: localized("No Colors"), message: localized("Colors you pick with Pick Color appear here."), symbol: "eyedropper"
                 ),
             showsDetail: true
         )
@@ -131,14 +131,17 @@ struct ColorPicker: PrismExtension {
         return ExtensionList(
             items: items,
             filtering: .extension,
-            searchPlaceholder: "#FF6363, rgb(255 99 99), coral…",
+            searchPlaceholder: localized("#FF6363, rgb(255 99 99), coral…"),
             emptyMessage: query.isEmpty
                 ? ExtensionListMessage(
-                    title: "Type a Color",
-                    message: "HEX, RGB, HSL, OKLCH, Display P3, or a CSS color name.",
+                    title: localized("Type a Color"),
+                    message: localized("HEX, RGB, HSL, OKLCH, Display P3, or a CSS color name."),
                     symbol: "paintpalette"
                 )
-                : ExtensionListMessage(title: "Not a Color", message: "Try #FF6363, rgb(255 99 99), or coral.", symbol: "questionmark")
+                : ExtensionListMessage(
+                    title: localized("Not a Color"), message: localized("Try #FF6363, rgb(255 99 99), or coral."),
+                    symbol: "questionmark"
+                )
         )
     }
 

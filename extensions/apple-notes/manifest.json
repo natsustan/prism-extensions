@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.apple-notes",
   "name": "Apple Notes",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Prism",
   "description": "Search your Apple Notes by title, folder, content, tags, or pinyin, and open them in Notes.",
   "icon": { "symbol": "note.text", "tint": "gold", "app": "com.apple.Notes" },

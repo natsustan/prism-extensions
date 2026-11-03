@@ -8,14 +8,14 @@ enum ConversionRows {
 
     static func items(for number: ArabicNumber) -> [ExtensionListItem] {
         [
-            item(ItemID.lowercase, ChineseNumberFormatter.lowercase(number), caption: "小写"),
-            item(ItemID.uppercase, ChineseNumberFormatter.uppercase(number), caption: "大写"),
-            item(ItemID.amount, ChineseNumberFormatter.amount(number), caption: "金额大写"),
+            item(ItemID.lowercase, ChineseNumberFormatter.lowercase(number), caption: localized("小写")),
+            item(ItemID.uppercase, ChineseNumberFormatter.uppercase(number), caption: localized("大写")),
+            item(ItemID.amount, ChineseNumberFormatter.amount(number), caption: localized("金额大写")),
         ]
     }
 
     static func items(forChinese number: ArabicNumber) -> [ExtensionListItem] {
-        [item(ItemID.arabic, number.digits, caption: "阿拉伯数字")]
+        [item(ItemID.arabic, number.digits, caption: localized("阿拉伯数字"))]
     }
 
     private static func item(_ id: String, _ text: String, caption: String) -> ExtensionListItem {
@@ -24,9 +24,9 @@ enum ConversionRows {
             title: text,
             subtitle: caption,
             actions: [
-                ExtensionAction(id: ActionID.paste, title: "Paste", kind: .paste(text: text)),
+                ExtensionAction(id: ActionID.paste, title: localized("Paste"), kind: .paste(text: text)),
                 ExtensionAction(
-                    id: ActionID.copy, title: "Copy", kind: .copy(text: text),
+                    id: ActionID.copy, title: localized("Copy"), kind: .copy(text: text),
                     shortcut: ExtensionShortcut("cmd+shift+c")
                 ),
             ]

@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import AgentUsage
 
-@Suite("Grok usage mapping")
+@Suite("Grok usage mapping", .english)
 struct GrokUsageMapperTests {
     private static let now = Date(timeIntervalSince1970: 1_700_000_000)
 
@@ -142,7 +142,7 @@ struct GrokUsageMapperTests {
     }
 }
 
-@Suite("Grok usage client")
+@Suite("Grok usage client", .english)
 struct GrokUsageClientTests {
     @Test("a rejected token surfaces as unauthorized")
     func unauthorized() async {
@@ -251,7 +251,7 @@ private final class GrokRequestRecorder: @unchecked Sendable {
 }
 
 @MainActor
-@Suite("Grok provider deadline")
+@Suite("Grok provider deadline", .english)
 struct GrokProviderDeadlineTests {
     @Test("slow optional settings cannot discard decoded credits")
     func optionalSettingsDeadline() async throws {
@@ -293,7 +293,7 @@ private struct SlowGrokSettingsClient: AgentUsageHTTPClient {
     }
 }
 
-@Suite("Grok credential renewal")
+@Suite("Grok credential renewal", .english)
 struct GrokCredentialRenewalTests {
     @Test("an expired token is renewed and rotated credentials are persisted")
     func renewsExpiredToken() async throws {

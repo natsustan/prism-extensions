@@ -1,3 +1,4 @@
+import PrismExtensionKit
 import Testing
 @testable import ColorPicker
 
@@ -102,6 +103,11 @@ struct ColorConversionTests {
 
     @Test("a color is named exactly or by the closest CSS color")
     func names() {
+        // Outside a request the text would follow macOS's language.
+        PrismLocalization.$language.withValue("en") { englishNames() }
+    }
+
+    private func englishNames() {
         let coral = ColorNames.match(for: RGBColor(hex: "#FF7F50")!)
         #expect(coral.description == "Coral")
         let close = ColorNames.match(for: RGBColor(hex: "#FF6040")!)

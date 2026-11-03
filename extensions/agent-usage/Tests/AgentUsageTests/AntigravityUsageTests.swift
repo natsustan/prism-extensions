@@ -30,7 +30,7 @@ struct StubAntigravityRunner: AntigravityProcessRunning {
     }
 }
 
-@Suite("Antigravity usage mapping")
+@Suite("Antigravity usage mapping", .english)
 struct AntigravityUsageMapperTests {
     @Test("the quota summary maps its four pool buckets")
     func quotaSummary() {
@@ -147,7 +147,7 @@ struct AntigravityUsageMapperTests {
     }
 }
 
-@Suite("Antigravity language server discovery")
+@Suite("Antigravity language server discovery", .english)
 struct AntigravityDiscoveryTests {
     @Test("a language_server process is matched by marker and its flags extracted")
     func matchesProcess() {
@@ -263,7 +263,7 @@ struct AntigravityDiscoveryTests {
     }
 }
 
-@Suite("Antigravity provider")
+@Suite("Antigravity provider", .english)
 struct AntigravityProviderTests {
     /// A credential path guaranteed not to exist — tests that don't inject one
     /// must never touch the host's real `agy` token file.
@@ -632,7 +632,7 @@ struct AntigravityProviderTests {
     }
 }
 
-@Suite("Antigravity credential file")
+@Suite("Antigravity credential file", .english)
 struct AntigravityAuthStoreTests {
     @Test("a well-formed token file parses")
     func loads() throws {
@@ -673,7 +673,7 @@ struct AntigravityAuthStoreTests {
 }
 
 @MainActor
-@Suite("Antigravity provider deadline and cancellation")
+@Suite("Antigravity provider deadline and cancellation", .english)
 struct AntigravityProviderLifecycleTests {
     @Test("slow optional cloud metadata preserves quota", arguments: [false, true])
     func optionalMetadataDeadline(slowUserInfo: Bool) async throws {
@@ -811,7 +811,7 @@ private final class CountingAntigravityRunner: AntigravityProcessRunning, @unche
     }
 }
 
-@Suite("Antigravity OAuth client")
+@Suite("Antigravity OAuth client", .english)
 struct AntigravityOAuthClientTests {
     /// Built at run time so the repository holds nothing shaped like a real secret.
     private static let fakeSecret = "GOCSPX" + "-" + String(repeating: "x", count: 28)

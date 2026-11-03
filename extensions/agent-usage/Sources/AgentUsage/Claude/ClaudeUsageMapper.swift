@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 /// Turns the `GET /api/oauth/usage` payload into the launcher's metrics.
 ///
@@ -43,18 +44,18 @@ enum ClaudeUsageMapper {
 
         var metrics: [AgentUsageMetric] = []
         if let session = limitMetric(
-            limits.first { kind(of: $0) == "session" }, id: "session", title: "5h Limit",
+            limits.first { kind(of: $0) == "session" }, id: "session", title: localized("5h Limit"),
             section: .limits, windowSeconds: sessionWindowSeconds)
             ?? windowMetric(
-                root["five_hour"], id: "session", title: "5h Limit", section: .limits,
+                root["five_hour"], id: "session", title: localized("5h Limit"), section: .limits,
                 windowSeconds: sessionWindowSeconds) {
             metrics.append(session)
         }
         if let weekly = limitMetric(
-            limits.first { kind(of: $0) == "weekly_all" }, id: "weekly", title: "Weekly Limit",
+            limits.first { kind(of: $0) == "weekly_all" }, id: "weekly", title: localized("Weekly Limit"),
             section: .limits, windowSeconds: weeklyWindowSeconds)
             ?? windowMetric(
-                root["seven_day"], id: "weekly", title: "Weekly Limit", section: .limits,
+                root["seven_day"], id: "weekly", title: localized("Weekly Limit"), section: .limits,
                 windowSeconds: weeklyWindowSeconds) {
             metrics.append(weekly)
         }
@@ -153,7 +154,7 @@ enum ClaudeUsageMapper {
                   let name = AgentUsageParse.string(model["display_name"]),
                   !seenNames.contains(weeklyModelIdentity(name)),
                   let metric = limitMetric(
-                      entry, id: "weekly-\(slug(name))", title: "\(name) Weekly",
+                      entry, id: "weekly-\(slug(name))", title: localized("\(name) Weekly"),
                       section: .perModel, windowSeconds: weeklyWindowSeconds)
             else { continue }
             seenNames.insert(weeklyModelIdentity(name))
@@ -162,7 +163,7 @@ enum ClaudeUsageMapper {
 
         for (key, name) in scopedWeeklyKeys where !seenNames.contains(weeklyModelIdentity(name)) {
             if let metric = windowMetric(
-                root[key], id: "weekly-\(slug(name))", title: "\(name) Weekly",
+                root[key], id: "weekly-\(slug(name))", title: localized("\(name) Weekly"),
                 section: .perModel, windowSeconds: weeklyWindowSeconds) {
                 seenNames.insert(weeklyModelIdentity(name))
                 metrics.append(metric)
@@ -189,7 +190,7 @@ enum ClaudeUsageMapper {
         else { return nil }
         guard isEnabled else {
             return AgentUsageMetric(
-                id: "extra-usage", title: "Extra Usage", section: .creditsAndResets, value: .badge("Off"))
+                id: "extra-usage", title: localized("Extra Usage"), section: .creditsAndResets, value: .badge(localized("Off")))
         }
 
         let decimalPlaces = AgentUsageParse.number(extra["decimal_places"]).map { min(max($0, 0), 6) } ?? 2
@@ -202,7 +203,7 @@ enum ClaudeUsageMapper {
             if let limit, limit > 0 {
                 return AgentUsageMetric(
                     id: "extra-usage",
-                    title: "Extra Usage",
+                    title: localized("Extra Usage"),
                     section: .creditsAndResets,
                     value: .progress(
                         used: used, limit: limit, format: .currency, resetsAt: nil, windowSeconds: nil)
@@ -210,17 +211,18 @@ enum ClaudeUsageMapper {
             }
             return AgentUsageMetric(
                 id: "extra-usage",
-                title: "Extra Usage",
+                title: localized("Extra Usage"),
                 section: .creditsAndResets,
-                value: .text(String(format: "$%.2f used", used))
+                value: .text(localized("\(String(format: "$%.2f", used)) used"))
             )
         }
-        let limitText = limit.map { String(format: " of %.2f", $0) } ?? ""
+        let usedText = String(format: "%.2f", used)
         return AgentUsageMetric(
             id: "extra-usage",
-            title: "Extra Usage",
+            title: localized("Extra Usage"),
             section: .creditsAndResets,
-            value: .text(String(format: "%.2f", used) + limitText + " \(currency)")
+            value: .text(limit.map { localized("\(usedText) of \(String(format: "%.2f", $0)) \(currency)") }
+                ?? "\(usedText) \(currency)")
         )
     }
 

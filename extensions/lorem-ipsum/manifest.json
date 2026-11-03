@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.lorem-ipsum",
   "name": "Lorem Ipsum",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Prism",
   "description": "Paste placeholder paragraphs, sentences, or words in Latin, Chinese, Japanese, Korean, German, or French.",
   "icon": { "symbol": "text.alignleft", "tint": "gray" },

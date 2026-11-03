@@ -18,7 +18,7 @@ enum ColorNames {
         let name: String
         let isExact: Bool
 
-        var description: String { isExact ? name : "Close to \(name)" }
+        var description: String { isExact ? name : localized("Close to \(name)") }
     }
 
     static func match(for color: RGBColor) -> Match {

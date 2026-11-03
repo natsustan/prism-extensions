@@ -48,12 +48,12 @@ struct OnePassword: PrismExtension {
         switch command {
         case CommandID.search: try await search(filter: filter, context: context)
         case CommandID.generate: await generate()
-        default: throw PrismExtensionError("1Password has no list “\(command)”.")
+        default: throw PrismExtensionError(localized("1Password has no list “\(command)”."))
         }
     }
 
     private func search(filter: String?, context: PrismContext) async throws -> ExtensionList {
-        let placeholder = "Search 1Password…"
+        let placeholder = localized("Search 1Password…")
         let snapshot: VaultSnapshot
         do {
             if let fresh = await library.fresh() {
@@ -105,7 +105,7 @@ struct OnePassword: PrismExtension {
         await generated.replace(with: Dictionary(uniqueKeysWithValues: passwords.map { ($0.0.rawValue, $0.1) }))
         return ExtensionList(
             items: passwords.map { OnePasswordRows.generated($0.0, password: $0.1) },
-            searchPlaceholder: "Generate Password"
+            searchPlaceholder: localized("Generate Password")
         )
     }
 
@@ -114,18 +114,19 @@ struct OnePassword: PrismExtension {
     func perform(action: String, item: String, command: String, context: PrismContext) async throws -> ExtensionActionResult {
         if command == CommandID.generate {
             guard let password = await generated.password(for: item) else {
-                return ExtensionActionResult(.failed(message: "Press ⌘R for a new password, then try again."), reload: true)
+                return ExtensionActionResult(
+                    .failed(message: localized("Press ⌘R for a new password, then try again.")), reload: true
+                )
             }
-            return Self.secret(password, paste: action == ActionID.paste, copied: "Copied Password")
+            return Self.secret(password, paste: action == ActionID.paste, copied: localized("Copied Password"))
         }
         if action == ActionID.signIn {
             return ExtensionActionResult(await signIn(context))
         }
         guard let target = OnePasswordRows.parse(item) else {
-            throw PrismExtensionError("1Password has no item “\(item)”.")
+            throw PrismExtensionError(localized("1Password has no item “\(item)”."))
         }
         let listed = await library.item(id: target.item, account: target.account)
-        let name = listed.map { "“\($0.title)”" } ?? "This item"
         let client = client(context)
         let read = { (field: String) in
             try await client.read(field, item: target.item, vault: target.vault, account: target.account)
@@ -134,7 +135,7 @@ struct OnePassword: PrismExtension {
             switch action {
             case ActionID.pastePassword, ActionID.copyPassword:
                 let password = try await read("password")
-                return Self.secret(password, paste: action == ActionID.pastePassword, copied: "Copied Password")
+                return Self.secret(password, paste: action == ActionID.pastePassword, copied: localized("Copied Password"))
             case ActionID.pasteUsername:
                 // The row already showed a login's username, as Copy Username copies it.
                 if let listed, listed.category == "LOGIN", let username = listed.additionalInformation, !username.isEmpty {
@@ -143,17 +144,21 @@ struct OnePassword: PrismExtension {
                 return ExtensionActionResult(.paste(text: try await read("username")))
             case ActionID.copyOneTimePassword, ActionID.pasteOneTimePassword:
                 let code = try await client.oneTimePassword(item: target.item, vault: target.vault, account: target.account)
-                return Self.secret(code, paste: action == ActionID.pasteOneTimePassword, copied: "Copied One-Time Password")
+                return Self.secret(code, paste: action == ActionID.pasteOneTimePassword, copied: localized("Copied One-Time Password"))
             default:
-                throw PrismExtensionError("1Password has no action “\(action)”.")
+                throw PrismExtensionError(localized("1Password has no action “\(action)”."))
             }
         } catch OnePasswordError.missingField {
-            let field = switch action {
-            case ActionID.pasteUsername: "username"
-            case ActionID.copyOneTimePassword, ActionID.pasteOneTimePassword: "one-time password"
-            default: "password"
+            let message = switch action {
+            case ActionID.pasteUsername:
+                listed.map { localized("“\($0.title)” has no username.") } ?? localized("This item has no username.")
+            case ActionID.copyOneTimePassword, ActionID.pasteOneTimePassword:
+                listed.map { localized("“\($0.title)” has no one-time password.") }
+                    ?? localized("This item has no one-time password.")
+            default:
+                listed.map { localized("“\($0.title)” has no password.") } ?? localized("This item has no password.")
             }
-            return ExtensionActionResult(.failed(message: "\(name) has no \(field)."))
+            return ExtensionActionResult(.failed(message: message))
         } catch let error as OnePasswordError {
             return ExtensionActionResult(.failed(message: OnePasswordRows.describe(error)))
         }
@@ -178,6 +183,6 @@ struct OnePassword: PrismExtension {
         }
         await library.forget()
         await context.listChanged(CommandID.search)
-        return .hud(message: "Signed In to 1Password")
+        return .hud(message: localized("Signed In to 1Password"))
     }
 }

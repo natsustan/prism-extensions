@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 /// Decoded `GET /backend-api/wham/usage` body. Only the fields Prism renders.
 struct CodexUsageResponse: Decodable, Equatable {
@@ -133,9 +134,9 @@ enum CodexUsageMapper {
 
         var title: String {
             switch self {
-            case .session: "5h Limit"
-            case .weekly: "Weekly Limit"
-            case let .other(seconds): "\(AgentUsageFormat.durationText(TimeInterval(seconds))) Limit"
+            case .session: localized("5h Limit")
+            case .weekly: localized("Weekly Limit")
+            case let .other(seconds): localized("\(AgentUsageFormat.durationText(TimeInterval(seconds))) Limit")
             }
         }
     }
@@ -203,16 +204,17 @@ enum CodexUsageMapper {
         metrics += windowMetrics(
             from: response.codeReviewRateLimit,
             idPrefix: "code-review-",
-            titlePrefix: "Code Review",
+            titlePrefix: localized("Code Review"),
             section: .limits,
             now: fetchedAt
         )
         for limit in response.additionalRateLimits ?? [] {
-            let name = limit.limitName ?? limit.meteredFeature ?? "Additional Limit"
+            let name = limit.limitName ?? limit.meteredFeature
             metrics += windowMetrics(
                 from: limit.rateLimit,
-                idPrefix: "limit-\(slug(name))-",
-                titlePrefix: name,
+                // The ID stays in English whatever the language: it is identity.
+                idPrefix: "limit-\(slug(name ?? "Additional Limit"))-",
+                titlePrefix: name ?? localized("Additional Limit"),
                 section: .perModel,
                 now: fetchedAt
             )
@@ -306,20 +308,20 @@ enum CodexUsageMapper {
         guard let credits else { return nil }
         if credits.unlimited == true {
             return AgentUsageMetric(
-                id: "credits", title: "Credits", section: .creditsAndResets, value: .badge("Unlimited"))
+                id: "credits", title: localized("Credits"), section: .creditsAndResets, value: .badge(localized("Unlimited")))
         }
         let balance = credits.balance?.value
         if let balance, balance > 0 {
             return AgentUsageMetric(
                 id: "credits",
-                title: "Credits",
+                title: localized("Credits"),
                 section: .creditsAndResets,
                 value: .text(creditText(balance: balance))
             )
         }
         if credits.hasCredits == false || balance != nil {
             return AgentUsageMetric(
-                id: "credits", title: "Credits", section: .creditsAndResets, value: .text("0"))
+                id: "credits", title: localized("Credits"), section: .creditsAndResets, value: .text("0"))
         }
         return nil
     }
@@ -350,14 +352,14 @@ enum CodexUsageMapper {
 
         var metrics = [AgentUsageMetric(
             id: "reset-credits",
-            title: "Rate Limit Resets",
+            title: localized("Rate Limit Resets"),
             section: .creditsAndResets,
-            value: .text("\(wholeCount) available")
+            value: .text(localized("\(wholeCount) available"))
         )]
         for (index, expiry) in expiries.enumerated() {
             metrics.append(AgentUsageMetric(
                 id: "reset-credit-\(index + 1)",
-                title: "Manual Reset \(index + 1) Expires",
+                title: localized("Manual Reset \(index + 1) Expires"),
                 section: .creditsAndResets,
                 value: .date(expiry)
             ))
