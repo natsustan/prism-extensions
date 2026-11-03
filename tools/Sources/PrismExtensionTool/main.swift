@@ -41,8 +41,9 @@ case "lint", "smoke":
     for path in arguments.dropFirst() {
         let folder = URL(fileURLWithPath: path).standardizedFileURL
         do {
-            if arguments[0] == "lint" { try Lint.check(folder) } else { try Smoke.run(folder) }
+            let warnings = arguments[0] == "lint" ? try Lint.check(folder) : try Smoke.run(folder)
             print("✓ \(arguments[0]) \(path)")
+            for warning in warnings { print("  ⚠︎ \(warning)") }
         } catch {
             failed = true
             print("✗ \(arguments[0]) \(path): \(error)")
@@ -103,11 +104,20 @@ func manifest(of folder: URL) throws -> ExtensionManifest {
 // MARK: - Lint
 
 enum Lint {
-    static func check(_ folder: URL) throws {
+    /// Throws the first problem that would keep the folder out of the
+    /// Gallery; returns warnings that do not.
+    @discardableResult
+    static func check(_ folder: URL) throws -> [String] {
         let manifest = try manifest(of: folder)
+        let localization = LocalizationLint.check(
+            manifestData: try Data(contentsOf: folder.appendingPathComponent("manifest.json")), manifest: manifest
+        )
+        if !localization.errors.isEmpty {
+            throw ToolFailure(localization.errors.joined(separator: "\n  "))
+        }
         // Gallery entries live in extensions/<id>/ (without the `prism.` prefix for
         // Prism's own) with a README and a changelog.
-        guard folder.deletingLastPathComponent().lastPathComponent == "extensions" else { return }
+        guard folder.deletingLastPathComponent().lastPathComponent == "extensions" else { return localization.warnings }
         guard folder.lastPathComponent == folderName(of: manifest.id) else {
             throw ToolFailure("The folder must be named \(folderName(of: manifest.id)) after the extension ID.")
         }
@@ -119,6 +129,7 @@ enum Lint {
         if manifest.summary?.isEmpty ?? true {
             throw ToolFailure("The manifest needs a one-sentence “description” for the Gallery.")
         }
+        return localization.warnings
     }
 }
 
@@ -131,7 +142,8 @@ enum Smoke {
     static let replyTimeout: TimeInterval = 5
     static let exitTimeout: TimeInterval = 3
 
-    static func run(_ folder: URL) throws {
+    @discardableResult
+    static func run(_ folder: URL) throws -> [String] {
         let manifest = try manifest(of: folder)
         let executable = try ExtensionFolderValidator.executableURL(of: manifest, in: folder)
         let process = try SpawnedExtension(executable: executable, directory: folder)
@@ -149,7 +161,7 @@ enum Smoke {
         }
 
         try call(ExtensionMethod.initialize, ExtensionInitializeParams(
-            prismVersion: "smoke", extensionID: manifest.id, preferences: [:], state: [:]
+            prismVersion: "smoke", extensionID: manifest.id, preferences: [:], state: [:], language: "en"
         ))
         for command in manifest.commands where command.mode == .list {
             try call(ExtensionMethod.listLoad, ExtensionListParams(commandID: command.id))
@@ -165,6 +177,7 @@ enum Smoke {
         guard !process.groupIsAlive() else {
             throw ToolFailure("The extension left processes running after it exited.")
         }
+        return []
     }
 }
 

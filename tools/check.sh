@@ -20,13 +20,15 @@ all_folders() {
 folders=()
 case "${1:-}" in
     --all)
+        run_tool_tests=1
         while IFS= read -r folder; do folders+=("$folder"); done < <(all_folders)
         ;;
     --changed)
         base="${2:?--changed needs a git ref}"
         changed="$(git diff --name-only "$base"...HEAD)"
         if grep -q '^tools/' <<<"$changed"; then
-            # The checks themselves changed: run them everywhere.
+            # The checks themselves changed: test them and run them everywhere.
+            run_tool_tests=1
             while IFS= read -r folder; do folders+=("$folder"); done < <(all_folders)
         else
             while IFS= read -r folder; do
@@ -50,6 +52,9 @@ fi
 
 swift build --package-path tools -c release
 tool="$ROOT/tools/.build/release/prism-extension"
+if [[ "${run_tool_tests:-}" == 1 ]]; then
+    swift test --package-path tools
+fi
 
 for folder in "${folders[@]}"; do
     echo "==> $folder"

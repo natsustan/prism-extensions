@@ -1,6 +1,6 @@
 ---
 name: extension-recipes
-description: Proven patterns for building features in Prism extensions, each pointing at the extension in this repo that already does it — list commands, filters, actions, detail panes, live status rows, widgets, preferences, credentials, caching and background refresh, protected folders, host tasks, CJK search, and tests with PrismTestHost. Use when adding or changing a feature in any extension.
+description: Proven patterns for building features in Prism extensions, each pointing at the extension in this repo that already does it — list commands, filters, actions, detail panes, live status rows, widgets, preferences, credentials, caching and background refresh, protected folders, host tasks, CJK search, translations, and tests with PrismTestHost. Use when adding or changing a feature in any extension.
 ---
 
 # Extension recipes
@@ -143,6 +143,21 @@ icon (Apple Notes rows); `image` an SVG under `icons/` (GitHub's Octicons,
 Agent Usage's provider marks), with its license file beside it; `style:
 .glyph` colors a row's icon by meaning (pull request state); `.tile` puts a
 brand mark on a tile for the extension's own icon.
+
+## Languages
+
+Prism runs in `en`, `zh-Hans`, or `zh-Hant`; translations are optional.
+Manifest text (name, description, command titles and keywords, preference
+rows and sections, widget titles, folder reasons) goes in the manifest's
+`localizations`, keyed by ID; `prism-extension lint` fails on unknown IDs,
+misspelled keys, `zh-CN`-style keys, and empty text, and warns about gaps.
+Runtime text comes from a `Localizable.xcstrings` in the target's resources
+(`defaultLocalization: "en"` in `Package.swift`), looked up with
+`String(localized: "…", bundle: .module.prismLocalized)`; plain `.module`
+follows macOS, not Prism. Format numbers and dates with `context.locale`.
+Test a translation with `PrismTestHost(…, language: "zh-Hans")`. sh
+extensions read `$PRISM_LANGUAGE`. Never let `zh-Hant` fall back to
+Simplified text: leave it out and the untranslated text shows.
 
 ## Testing patterns
 
