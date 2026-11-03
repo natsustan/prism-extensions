@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.chinese-numbers",
   "name": "Chinese Numbers",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Prism",
   "description": "Write numbers in Chinese, in lowercase, uppercase, or as an amount in words, and read Chinese numbers back as digits.",
   "icon": { "symbol": "textformat.123", "tint": "red" },
@@ -16,5 +16,21 @@
       "mode": "list",
       "keywords": ["chinese numbers", "数字", "大写", "小写", "金额", "人民币", "shuzi", "daxie", "xiaoxie", "jine", "renminbi", "rmb", "amount in words"]
     }
-  ]
+  ],
+  "localizations": {
+    "zh-Hans": {
+      "name": "中文数字",
+      "description": "把数字写成中文小写、大写或金额大写，也能把中文数字转回阿拉伯数字。",
+      "commands": {
+        "convert": {"title": "转换为中文数字", "subtitle": "中文数字", "keywords": ["中文数字", "大写金额", "阿拉伯数字"]}
+      }
+    },
+    "zh-Hant": {
+      "name": "中文數字",
+      "description": "把數字寫成中文小寫、大寫或金額大寫，也能把中文數字轉回阿拉伯數字。",
+      "commands": {
+        "convert": {"title": "轉換為中文數字", "subtitle": "中文數字", "keywords": ["中文數字", "數字", "大寫", "小寫", "金額", "大寫金額", "阿拉伯數字"]}
+      }
+    }
+  }
 }

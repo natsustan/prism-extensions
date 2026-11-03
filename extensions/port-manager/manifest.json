@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.port-manager",
   "name": "Port Manager",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Prism",
   "description": "See which programs listen on which TCP ports, how far each port reaches, and kill the process behind one.",
   "icon": { "symbol": "network", "tint": "teal" },
@@ -13,5 +13,27 @@
   "preferences": [
     { "id": "portNames", "type": "text", "title": "Port Names", "caption": "Names to show beside ports you use often, separated by commas, such as “3000 Web, 5432 Postgres”.", "default": "" }
   ],
-  "capabilities": ["inspectProcesses", "spawnProcesses"]
+  "capabilities": ["inspectProcesses", "spawnProcesses"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "端口管理",
+      "description": "查看哪些程序在监听哪些 TCP 端口、每个端口能从多远访问，并结束占用端口的进程。",
+      "commands": {
+        "open-ports": {"title": "开放的端口", "subtitle": "端口管理", "keywords": ["端口", "监听", "结束端口", "释放端口", "占用端口"]}
+      },
+      "preferences": {
+        "portNames": {"title": "端口名称", "caption": "在常用端口旁显示的名称，用逗号分隔，例如“3000 Web, 5432 Postgres”。"}
+      }
+    },
+    "zh-Hant": {
+      "name": "連接埠管理",
+      "description": "查看哪些程式在監聽哪些 TCP 連接埠、每個連接埠能從多遠存取，並結束佔用連接埠的程序。",
+      "commands": {
+        "open-ports": {"title": "開放的連接埠", "subtitle": "連接埠管理", "keywords": ["連接埠", "埠", "監聽", "結束連接埠", "釋放連接埠", "端口"]}
+      },
+      "preferences": {
+        "portNames": {"title": "連接埠名稱", "caption": "在常用連接埠旁顯示的名稱，以逗號分隔，例如「3000 Web, 5432 Postgres」。"}
+      }
+    }
+  }
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- When Prism runs in Simplified or Traditional Chinese, it shows this
+  extension's name, description, command, and setting in that language, and Chinese
+  words find its command in search.
+
 ## 1.0.0
 
 - Open Ports lists every process listening on a TCP port, with its ports as

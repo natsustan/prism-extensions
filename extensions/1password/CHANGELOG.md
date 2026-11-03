@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- When Prism runs in Simplified or Traditional Chinese, it shows this
+  extension's name, description, commands, and settings in that language, and Chinese
+  words find its commands in search.
+
 ## 1.0.0
 
 - Search 1Password: every account’s items, most recently changed first,

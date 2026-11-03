@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.github",
   "name": "GitHub",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": "Prism",
   "description": "Your GitHub notifications, pull requests, issues, and repositories, on GitHub.com or GitHub Enterprise.",
   "icon": { "symbol": "chevron.left.forwardslash.chevron.right", "tint": "graphite", "image": "icons/github.svg", "style": "tile" },
@@ -17,5 +17,37 @@
     { "id": "token", "type": "secret", "title": "Personal Access Token", "section": "Account", "caption": "A classic token with the repo, read:org, and notifications scopes. Sent only to your GitHub server. Leave blank to use your GitHub CLI (gh) login." },
     { "id": "server", "type": "text", "title": "Server", "section": "Account", "caption": "Leave as https://github.com, or enter your GitHub Enterprise Server address.", "default": "https://github.com" }
   ],
-  "capabilities": ["network", "spawnProcesses"]
+  "capabilities": ["network", "spawnProcesses"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "GitHub",
+      "description": "你在 GitHub.com 或 GitHub Enterprise 上的通知、拉取请求、议题和仓库。",
+      "commands": {
+        "notifications": {"title": "GitHub 通知", "subtitle": "GitHub", "keywords": ["通知", "未读", "收件箱"]},
+        "pull-requests": {"title": "我的拉取请求", "subtitle": "GitHub", "keywords": ["拉取请求", "合并请求", "代码审查"]},
+        "issues": {"title": "我的议题", "subtitle": "GitHub", "keywords": ["议题", "问题", "缺陷"]},
+        "repositories": {"title": "GitHub 仓库", "subtitle": "GitHub", "keywords": ["仓库", "代码库", "星标"]}
+      },
+      "preferences": {
+        "token": {"title": "个人访问令牌", "caption": "具有 repo、read:org 和 notifications 权限范围的经典令牌。只发送到你的 GitHub 服务器。留空则使用 GitHub CLI（gh）的登录。"},
+        "server": {"title": "服务器", "caption": "保留 https://github.com，或输入你的 GitHub Enterprise Server 地址。"}
+      },
+      "sections": {"Account": "账户"}
+    },
+    "zh-Hant": {
+      "name": "GitHub",
+      "description": "你在 GitHub.com 或 GitHub Enterprise 上的通知、拉取請求、議題和儲存庫。",
+      "commands": {
+        "notifications": {"title": "GitHub 通知", "subtitle": "GitHub", "keywords": ["通知", "未讀", "收件匣"]},
+        "pull-requests": {"title": "我的拉取請求", "subtitle": "GitHub", "keywords": ["拉取請求", "合併請求", "程式碼審查"]},
+        "issues": {"title": "我的議題", "subtitle": "GitHub", "keywords": ["議題", "問題", "錯誤"]},
+        "repositories": {"title": "GitHub 儲存庫", "subtitle": "GitHub", "keywords": ["儲存庫", "程式碼庫", "星號"]}
+      },
+      "preferences": {
+        "token": {"title": "個人存取權杖", "caption": "具有 repo、read:org 和 notifications 權限範圍的傳統權杖。只會傳送到你的 GitHub 伺服器。留空則使用 GitHub CLI（gh）的登入資訊。"},
+        "server": {"title": "伺服器", "caption": "保留 https://github.com，或輸入你的 GitHub Enterprise Server 位址。"}
+      },
+      "sections": {"Account": "帳號"}
+    }
+  }
 }
