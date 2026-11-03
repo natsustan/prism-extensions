@@ -8,17 +8,19 @@ import PackageDescription
 //   PRISM_KIT_PATH=~/projects/prism/Packages/PrismExtensionKit swift build
 let kitPath = Context.environment["PRISM_KIT_PATH"]
 let kit: Package.Dependency = kitPath.map { .package(path: $0) }
-    ?? .package(url: "https://github.com/natsustan/prism-extension-kit.git", from: "0.4.0")
+    ?? .package(url: "https://github.com/natsustan/prism-extension-kit.git", from: "0.13.0")
 let kitPackage = kitPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "prism-extension-kit"
 
 let package = Package(
     name: "Caffeinate",
+    defaultLocalization: "en",
     platforms: [.macOS(.v15)],
     dependencies: [kit],
     targets: [
         .executableTarget(
             name: "Caffeinate",
-            dependencies: [.product(name: "PrismExtensionKit", package: kitPackage)]
+            dependencies: [.product(name: "PrismExtensionKit", package: kitPackage)],
+            resources: [.process("Localizable.xcstrings")]
         ),
         .testTarget(
             name: "CaffeinateTests",

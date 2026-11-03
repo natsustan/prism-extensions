@@ -15,13 +15,15 @@ let nextSeed: UInt64 = 42
 func makeHost(
     clipboard: FakeClipboard = FakeClipboard(),
     preferences: [String: ExtensionValue] = [:],
-    state: [String: ExtensionValue] = [:]
+    state: [String: ExtensionValue] = [:],
+    language: String = "en"
 ) async throws -> PrismTestHost {
     try await PrismTestHost(
         LoremIpsum(clipboard: clipboard, makeSeed: { nextSeed }),
         extensionID: "prism.lorem-ipsum",
         preferences: preferences,
-        state: state
+        state: state,
+        language: language
     )
 }
 
@@ -225,6 +227,30 @@ struct LoremIpsumTests {
             try await prism.perform(ActionID.copy, on: row.id, in: CommandID.generate)
                 == ExtensionActionResult(.hud(message: "Copied 50 characters"), reload: true)
         )
+    }
+
+    @Test("in Simplified Chinese the rows, actions, and HUD are Chinese, but the text stays Latin")
+    func simplifiedChineseInterface() async throws {
+        let prism = try await makeHost(language: "zh-Hans")
+        let list = try await prism.list(CommandID.generate, query: "3")
+        #expect(list.items.map(\.title) == ["3 段", "3 句", "3 个词"])
+        #expect(list.items[0].actions.map(\.title) == ["粘贴到当前 App", "拷贝到剪贴板", "重新生成"])
+        #expect(list.filters.first?.title == "拉丁文")
+        let paragraph = try #require(try await prism.detail(list.items[0].id, in: CommandID.generate).markdown)
+        #expect(paragraph.lowercased().hasPrefix("lorem ipsum"))
+        #expect(
+            try await prism.perform(ActionID.copy, on: list.items[1].id, in: CommandID.generate)
+                == ExtensionActionResult(.hud(message: "已拷贝 3 句"), reload: true)
+        )
+    }
+
+    @Test("in Traditional Chinese, Chinese text counts 個字 and the detail says 字元數")
+    func traditionalChineseInterface() async throws {
+        let prism = try await makeHost(state: [StateKey.language: .string("zh")], language: "zh-Hant")
+        let row = try await prism.list(CommandID.generate, query: "50字").items[0]
+        #expect(row.title == "50 個字")
+        #expect(try await prism.detail(row.id, in: CommandID.generate).metadata.map(\.label) == ["字元數"])
+        #expect(try await prism.list(CommandID.generate, query: "5000").emptyMessage?.title == "換個數字")
     }
 
     @Test("Start with “Lorem ipsum” only opens Latin text")

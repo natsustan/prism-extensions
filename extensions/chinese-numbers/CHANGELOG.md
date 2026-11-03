@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0
+
+- In Simplified or Traditional Chinese, prompts, messages, and actions are in
+  Chinese too, and Traditional Chinese row captions use Traditional
+  characters (小寫, 金額大寫).
+
 ## 1.1.0
 
 - When Prism runs in Simplified or Traditional Chinese, it shows this

@@ -24,24 +24,24 @@ struct ChineseNumbers: PrismExtension {
 
     func list(command: String, query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
         guard command == CommandID.convert else {
-            throw PrismExtensionError("Chinese Numbers has no list “\(command)”.")
+            throw PrismExtensionError(String(localized: "Chinese Numbers has no list “\(command)”.", bundle: .module.prismLocalized))
         }
         let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else {
-            return Self.list(empty: "Type a Number", "Digits such as 12345.67, or Chinese such as 一万二千.", symbol: "textformat.123")
+            return Self.list(empty: String(localized: "Type a Number", bundle: .module.prismLocalized), String(localized: "Digits such as 12345.67, or Chinese such as 一万二千.", bundle: .module.prismLocalized), symbol: "textformat.123")
         }
         do {
             return Self.list(ConversionRows.items(for: try ArabicNumber(parsing: query)))
         } catch .tooLarge {
             return Self.list(
-                empty: "Number Too Large", "Chinese Numbers goes up to 16 digits before the point.",
+                empty: String(localized: "Number Too Large", bundle: .module.prismLocalized), String(localized: "Chinese Numbers goes up to 16 digits before the point.", bundle: .module.prismLocalized),
                 symbol: "exclamationmark.triangle"
             )
         } catch {
             if let number = ChineseNumberParser.parse(query) {
                 return Self.list(ConversionRows.items(forChinese: number))
             }
-            return Self.list(empty: "Not a Number", "Try 12345.67, 一万二千, or 壹佰元伍角.", symbol: "questionmark")
+            return Self.list(empty: String(localized: "Not a Number", bundle: .module.prismLocalized), String(localized: "Try 12345.67, 一万二千, or 壹佰元伍角.", bundle: .module.prismLocalized), symbol: "questionmark")
         }
     }
 
@@ -56,5 +56,5 @@ struct ChineseNumbers: PrismExtension {
         )
     }
 
-    private static let placeholder = "12345.67 or 一万二千…"
+    private static var placeholder: String { String(localized: "12345.67 or 一万二千…", bundle: .module.prismLocalized) }
 }

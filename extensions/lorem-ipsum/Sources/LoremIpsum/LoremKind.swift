@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 /// What a row generates. The raw value is part of the row’s item ID.
 enum LoremKind: String, CaseIterable, Sendable {
@@ -16,19 +17,43 @@ enum LoremKind: String, CaseIterable, Sendable {
         }
     }
 
+    /// Whole phrases rather than a number and a noun, so each language can
+    /// order and count them its own way.
     func title(count: Int, in language: LoremLanguage) -> String {
-        let noun = switch self {
-        case .paragraphs: count == 1 ? "Paragraph" : "Paragraphs"
-        case .sentences: count == 1 ? "Sentence" : "Sentences"
-        case .words where language.countsCharacters: count == 1 ? "Character" : "Characters"
-        case .words: count == 1 ? "Word" : "Words"
+        let one = count == 1
+        return switch self {
+        case .paragraphs:
+            one ? String(localized: "1 Paragraph", bundle: .module.prismLocalized)
+                : String(localized: "\(count) Paragraphs", bundle: .module.prismLocalized)
+        case .sentences:
+            one ? String(localized: "1 Sentence", bundle: .module.prismLocalized)
+                : String(localized: "\(count) Sentences", bundle: .module.prismLocalized)
+        case .words where language.countsCharacters:
+            one ? String(localized: "1 Character", bundle: .module.prismLocalized)
+                : String(localized: "\(count) Characters", bundle: .module.prismLocalized)
+        case .words:
+            one ? String(localized: "1 Word", bundle: .module.prismLocalized)
+                : String(localized: "\(count) Words", bundle: .module.prismLocalized)
         }
-        return "\(count) \(noun)"
     }
 
     /// The HUD after copying: “Copied 3 paragraphs”.
     func copiedMessage(count: Int, in language: LoremLanguage) -> String {
-        "Copied \(title(count: count, in: language).lowercased())"
+        let one = count == 1
+        return switch self {
+        case .paragraphs:
+            one ? String(localized: "Copied 1 paragraph", bundle: .module.prismLocalized)
+                : String(localized: "Copied \(count) paragraphs", bundle: .module.prismLocalized)
+        case .sentences:
+            one ? String(localized: "Copied 1 sentence", bundle: .module.prismLocalized)
+                : String(localized: "Copied \(count) sentences", bundle: .module.prismLocalized)
+        case .words where language.countsCharacters:
+            one ? String(localized: "Copied 1 character", bundle: .module.prismLocalized)
+                : String(localized: "Copied \(count) characters", bundle: .module.prismLocalized)
+        case .words:
+            one ? String(localized: "Copied 1 word", bundle: .module.prismLocalized)
+                : String(localized: "Copied \(count) words", bundle: .module.prismLocalized)
+        }
     }
 
     var symbol: String {

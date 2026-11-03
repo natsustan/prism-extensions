@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.caffeinate",
   "name": "Caffeinate",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": "Prism",
   "description": "Keep your Mac awake from the launcher, a hotkey, or a widget.",
   "icon": { "symbol": "cup.and.saucer.fill", "tint": "brown" },
