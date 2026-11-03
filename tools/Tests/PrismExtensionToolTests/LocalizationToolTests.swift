@@ -134,4 +134,21 @@ struct PackagingTests {
         #expect(try GalleryIndexTool.packagedFile("bin/Coffee_Coffee.bundle/zh-Hans.lproj/Localizable.strings", in: package) != nil)
         #expect(try GalleryIndexTool.packagedFile("bin/notes.bundle", in: package) == nil)
     }
+
+    @Test("A resource bundle holding a link is refused, as Prism would refuse the package")
+    func linkedResourceBundle() throws {
+        let fixture = try TemporaryExtension(
+            manifest: TemporaryExtension.manifest(executable: ".build/release/Coffee", localizations: "{}"),
+            executable: ".build/release/Coffee"
+        )
+        defer { fixture.remove() }
+        let bundle = fixture.folder.appendingPathComponent(".build/release/Coffee_Coffee.bundle")
+        try FileManager.default.createDirectory(at: bundle, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(
+            at: bundle.appendingPathComponent("escape"), withDestinationURL: URL(fileURLWithPath: "/etc/hosts")
+        )
+        let output = fixture.folder.appendingPathComponent("out", isDirectory: true)
+        #expect(throws: ToolFailure.self) { try Pack.run(fixture.folder, output: output) }
+        #expect(!FileManager.default.fileExists(atPath: output.appendingPathComponent("octocat.coffee-1.0.0.prismextension").path))
+    }
 }

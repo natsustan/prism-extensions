@@ -37,7 +37,6 @@ enum Pack {
         for name in try fileManager.contentsOfDirectory(atPath: folder.path) where !excluded.contains(name) {
             try fileManager.copyItem(at: folder.appendingPathComponent(name), to: staging.appendingPathComponent(name))
         }
-        try rejectLinks(in: staging)
 
         // A built executable leaves the build folder for bin/.
         var packagedExecutable = manifest.executable ?? ""
@@ -56,6 +55,9 @@ enum Pack {
             }
             try rewriteExecutable(packagedExecutable, in: staging.appendingPathComponent("manifest.json"))
         }
+        // After everything that goes in, bundles included: Prism refuses a
+        // package that holds a link.
+        try rejectLinks(in: staging)
         // What Prism will see after unpacking must pass the same checks.
         _ = try ExtensionFolderValidator.manifest(in: staging, allowsReservedNamespace: isFirstParty(folder))
 
