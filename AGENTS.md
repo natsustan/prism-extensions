@@ -27,7 +27,11 @@ before designing commands, lists, widgets, or preferences.
 
 ## Build and check
 
-Use macOS 26+ and Swift 6.1 or newer.
+Use macOS 26+ and Swift 6.2 or newer. Extensions build with Swift Build
+(`--build-system swiftbuild`, the default from Swift 6.4): the older native
+build system copies `Localizable.xcstrings` without compiling it, and the
+extension shows only English. `check.sh` and `release.sh` pass the flag, and
+`pack` refuses a bundle holding an uncompiled catalog.
 
 - `swift build --package-path extensions/<folder> -c release`: build one
   Swift extension (the manifest's `executable` points at

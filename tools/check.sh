@@ -50,6 +50,11 @@ if [[ ${#folders[@]} -eq 0 ]]; then
     exit 0
 fi
 
+# Swift Build compiles string catalogs into .lproj folders. The native build
+# system, the default with CI's Xcode, copies them as is, and the extension
+# would show only English.
+build_system=(--build-system swiftbuild)
+
 swift build --package-path tools -c release
 tool="$ROOT/tools/.build/release/prism-extension"
 if [[ "${run_tool_tests:-}" == 1 ]]; then
@@ -59,9 +64,9 @@ fi
 for folder in "${folders[@]}"; do
     echo "==> $folder"
     if [[ -f "$folder/Package.swift" ]]; then
-        swift build --package-path "$folder" -c release
+        swift build --package-path "$folder" -c release "${build_system[@]}"
         if [[ -d "$folder/Tests" ]]; then
-            swift test --package-path "$folder"
+            swift test --package-path "$folder" "${build_system[@]}"
         fi
     fi
     if [[ -d "$folder/tests" && -x "$folder/tests/run" ]]; then

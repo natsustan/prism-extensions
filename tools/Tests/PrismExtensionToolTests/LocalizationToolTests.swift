@@ -164,6 +164,20 @@ struct PackagingTests {
         #expect(try GalleryIndexTool.packagedFile("bin/notes.bundle", in: package) == nil)
     }
 
+    @Test("A string catalog the build copied instead of compiling is refused")
+    func uncompiledCatalog() throws {
+        let fixture = try TemporaryExtension(
+            manifest: TemporaryExtension.manifest(executable: ".build/release/Coffee", localizations: "{}"),
+            executable: ".build/release/Coffee"
+        )
+        defer { fixture.remove() }
+        let bundle = fixture.folder.appendingPathComponent(".build/release/Coffee_Coffee.bundle")
+        try FileManager.default.createDirectory(at: bundle, withIntermediateDirectories: true)
+        try Data("{}".utf8).write(to: bundle.appendingPathComponent("Localizable.xcstrings"))
+        let output = fixture.folder.appendingPathComponent("out", isDirectory: true)
+        #expect(throws: ToolFailure.self) { try Pack.run(fixture.folder, output: output) }
+    }
+
     @Test("A resource bundle holding a link is refused, as Prism would refuse the package")
     func linkedResourceBundle() throws {
         let fixture = try TemporaryExtension(

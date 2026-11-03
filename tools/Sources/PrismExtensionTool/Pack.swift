@@ -49,6 +49,7 @@ enum Pack {
             // program when its bundle is missing, so string catalogs and
             // other resources travel with it.
             for bundle in try resourceBundles(beside: executable) {
+                try rejectUncompiledCatalogs(in: bundle)
                 try fileManager.copyItem(
                     at: bundle, to: destination.deletingLastPathComponent().appendingPathComponent(bundle.lastPathComponent)
                 )
@@ -81,6 +82,19 @@ enum Pack {
         )
         .filter { $0.pathExtension == "bundle" && (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true }
         .sorted { $0.lastPathComponent < $1.lastPathComponent }
+    }
+
+    /// The native build system copies a string catalog as is, and the
+    /// program then finds no translations; Swift Build compiles it into
+    /// `.lproj` folders. Shipping the copy would show English to everyone.
+    static func rejectUncompiledCatalogs(in bundle: URL) throws {
+        guard let walker = FileManager.default.enumerator(at: bundle, includingPropertiesForKeys: nil) else { return }
+        for case let url as URL in walker where url.pathExtension == "xcstrings" {
+            throw ToolFailure(
+                "\(bundle.lastPathComponent) holds an uncompiled \(url.lastPathComponent); "
+                    + "build with `swift build --build-system swiftbuild` so its translations ship."
+            )
+        }
     }
 
     /// Packages hold regular files and folders only.

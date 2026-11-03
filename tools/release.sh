@@ -34,6 +34,11 @@ if ! $dry_run && [[ -z "${PRISM_GALLERY_SIGNING_KEY:-}" || -z "${PRISM_GALLERY_K
     exit 1
 fi
 
+# Swift Build compiles string catalogs into .lproj folders. The native build
+# system, the default with CI's Xcode, copies them as is, and the extension
+# would show only English.
+build_system=(--build-system swiftbuild)
+
 swift build --package-path tools -c release
 tool="$ROOT/tools/.build/release/prism-extension"
 packages="$(mktemp -d)"
@@ -76,7 +81,7 @@ for folder in extensions/*/; do
     echo "==> $tag"
 
     if [[ -f "$folder/Package.swift" ]]; then
-        swift build --package-path "$folder" -c release
+        swift build --package-path "$folder" -c release "${build_system[@]}"
         executable="$folder/$(manifest_field "$folder" executable)"
         if [[ "$id" == prism.* && -n "${DEVELOPER_ID_IDENTITY:-}" ]]; then
             # Prism's own code keeps one signing identity across versions, so
