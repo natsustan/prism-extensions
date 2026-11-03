@@ -3,8 +3,8 @@ import PrismExtensionProtocol
 
 /// Builds the `.prismextension` the Gallery publishes: a zip of what the
 /// extension needs at run time. Sources, tests, and build output stay out; a
-/// Swift extension's built executable moves to `bin/` and the packaged
-/// manifest points there.
+/// Swift extension's built executable moves to `bin/`, with the SwiftPM
+/// resource bundles built beside it, and the packaged manifest points there.
 enum Pack {
     /// Top-level names that never ship.
     static let excluded: Set<String> = [
@@ -46,6 +46,14 @@ enum Pack {
             let destination = staging.appendingPathComponent(packagedExecutable)
             try fileManager.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
             try fileManager.copyItem(at: executable, to: destination)
+            // `Bundle.module` looks beside the executable and stops the
+            // program when its bundle is missing, so string catalogs and
+            // other resources travel with it.
+            for bundle in try resourceBundles(beside: executable) {
+                try fileManager.copyItem(
+                    at: bundle, to: destination.deletingLastPathComponent().appendingPathComponent(bundle.lastPathComponent)
+                )
+            }
             try rewriteExecutable(packagedExecutable, in: staging.appendingPathComponent("manifest.json"))
         }
         // What Prism will see after unpacking must pass the same checks.
@@ -61,6 +69,16 @@ enum Pack {
             id: manifest.id.rawValue, version: manifest.version, path: package.path,
             sha256: ExtensionGallerySigning.sha256(data), size: data.count
         )
+    }
+
+    /// The `<Package>_<Target>.bundle` folders SwiftPM builds next to an executable.
+    static func resourceBundles(beside executable: URL) throws -> [URL] {
+        let folder = executable.deletingLastPathComponent()
+        return try FileManager.default.contentsOfDirectory(
+            at: folder, includingPropertiesForKeys: [.isDirectoryKey]
+        )
+        .filter { $0.pathExtension == "bundle" && (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true }
+        .sorted { $0.lastPathComponent < $1.lastPathComponent }
     }
 
     /// Packages hold regular files and folders only.
