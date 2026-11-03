@@ -10,27 +10,28 @@ enum ColorRows {
         var actions = copyActions(for: saved.color, formats: formats)
         actions.append(ExtensionAction(
             id: saved.isFavorite ? ColorPicker.ActionID.unfavorite : ColorPicker.ActionID.favorite,
-            title: saved.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+            title: saved.isFavorite ? localized("Remove from Favorites") : localized("Add to Favorites"),
             symbol: saved.isFavorite ? "star.slash" : "star",
             shortcut: ExtensionShortcut("cmd+shift+f")
         ))
         actions.append(ExtensionAction(
-            id: ColorPicker.ActionID.delete, title: "Delete Color", symbol: "trash",
+            id: ColorPicker.ActionID.delete, title: localized("Delete Color"), symbol: "trash",
             style: .destructive, shortcut: ExtensionShortcut("cmd+delete")
         ))
         actions.append(ExtensionAction(
-            id: ColorPicker.ActionID.clearRecent, title: "Clear Recent Colors…", symbol: "xmark.bin",
+            id: ColorPicker.ActionID.clearRecent, title: localized("Clear Recent Colors…"), symbol: "xmark.bin",
             style: .destructive, shortcut: ExtensionShortcut("cmd+shift+delete"),
-            confirmationMessage: "Removes every color that isn’t a favorite."
+            confirmationMessage: localized("Removes every color that isn’t a favorite.")
         ))
         return ExtensionListItem(
             id: saved.id,
             title: formats[0].string(for: saved.color),
             subtitle: name.description,
             icon: .swatch(saved.color.hex),
-            accessories: saved.isFavorite ? [ExtensionListAccessory(symbol: "star.fill", tint: "gold", help: "Favorite")] : [],
+            accessories: saved.isFavorite
+                ? [ExtensionListAccessory(symbol: "star.fill", tint: "gold", help: localized("Favorite"))] : [],
             keywords: keywords(for: saved.color, name: name),
-            section: saved.isFavorite ? "Favorites" : "Recent",
+            section: saved.isFavorite ? localized("Favorites") : localized("Recent"),
             detail: detail(for: saved.color, name: name, savedAt: saved.savedAt),
             actions: actions
         )
@@ -59,7 +60,7 @@ enum ColorRows {
     static func namedItem(_ named: ColorNames.Named, formats: [ColorFormat]) -> ExtensionListItem {
         var actions = copyActions(for: named.color, formats: formats)
         actions.append(ExtensionAction(
-            id: ColorPicker.ActionID.copyName, title: "Copy Name", symbol: "textformat",
+            id: ColorPicker.ActionID.copyName, title: localized("Copy Name"), symbol: "textformat",
             kind: .copy(text: named.keyword), shortcut: ExtensionShortcut("cmd+shift+n")
         ))
         actions.append(saveAction)
@@ -68,7 +69,7 @@ enum ColorRows {
             title: named.name,
             subtitle: formats[0].string(for: named.color),
             icon: .swatch(named.color.hex),
-            section: "Named Colors",
+            section: localized("Named Colors"),
             actions: actions
         )
     }
@@ -88,7 +89,7 @@ enum ColorRows {
 
     private static func copyAction(_ format: ColorFormat, text: String) -> ExtensionAction {
         ExtensionAction(
-            id: "\(ColorPicker.ActionID.copyPrefix)\(format.rawValue)", title: "Copy \(format.title)",
+            id: "\(ColorPicker.ActionID.copyPrefix)\(format.rawValue)", title: localized("Copy \(format.title)"),
             symbol: "doc.on.doc", kind: .copy(text: text)
         )
     }
@@ -99,10 +100,10 @@ enum ColorRows {
             subtitle: name.description,
             icon: .swatch(color.hex),
             sections: [ExtensionDetailSection(
-                title: "Formats",
+                title: localized("Formats"),
                 rows: ColorFormat.allCases.map { ExtensionMetadataRow(label: $0.title, value: $0.string(for: color)) }
             )],
-            metadata: [ExtensionMetadataRow(label: "Added", date: savedAt)]
+            metadata: [ExtensionMetadataRow(label: localized("Added"), date: savedAt)]
         )
     }
 
@@ -111,8 +112,8 @@ enum ColorRows {
         ColorFormat.allCases.map { $0.string(for: color) } + [name.name]
     }
 
-    private static let saveAction = ExtensionAction(
-        id: ColorPicker.ActionID.save, title: "Save to Colors", symbol: "square.and.arrow.down",
+    private static var saveAction: ExtensionAction { ExtensionAction(
+        id: ColorPicker.ActionID.save, title: localized("Save to Colors"), symbol: "square.and.arrow.down",
         shortcut: ExtensionShortcut("cmd+s")
-    )
+    ) }
 }

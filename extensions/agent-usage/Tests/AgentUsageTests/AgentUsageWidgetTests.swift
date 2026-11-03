@@ -6,7 +6,7 @@ import Testing
 /// The AI usage widgets read the same controller rows the list does; these
 /// tests cover the mapping. Prism tests how its cards lay the data out.
 @MainActor
-@Suite("Agent usage widgets")
+@Suite("Agent usage widgets", .english)
 struct AgentUsageWidgetTests {
     private func makeDefaults() -> UserDefaults {
         UserDefaults(suiteName: "com.spike.prism.tests.agentusagewidgets.\(UUID().uuidString)")!

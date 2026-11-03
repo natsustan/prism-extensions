@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import AgentUsage
 
-@Suite("Devin auth store")
+@Suite("Devin auth store", .english)
 struct DevinAuthStoreTests {
     @Test("reads the API key and a valid https API server override")
     func readsCredentialsFile() throws {
@@ -43,7 +43,7 @@ struct DevinAuthStoreTests {
     }
 }
 
-@Suite("Devin usage mapping")
+@Suite("Devin usage mapping", .english)
 struct DevinUsageMapperTests {
     private static let now = Date(timeIntervalSince1970: 1_700_000_000)
 
@@ -133,7 +133,7 @@ struct DevinUsageMapperTests {
     }
 }
 
-@Suite("Devin provider")
+@Suite("Devin provider", .english)
 struct DevinAgentUsageProviderTests {
     @Test("the Connect-RPC request carries the API key in metadata")
     func requestShape() async throws {

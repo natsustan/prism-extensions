@@ -15,7 +15,7 @@ enum LoremLanguage: String, CaseIterable, Sendable {
     /// speakers to name it, so it is named in Prism's language.
     var title: String {
         switch self {
-        case .latin: String(localized: "Latin", bundle: .module.prismLocalized)
+        case .latin: localized("Latin")
         case .chinese: "中文"
         case .japanese: "日本語"
         case .korean: "한국어"

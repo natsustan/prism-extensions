@@ -13,23 +13,39 @@ enum PortRows {
     /// How many ports get their own Open in Browser action.
     static let browserPorts = 5
 
-    static let filters = [
-        ExtensionListFilter(id: FilterID.all, title: "All Ports", symbol: "network"),
-        ExtensionListFilter(id: FilterID.localhost, title: "Localhost Only", symbol: Exposure.localhost.symbol),
-        ExtensionListFilter(id: FilterID.network, title: "Reachable from Network", symbol: Exposure.network.symbol),
-        ExtensionListFilter(id: FilterID.interface, title: "Specific Interface", symbol: Exposure.interface.symbol),
-    ]
+    static var filters: [ExtensionListFilter] { [
+        ExtensionListFilter(id: FilterID.all, title: localized("All Ports"), symbol: "network"),
+        ExtensionListFilter(id: FilterID.localhost, title: localized("Localhost Only"), symbol: Exposure.localhost.symbol),
+        ExtensionListFilter(id: FilterID.network, title: localized("Reachable from Network"), symbol: Exposure.network.symbol),
+        ExtensionListFilter(id: FilterID.interface, title: localized("Specific Interface"), symbol: Exposure.interface.symbol),
+    ] }
 
     static func emptyMessage(for exposure: Exposure?) -> ExtensionListMessage {
         switch exposure {
         case nil:
-            ExtensionListMessage(title: "No Open Ports", message: "Nothing is listening on a TCP port.", symbol: "network.slash")
+            ExtensionListMessage(
+                title: localized("No Open Ports"),
+                message: localized("Nothing is listening on a TCP port."),
+                symbol: "network.slash"
+            )
         case .localhost:
-            ExtensionListMessage(title: "No Localhost Ports", message: "No port is open only to this Mac.", symbol: Exposure.localhost.symbol)
+            ExtensionListMessage(
+                title: localized("No Localhost Ports"),
+                message: localized("No port is open only to this Mac."),
+                symbol: Exposure.localhost.symbol
+            )
         case .network:
-            ExtensionListMessage(title: "No Ports Reachable from Network", message: "No port is open on every network interface.", symbol: Exposure.network.symbol)
+            ExtensionListMessage(
+                title: localized("No Ports Reachable from Network"),
+                message: localized("No port is open on every network interface."),
+                symbol: Exposure.network.symbol
+            )
         case .interface:
-            ExtensionListMessage(title: "No Ports on a Specific Interface", message: "No port is bound to one interface’s address.", symbol: Exposure.interface.symbol)
+            ExtensionListMessage(
+                title: localized("No Ports on a Specific Interface"),
+                message: localized("No port is bound to one interface’s address."),
+                symbol: Exposure.interface.symbol
+            )
         }
     }
 
@@ -42,7 +58,9 @@ enum PortRows {
         let icon = icon(for: process, bundleIdentifier: bundleIdentifier)
         // Another user's process says whose it is, which is also why it
         // offers no kill.
-        let owner = process.flatMap { $0.userID == currentUserID ? nil : $0.userName ?? "user \($0.userID)" }
+        let owner = process.flatMap {
+            $0.userID == currentUserID ? nil : $0.userName ?? localized("user \(String($0.userID))")
+        }
         return ExtensionListItem(
             id: listener.id,
             title: listener.processName,
@@ -61,47 +79,47 @@ enum PortRows {
         var actions: [ExtensionAction] = []
         let process = listener.process
         if let process, process.userID == currentUserID {
-            let name = "“\(process.name)” (PID \(process.pid))"
+            let name = localized("“\(process.name)” (PID \(String(process.pid)))")
             actions.append(ExtensionAction(
-                id: ActionID.kill, title: "Kill Process", symbol: "xmark.circle", style: .destructive,
-                confirmationMessage: "\(name) stops listening on \(portList(listener.ports)) and quits."
+                id: ActionID.kill, title: localized("Kill Process"), symbol: "xmark.circle", style: .destructive,
+                confirmationMessage: localized("\(name) stops listening on \(portList(listener.ports)) and quits.")
             ))
             actions.append(ExtensionAction(
-                id: ActionID.forceKill, title: "Force Kill Process", symbol: "xmark.octagon", style: .destructive,
+                id: ActionID.forceKill, title: localized("Force Kill Process"), symbol: "xmark.octagon", style: .destructive,
                 shortcut: ExtensionShortcut("cmd+shift+delete"),
-                confirmationMessage: "\(name) quits at once, without a chance to clean up."
+                confirmationMessage: localized("\(name) quits at once, without a chance to clean up.")
             ))
             if let parent = listener.parent, parent.userID == currentUserID {
                 actions.append(ExtensionAction(
-                    id: ActionID.killParent, title: "Kill Parent Process", symbol: "arrow.up.circle", style: .destructive,
-                    confirmationMessage: "“\(parent.name)” (PID \(parent.pid)), which started “\(process.name)”, quits."
+                    id: ActionID.killParent, title: localized("Kill Parent Process"), symbol: "arrow.up.circle", style: .destructive,
+                    confirmationMessage: localized("“\(parent.name)” (PID \(String(parent.pid))), which started “\(process.name)”, quits.")
                 ))
             }
         }
-        actions += group(ActionID.browserMenu, title: "Open in Browser", symbol: "safari", browserActions(for: listener.ports))
+        actions += group(ActionID.browserMenu, title: localized("Open in Browser"), symbol: "safari", browserActions(for: listener.ports))
 
         var finder: [ExtensionAction] = []
         if process?.path != nil {
             finder.append(ExtensionAction(
-                id: ActionID.showInFinder, title: "Show in Finder", symbol: "folder",
+                id: ActionID.showInFinder, title: localized("Show in Finder"), symbol: "folder",
                 shortcut: ExtensionShortcut("cmd+shift+f")
             ))
         }
         if listener.parent?.path != nil {
-            finder.append(ExtensionAction(id: ActionID.showParentInFinder, title: "Show Parent in Finder", symbol: "folder"))
+            finder.append(ExtensionAction(id: ActionID.showParentInFinder, title: localized("Show Parent in Finder"), symbol: "folder"))
         }
-        actions += group(ActionID.finderMenu, title: "Show in Finder", symbol: "folder", finder)
+        actions += group(ActionID.finderMenu, title: localized("Show in Finder"), symbol: "folder", finder)
 
         var copies = [ExtensionAction(
-            id: ActionID.copyPID, title: "Copy PID", symbol: "number",
+            id: ActionID.copyPID, title: localized("Copy PID"), symbol: "number",
             kind: .copy(text: "\(listener.pid)"), shortcut: ExtensionShortcut("cmd+shift+c")
         )]
         if let path = process?.path {
-            copies.append(ExtensionAction(id: ActionID.copyPath, title: "Copy Path", symbol: "folder", kind: .copy(text: path)))
+            copies.append(ExtensionAction(id: ActionID.copyPath, title: localized("Copy Path"), symbol: "folder", kind: .copy(text: path)))
         }
         if let commandLine = process?.commandLine {
             copies.append(ExtensionAction(
-                id: ActionID.copyCommandLine, title: "Copy Command Line", symbol: "terminal",
+                id: ActionID.copyCommandLine, title: localized("Copy Command Line"), symbol: "terminal",
                 kind: .copy(text: commandLine), shortcut: ExtensionShortcut("cmd+shift+l")
             ))
         }
@@ -109,11 +127,11 @@ enum PortRows {
         // in Terminal. Never launchd, which would take the Mac down.
         if let process, process.userID != currentUserID, process.pid > 1 {
             copies.append(ExtensionAction(
-                id: ActionID.copyKillCommand, title: "Copy Kill Command", symbol: "xmark.circle",
+                id: ActionID.copyKillCommand, title: localized("Copy Kill Command"), symbol: "xmark.circle",
                 kind: .copy(text: "sudo kill \(process.pid)"), shortcut: ExtensionShortcut("cmd+shift+k")
             ))
         }
-        actions += group(ActionID.copyMenu, title: "Copy", symbol: "doc.on.doc", copies)
+        actions += group(ActionID.copyMenu, title: localized("Copy"), symbol: "doc.on.doc", copies)
         return actions
     }
 
@@ -125,7 +143,10 @@ enum PortRows {
             port.url.map { url in
                 ExtensionAction(
                     id: "\(ActionID.openInBrowser):\(port.port)",
-                    title: single ? "Open in Browser" : "Open \(port.port) in Browser", symbol: "safari",
+                    title: single
+                        ? localized("Open in Browser")
+                        : localized("Open \(String(port.port)) in Browser"),
+                    symbol: "safari",
                     kind: .open(url: url), shortcut: index == 0 ? ExtensionShortcut("cmd+o") : nil
                 )
             }
@@ -155,8 +176,10 @@ enum PortRows {
             ExtensionListAccessory(
                 text: "\(port.port)",
                 tint: port.exposure.tint,
-                help: [names[port.port], port.addresses.joined(separator: ", ")]
-                    .compactMap { $0 }.joined(separator: ", ") + ": \(port.exposure.help)",
+                help: Self.help(
+                    [names[port.port], port.addresses.joined(separator: ", ")].compactMap { $0 }.joined(separator: ", "),
+                    port.exposure.help
+                ),
                 style: .tag
             )
         }
@@ -167,6 +190,11 @@ enum PortRows {
             ))
         }
         return accessories
+    }
+
+    /// “3000, 127.0.0.1:3000: reachable only from this Mac”.
+    private static func help(_ port: String, _ reach: String) -> String {
+        localized("\(port): \(reach)")
     }
 
     /// Typing a port, a port's name, an address, the process, its PID, path,
@@ -187,7 +215,9 @@ enum PortRows {
         let process = listener.process
         var rows = listener.ports.map { port in
             ExtensionMetadataRow(
-                label: names[port.port].map { "Port \(port.port) (\($0))" } ?? "Port \(port.port)",
+                label: names[port.port].map {
+                    localized("Port \(String(port.port)) (\($0))")
+                } ?? localized("Port \(String(port.port))"),
                 value: port.addresses.joined(separator: ", ")
                     + " · \(port.exposure.summary)"
             )
@@ -195,25 +225,27 @@ enum PortRows {
         rows.append(ExtensionMetadataRow(label: "PID", value: "\(listener.pid)"))
         if let process {
             rows.append(ExtensionMetadataRow(
-                label: "User", value: process.userName.map { "\($0) (\(process.userID))" } ?? "\(process.userID)"
+                label: localized("User"), value: process.userName.map { "\($0) (\(process.userID))" } ?? "\(process.userID)"
             ))
         }
         if let parent = listener.parent {
-            rows.append(ExtensionMetadataRow(label: "Parent", value: "\(parent.name) (\(parent.pid))"))
+            rows.append(ExtensionMetadataRow(label: localized("Parent"), value: "\(parent.name) (\(parent.pid))"))
         }
         if let path = process?.path {
-            rows.append(ExtensionMetadataRow(label: "Path", value: path))
+            rows.append(ExtensionMetadataRow(label: localized("Path"), value: path))
         }
         if let path = listener.parent?.path {
-            rows.append(ExtensionMetadataRow(label: "Parent Path", value: path))
+            rows.append(ExtensionMetadataRow(label: localized("Parent Path"), value: path))
         }
         if let process {
-            rows.append(ExtensionMetadataRow(label: "Started", date: process.startedAt))
+            rows.append(ExtensionMetadataRow(label: localized("Started"), date: process.startedAt))
         }
         let numbers = listener.ports.map { "\($0.port)" }.joined(separator: ", ")
         return ExtensionDetail(
             title: listener.processName,
-            subtitle: listener.ports.count == 1 ? "Port \(numbers)" : "Ports \(numbers)",
+            subtitle: listener.ports.count == 1
+                ? localized("Port \(numbers)")
+                : localized("Ports \(numbers)"),
             icon: icon,
             // Another user's arguments can't be read; the path still shows below.
             markdown: process?.commandLine.map(codeBlock),
@@ -234,14 +266,15 @@ enum PortRows {
         return "\(fence)\n\(text)\n\(fence)"
     }
 
-    /// “port 3000”, “ports 3000 and 5173”, “ports 3000, 5173, and 8080”.
+    /// “port 3000”, “ports 3000 and 5173”, “ports 3000, 5173, and 8080”,
+    /// listed the way Prism's language lists things.
     static func portList(_ ports: [ListeningPort]) -> String {
         let numbers = ports.map { "\($0.port)" }
-        switch numbers.count {
-        case 1: return "port \(numbers[0])"
-        case 2: return "ports \(numbers[0]) and \(numbers[1])"
-        default: return "ports \(numbers.dropLast().joined(separator: ", ")), and \(numbers.last!)"
+        if numbers.count == 1, let number = numbers.first {
+            return localized("port \(number)")
         }
+        let list = numbers.formatted(.list(type: .and).locale(PrismLocalization.locale))
+        return localized("ports \(list)")
     }
 }
 
@@ -264,17 +297,17 @@ extension Exposure {
 
     var help: String {
         switch self {
-        case .localhost: "reachable only from this Mac"
-        case .interface: "reachable only through this address"
-        case .network: "reachable from other devices on your network"
+        case .localhost: localized("reachable only from this Mac")
+        case .interface: localized("reachable only through this address")
+        case .network: localized("reachable from other devices on your network")
         }
     }
 
     var summary: String {
         switch self {
-        case .localhost: "This Mac only"
-        case .interface: "One network interface"
-        case .network: "Every network interface"
+        case .localhost: localized("This Mac only")
+        case .interface: localized("One network interface")
+        case .network: localized("Every network interface")
         }
     }
 }

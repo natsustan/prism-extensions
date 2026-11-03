@@ -40,7 +40,7 @@ struct LoremIpsum: PrismExtension {
 
     func list(command: String, query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
         guard command == CommandID.generate else {
-            throw PrismExtensionError(String(localized: "Lorem Ipsum has no list “\(command)”.", bundle: .module.prismLocalized))
+            throw PrismExtensionError(localized("Lorem Ipsum has no list “\(command)”."))
         }
         let language = try await Self.language(choosing: filter, context: context)
         // Prism shows the first filter as chosen until the user picks one,
@@ -48,7 +48,7 @@ struct LoremIpsum: PrismExtension {
         let filters = ([language] + LoremLanguage.allCases.filter { $0 != language }).map {
             ExtensionListFilter(id: $0.rawValue, title: $0.title)
         }
-        let placeholder = String(localized: "How many? Try 3, 5 w, or 20 sentences…", bundle: .module.prismLocalized)
+        let placeholder = localized("How many? Try 3, 5 w, or 20 sentences…")
         switch LoremQuery(query) {
         case let .rows(count, kinds):
             let seed = await Self.seed(context)
@@ -67,8 +67,8 @@ struct LoremIpsum: PrismExtension {
             return ExtensionList(
                 items: [], filtering: .extension, searchPlaceholder: placeholder, filters: filters,
                 emptyMessage: ExtensionListMessage(
-                    title: String(localized: "Try Another Number", bundle: .module.prismLocalized),
-                    message: String(localized: "Type a number from 1 to 1,000.", bundle: .module.prismLocalized),
+                    title: localized("Try Another Number"),
+                    message: localized("Type a number from 1 to 1,000."),
                     symbol: "number"
                 )
             )
@@ -76,8 +76,8 @@ struct LoremIpsum: PrismExtension {
             return ExtensionList(
                 items: [], filtering: .extension, searchPlaceholder: placeholder, filters: filters,
                 emptyMessage: ExtensionListMessage(
-                    title: String(localized: "Type a Number", bundle: .module.prismLocalized),
-                    message: String(localized: "Add paragraphs, sentences, or words after it, such as “5 words”.", bundle: .module.prismLocalized),
+                    title: localized("Type a Number"),
+                    message: localized("Add paragraphs, sentences, or words after it, such as “5 words”."),
                     symbol: "text.alignleft"
                 )
             )
@@ -90,13 +90,13 @@ struct LoremIpsum: PrismExtension {
         // A word count means nothing in Chinese or Japanese, which don't space words.
         let words = request.language.countsCharacters
             ? [] : [ExtensionMetadataRow(
-                label: String(localized: "Words", bundle: .module.prismLocalized),
+                label: localized("Words"),
                 value: Self.formatted(Self.wordCount(text))
             )]
         return ExtensionDetail(
             markdown: text,
             metadata: words + [ExtensionMetadataRow(
-                label: String(localized: "Characters", bundle: .module.prismLocalized),
+                label: localized("Characters"),
                 value: Self.formatted(text.count)
             )]
         )
@@ -115,7 +115,7 @@ struct LoremIpsum: PrismExtension {
             await rotateSeed(context)
             return .reload()
         default:
-            throw PrismExtensionError(String(localized: "Lorem Ipsum has no action “\(action)”.", bundle: .module.prismLocalized))
+            throw PrismExtensionError(localized("Lorem Ipsum has no action “\(action)”."))
         }
     }
 
@@ -175,19 +175,19 @@ struct LoremIpsum: PrismExtension {
             title: request.kind.title(count: request.count, in: request.language),
             icon: ExtensionIcon(symbol: request.kind.symbol, tint: "gray"),
             accessories: [ExtensionListAccessory(
-                text: String(localized: "\(formatted(text.count)) characters", bundle: .module.prismLocalized)
+                text: localized("\(formatted(text.count)) characters")
             )],
             actions: [
                 ExtensionAction(
-                    id: ActionID.paste, title: String(localized: "Paste to Active App", bundle: .module.prismLocalized),
+                    id: ActionID.paste, title: localized("Paste to Active App"),
                     symbol: "doc.on.clipboard"
                 ),
                 ExtensionAction(
-                    id: ActionID.copy, title: String(localized: "Copy to Clipboard", bundle: .module.prismLocalized), symbol: "doc.on.doc",
+                    id: ActionID.copy, title: localized("Copy to Clipboard"), symbol: "doc.on.doc",
                     shortcut: ExtensionShortcut("cmd+shift+c")
                 ),
                 ExtensionAction(
-                    id: ActionID.regenerate, title: String(localized: "Regenerate", bundle: .module.prismLocalized), symbol: "arrow.clockwise",
+                    id: ActionID.regenerate, title: localized("Regenerate"), symbol: "arrow.clockwise",
                     shortcut: ExtensionShortcut("cmd+r")
                 ),
             ]
@@ -204,7 +204,7 @@ struct LoremIpsum: PrismExtension {
 
     private static func request(_ item: String) throws -> LoremRequest {
         guard let request = LoremRequest(id: item) else {
-            throw PrismExtensionError(String(localized: "Lorem Ipsum has no row “\(item)”.", bundle: .module.prismLocalized))
+            throw PrismExtensionError(localized("Lorem Ipsum has no row “\(item)”."))
         }
         return request
     }

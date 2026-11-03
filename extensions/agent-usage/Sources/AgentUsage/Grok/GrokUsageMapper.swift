@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 /// Parses the Grok CLI's credits endpoint and turns it into report rows.
 enum GrokUsageMapper {
@@ -69,7 +70,7 @@ enum GrokUsageMapper {
         if config.periodType == weeklyPeriodType {
             metrics.append(AgentUsageMetric(
                 id: "weekly",
-                title: "Weekly Limit",
+                title: localized("Weekly Limit"),
                 section: .limits,
                 value: .progress(
                     used: min(max(config.usedPercent, 0), 100),
@@ -84,13 +85,13 @@ enum GrokUsageMapper {
             // pool. Reporting its monthly percent as "weekly" would be worse
             // than an honest blank.
             metrics.append(AgentUsageMetric(
-                id: "weekly", title: "Weekly Limit", section: .limits, value: .badge("No data")))
+                id: "weekly", title: localized("Weekly Limit"), section: .limits, value: .badge(localized("No data"))))
         }
         metrics.append(AgentUsageMetric(
             id: "pay-as-you-go",
-            title: "Pay as you go",
+            title: localized("Pay as you go"),
             section: .creditsAndResets,
-            value: .badge(config.onDemandCap > 0 ? "\(formatUnits(config.onDemandCap)) cap" : "Disabled")
+            value: .badge(config.onDemandCap > 0 ? cap(config.onDemandCap) : localized("Disabled"))
         ))
         return AgentUsageReport(
             providerID: .grok,
@@ -100,6 +101,12 @@ enum GrokUsageMapper {
             metrics: metrics,
             fetchedAt: fetchedAt
         )
+    }
+
+    /// "2500 cap": the on-demand spending cap.
+    private static func cap(_ value: Double) -> String {
+        let units = formatUnits(value)
+        return localized("\(units) cap")
     }
 
     private static func formatUnits(_ value: Double) -> String {

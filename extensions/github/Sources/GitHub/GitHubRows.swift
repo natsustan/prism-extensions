@@ -19,9 +19,9 @@ enum GitHubRows {
         let url = webURL(for: notification, server: server)
         var accessories = [ExtensionListAccessory]()
         if let reason = reasonTitle(notification.reason) {
-            accessories.append(ExtensionListAccessory(text: reason, help: "Why you were notified"))
+            accessories.append(ExtensionListAccessory(text: reason, help: localized("Why you were notified")))
         }
-        accessories.append(ExtensionListAccessory(text: age(of: notification.updatedAt, now: now), help: "Updated"))
+        accessories.append(ExtensionListAccessory(text: age(of: notification.updatedAt, now: now), help: localized("Updated")))
         return ExtensionListItem(
             id: notification.id,
             title: notification.subject.title,
@@ -29,7 +29,7 @@ enum GitHubRows {
             icon: subjectIcon(notification.subject.type, unread: notification.unread),
             accessories: accessories,
             keywords: [notification.subject.type, notification.reason],
-            section: sectioned ? (notification.unread ? "Unread" : "Read") : nil,
+            section: sectioned ? (notification.unread ? localized("Unread") : localized("Read")) : nil,
             actions: linkActions(url: url, title: notification.subject.title)
         )
     }
@@ -46,19 +46,19 @@ enum GitHubRows {
 
     static func reasonTitle(_ reason: String) -> String? {
         switch reason {
-        case "approval_requested": "Approval Requested"
-        case "assign": "Assigned"
-        case "author": "Author"
+        case "approval_requested": localized("Approval Requested")
+        case "assign": localized("Assigned")
+        case "author": localized("Author")
         case "ci_activity": "CI"
-        case "comment": "Comment"
-        case "invitation": "Invitation"
-        case "manual", "subscribed": "Subscribed"
-        case "member_feature_requested": "Feature Request"
-        case "mention": "Mentioned"
-        case "review_requested": "Review Requested"
-        case "security_alert", "security_advisory_credit": "Security"
-        case "state_change": "State Changed"
-        case "team_mention": "Team Mentioned"
+        case "comment": localized("Comment")
+        case "invitation": localized("Invitation")
+        case "manual", "subscribed": localized("Subscribed")
+        case "member_feature_requested": localized("Feature Request")
+        case "mention": localized("Mentioned")
+        case "review_requested": localized("Review Requested")
+        case "security_alert", "security_advisory_credit": localized("Security")
+        case "state_change": localized("State Changed")
+        case "team_mention": localized("Team Mentioned")
         default: nil
         }
     }
@@ -85,12 +85,12 @@ enum GitHubRows {
         let reference = "\(issue.repositoryName)#\(issue.number)"
         var accessories = [ExtensionListAccessory]()
         if issue.draft == true, issue.isOpen {
-            accessories.append(ExtensionListAccessory(text: "Draft", help: "Draft pull request"))
+            accessories.append(ExtensionListAccessory(text: localized("Draft"), help: localized("Draft pull request")))
         }
         if let author = issue.user?.login {
-            accessories.append(ExtensionListAccessory(text: author, help: "Author"))
+            accessories.append(ExtensionListAccessory(text: author, help: localized("Author")))
         }
-        accessories.append(ExtensionListAccessory(text: age(of: issue.updatedAt, now: now), help: "Updated"))
+        accessories.append(ExtensionListAccessory(text: age(of: issue.updatedAt, now: now), help: localized("Updated")))
         return ExtensionListItem(
             id: String(issue.id),
             title: issue.title,
@@ -128,22 +128,22 @@ enum GitHubRows {
     static func item(for repository: GitHubRepository, showsStars: Bool, now: Date) -> ExtensionListItem {
         var accessories = [ExtensionListAccessory]()
         if repository.private {
-            accessories.append(ExtensionListAccessory(symbol: "lock.fill", help: "Private"))
+            accessories.append(ExtensionListAccessory(symbol: "lock.fill", help: localized("Private")))
         }
         if repository.archived == true {
-            accessories.append(ExtensionListAccessory(text: "Archived", help: "Archived repository"))
+            accessories.append(ExtensionListAccessory(text: localized("Archived"), help: localized("Archived repository")))
         }
         if showsStars, let stars = repository.stargazersCount {
-            accessories.append(ExtensionListAccessory(text: starCount(stars), symbol: "star", help: "Stars"))
+            accessories.append(ExtensionListAccessory(text: starCount(stars), symbol: "star", help: localized("Stars")))
         }
         if let date = repository.starredAt ?? repository.updatedAt {
             accessories.append(ExtensionListAccessory(
-                text: age(of: date, now: now), help: repository.starredAt == nil ? "Updated" : "Starred"
+                text: age(of: date, now: now), help: repository.starredAt == nil ? localized("Updated") : localized("Starred")
             ))
         }
         var actions = linkActions(url: repository.htmlUrl, title: nil)
         actions.append(ExtensionAction(
-            id: ActionID.copyName, title: "Copy Name", symbol: "doc.on.doc",
+            id: ActionID.copyName, title: localized("Copy Name"), symbol: "doc.on.doc",
             kind: .copy(text: repository.fullName), shortcut: ExtensionShortcut("cmd+shift+t")
         ))
         return ExtensionListItem(
@@ -169,15 +169,15 @@ enum GitHubRows {
 
     static func linkActions(url: URL, title: String?) -> [ExtensionAction] {
         var actions = [
-            ExtensionAction(id: ActionID.open, title: "Open in Browser", symbol: "safari", kind: .open(url: url)),
+            ExtensionAction(id: ActionID.open, title: localized("Open in Browser"), symbol: "safari", kind: .open(url: url)),
             ExtensionAction(
-                id: ActionID.copyURL, title: "Copy URL", symbol: "link",
+                id: ActionID.copyURL, title: localized("Copy URL"), symbol: "link",
                 kind: .copy(text: url.absoluteString), shortcut: ExtensionShortcut("cmd+shift+c")
             ),
         ]
         if let title {
             actions.append(ExtensionAction(
-                id: ActionID.copyTitle, title: "Copy Title", symbol: "doc.on.doc",
+                id: ActionID.copyTitle, title: localized("Copy Title"), symbol: "doc.on.doc",
                 kind: .copy(text: title), shortcut: ExtensionShortcut("cmd+shift+t")
             ))
         }
@@ -190,12 +190,12 @@ enum GitHubRows {
         let minutes = Int(seconds / 60)
         let hours = minutes / 60
         let days = hours / 24
-        if minutes < 1 { return "now" }
-        if hours < 1 { return "\(minutes)m" }
-        if days < 1 { return "\(hours)h" }
-        if days < 7 { return "\(days)d" }
-        if days < 365 { return "\(days / 7)w" }
-        return "\(days / 365)y"
+        if minutes < 1 { return localized("now") }
+        if hours < 1 { return localized("\(minutes)m") }
+        if days < 1 { return localized("\(hours)h") }
+        if days < 7 { return localized("\(days)d") }
+        if days < 365 { return localized("\(days / 7)w") }
+        return localized("\(days / 365)y")
     }
 
     // MARK: - Setup and errors
@@ -205,11 +205,11 @@ enum GitHubRows {
     static func tokenItem(server: GitHubServer) -> ExtensionListItem {
         ExtensionListItem(
             id: "create-token",
-            title: "Add a GitHub Token",
-            subtitle: "Create a classic token, then paste it in Settings → Extensions → GitHub",
+            title: localized("Add a GitHub Token"),
+            subtitle: localized("Create a classic token, then paste it in Settings → Extensions → GitHub"),
             icon: ExtensionIcon(symbol: "key", tint: "gray", style: .glyph),
             actions: [ExtensionAction(
-                id: ActionID.createToken, title: "Create Token on GitHub", symbol: "safari",
+                id: ActionID.createToken, title: localized("Create Token on GitHub"), symbol: "safari",
                 kind: .open(url: server.newTokenURL)
             )]
         )
@@ -221,11 +221,11 @@ enum GitHubRows {
         let command = host == "github.com" ? GitHubCLI.loginCommand : "\(GitHubCLI.loginCommand) --hostname \(host)"
         return ExtensionListItem(
             id: "github-cli",
-            title: "Sign In with GitHub CLI",
-            subtitle: "Run \(command) in Terminal, then reopen this list",
+            title: localized("Sign In with GitHub CLI"),
+            subtitle: localized("Run \(command) in Terminal, then reopen this list"),
             icon: ExtensionIcon(symbol: "terminal", tint: "gray", style: .glyph),
             actions: [ExtensionAction(
-                id: ActionID.copyLoginCommand, title: "Copy Command", symbol: "doc.on.doc",
+                id: ActionID.copyLoginCommand, title: localized("Copy Command"), symbol: "doc.on.doc",
                 kind: .copy(text: command)
             )]
         )
@@ -234,22 +234,39 @@ enum GitHubRows {
     static func message(for error: GitHubError, source: GitHubTokenSource = .preferences, now: Date) -> ExtensionListMessage {
         if source == .githubCLI, error == .invalidToken || error == .missingScope {
             return ExtensionListMessage(
-                title: "GitHub Didn’t Accept the GitHub CLI Login",
-                message: "Run \(GitHubCLI.loginCommand) in Terminal again, or paste a token in Settings → Extensions → GitHub.",
+                title: localized("GitHub Didn’t Accept the GitHub CLI Login"),
+                message: localized("Run \(GitHubCLI.loginCommand) in Terminal again, or paste a token in Settings → Extensions → GitHub."),
                 symbol: "terminal"
             )
         }
+        let scopes = GitHubClient.scopes.joined(separator: ", ")
         return switch error {
         case .missingToken:
-            ExtensionListMessage(title: "Add a GitHub Token", message: "Paste a token in Settings → Extensions → GitHub.", symbol: "key")
+            ExtensionListMessage(
+                title: localized("Add a GitHub Token"), message: localized("Paste a token in Settings → Extensions → GitHub."), symbol: "key"
+            )
         case .invalidServer:
-            ExtensionListMessage(title: "Check the Server Address", message: "Enter https://github.com or your GitHub Enterprise address in Settings → Extensions → GitHub.", symbol: "exclamationmark.triangle")
+            ExtensionListMessage(
+                title: localized("Check the Server Address"),
+                message: localized("Enter https://github.com or your GitHub Enterprise address in Settings → Extensions → GitHub."),
+                symbol: "exclamationmark.triangle"
+            )
         case .invalidToken:
-            ExtensionListMessage(title: "GitHub Didn’t Accept the Token", message: "It may have expired. Paste a new one in Settings → Extensions → GitHub.", symbol: "key")
+            ExtensionListMessage(
+                title: localized("GitHub Didn’t Accept the Token"),
+                message: localized("It may have expired. Paste a new one in Settings → Extensions → GitHub."), symbol: "key"
+            )
         case .missingScope:
-            ExtensionListMessage(title: "The Token Needs More Access", message: "Use a classic token with the \(GitHubClient.scopes.joined(separator: ", ")) scopes.", symbol: "key")
+            ExtensionListMessage(
+                title: localized("The Token Needs More Access"),
+                message: localized("Use a classic token with the \(scopes) scopes."), symbol: "key"
+            )
         case .notificationsNeedClassicToken:
-            ExtensionListMessage(title: "Notifications Need a Classic Token", message: "GitHub doesn’t share notifications with fine-grained tokens. Create a classic token with the notifications scope.", symbol: "key")
+            ExtensionListMessage(
+                title: localized("Notifications Need a Classic Token"),
+                message: localized("GitHub doesn’t share notifications with fine-grained tokens. Create a classic token with the notifications scope."),
+                symbol: "key"
+            )
         case .rateLimited, .status, .unexpectedResponse, .unreachable:
             ExtensionListMessage(title: summary(of: error, now: now), symbol: "exclamationmark.triangle")
         }
@@ -261,15 +278,15 @@ enum GitHubRows {
         case let .rateLimited(resetsAt):
             if let resetsAt, resetsAt > now {
                 let minutes = max(1, Int((resetsAt.timeIntervalSince(now) / 60).rounded(.up)))
-                return "GitHub’s rate limit was reached. Try again in \(minutes) min."
+                return localized("GitHub’s rate limit was reached. Try again in \(minutes) min.")
             }
-            return "GitHub’s rate limit was reached. Try again shortly."
+            return localized("GitHub’s rate limit was reached. Try again shortly.")
         case let .status(code):
-            return "GitHub answered with an error (HTTP \(code))."
+            return localized("GitHub answered with an error (HTTP \(code)).")
         case .unexpectedResponse:
-            return "GitHub sent a response Prism couldn’t read."
+            return localized("GitHub sent a response Prism couldn’t read.")
         case let .unreachable(reason):
-            return "Couldn’t reach GitHub: \(reason)"
+            return localized("Couldn’t reach GitHub: \(reason)")
         case .missingToken, .invalidServer, .invalidToken, .missingScope, .notificationsNeedClassicToken:
             return message(for: error, now: now).title
         }

@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.color-picker",
   "name": "Color Picker",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Prism",
   "description": "Pick colors anywhere on screen, keep them, and copy them as HEX, RGB, HSL, OKLCH, LCH, Display P3, or SwiftUI.",
   "icon": { "symbol": "eyedropper", "tint": "pink" },

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0
+
+- In Simplified or Traditional Chinese, filters, categories, actions, setup
+  rows, and messages are in Chinese too. Item and vault names stay as they
+  are in 1Password.
+
 ## 1.1.0
 
 - When Prism runs in Simplified or Traditional Chinese, it shows this

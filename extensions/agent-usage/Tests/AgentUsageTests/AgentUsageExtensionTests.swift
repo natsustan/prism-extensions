@@ -18,6 +18,7 @@ final class AgentUsageFixture {
     init(
         preferences: [String: ExtensionValue] = [:],
         dataDirectory: URL? = nil,
+        language: String = "en",
         extra: @escaping @MainActor (any ZAISecretStore) -> [any AgentUsageProvider] = { _ in [] }
     ) async throws {
         let codex = codex, grok = grok
@@ -26,7 +27,7 @@ final class AgentUsageFixture {
         }
         prism = try await PrismTestHost(
             AgentUsage(session: session), extensionID: "prism.agent-usage",
-            preferences: preferences, dataDirectory: dataDirectory
+            preferences: preferences, dataDirectory: dataDirectory, language: language
         )
     }
 
@@ -38,7 +39,7 @@ final class AgentUsageFixture {
 }
 
 @MainActor
-@Suite("Agent Usage extension")
+@Suite("Agent Usage extension", .english)
 struct AgentUsageExtensionTests {
     @Test("the manifest validates and declares the list, grouped preferences, and the widgets it serves")
     func manifest() throws {
@@ -84,6 +85,36 @@ struct AgentUsageExtensionTests {
 
         try await fixture.prism.setPreferences(["agents": arrangement.setting("codex", isOn: false, items: items).value])
         #expect(try await fixture.prism.list("usage").items.map(\.id) == ["grok"])
+    }
+
+    @Test("in Simplified Chinese the list, detail, actions, and badges are Chinese; agent names stay")
+    func simplifiedChinese() async throws {
+        let fixture = try await AgentUsageFixture(language: "zh-Hans")
+        _ = try await fixture.prism.list("usage")
+        await fixture.settle()
+        let list = try await fixture.prism.list("usage")
+        #expect(list.searchPlaceholder == "筛选 Agent…")
+        #expect(list.items[0].title == "Codex")
+        #expect(list.items[0].actions.map(\.title) == ["刷新", "拷贝用量摘要"])
+        #expect(list.items[0].detail?.sections.first?.rows.first?.value == "剩余 58%")
+        #expect(try await fixture.prism.preferenceItems("agents").first?.badge == "已配置")
+    }
+
+    @Test("Traditional Chinese uses Taiwan terms for shared text and formats durations in Chinese")
+    func traditionalChinese() async throws {
+        let fixture = try await AgentUsageFixture(preferences: ["showsRemaining": .bool(false)], language: "zh-Hant")
+        _ = try await fixture.prism.list("usage")
+        await fixture.settle()
+        let list = try await fixture.prism.list("usage")
+        #expect(list.items[0].actions.first?.title == "重新整理")
+        #expect(list.items[0].detail?.sections.first?.rows.first?.value == "已用 42%")
+        PrismLocalization.$language.withValue("zh-Hant") {
+            #expect(AgentUsageFormat.durationText(3 * 86_400 + 4 * 3600) == "3 天 4 小時")
+            #expect(AgentUsageFormat.resetText(resetsAt: Date(timeIntervalSince1970: 200_000), now: Date(timeIntervalSince1970: 0))
+                == "2 天 7 小時 33 分鐘後重置")
+            #expect(AgentUsageFailure.network("x").shortStatusText == "離線")
+            #expect(AgentUsageMetric.Section.creditsAndResets.title == "額度與重置")
+        }
     }
 
     @Test("the remaining switch flips list and detail text")
@@ -164,7 +195,7 @@ struct AgentUsageExtensionTests {
 }
 
 @MainActor
-@Suite("Agent Usage presentation")
+@Suite("Agent Usage presentation", .english)
 struct AgentUsagePresentationTests {
     private func row(failure: AgentUsageFailure? = nil, refreshing: Bool = false) -> AgentUsageRow {
         let report = AgentUsageReport.fixture(usedPercent: 80)

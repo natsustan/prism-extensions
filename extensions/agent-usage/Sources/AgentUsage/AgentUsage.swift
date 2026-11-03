@@ -36,14 +36,14 @@ struct AgentUsage: PrismExtension {
 
     func list(command: String, query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
         guard command == CommandID.usage else {
-            throw PrismExtensionError("This Agent Usage list is not available.")
+            throw PrismExtensionError(localized("This Agent Usage list is not available."))
         }
         return await session.list(context)
     }
 
     func perform(action: String, item: String, command: String, context: PrismContext) async throws -> ExtensionActionResult {
         guard action == ActionID.refresh else {
-            throw PrismExtensionError("This action is not available.")
+            throw PrismExtensionError(localized("This action is not available."))
         }
         await session.refresh(context)
         return ExtensionActionResult(.keepOpen(message: ""))

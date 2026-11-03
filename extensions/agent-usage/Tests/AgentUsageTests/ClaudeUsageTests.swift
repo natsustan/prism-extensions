@@ -4,7 +4,7 @@ import Testing
 
 /// Fixtures are synthetic: the shapes mirror the live endpoints, the numbers and
 /// accounts do not come from any real login.
-@Suite("Claude usage mapping")
+@Suite("Claude usage mapping", .english)
 struct ClaudeUsageMapperTests {
     private static let credentials = ClaudeCredentials(
         accessToken: "test-access-token",
@@ -236,7 +236,7 @@ struct ClaudeUsageMapperTests {
     }
 }
 
-@Suite("Claude credentials")
+@Suite("Claude credentials", .english)
 struct ClaudeAuthStoreTests {
     private static let record = """
         {"claudeAiOauth": {"accessToken": "keychain-token", "refreshToken": "r",
@@ -355,7 +355,7 @@ struct ClaudeAuthStoreTests {
     }
 }
 
-@Suite("Claude usage provider")
+@Suite("Claude usage provider", .english)
 struct ClaudeAgentUsageProviderTests {
     private static func provider(
         record: String = #"{"claudeAiOauth":{"accessToken":"saved-token","scopes":["user:profile"]}}"#,

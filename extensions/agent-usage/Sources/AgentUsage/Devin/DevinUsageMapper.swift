@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 enum DevinUsageError: Error, Equatable, Sendable {
     case invalidResponse
@@ -44,7 +45,7 @@ enum DevinUsageMapper {
         if !hideDailyQuota,
            let daily = dailyRemaining ?? (dailyReset != nil ? 0 : nil) {
             metrics.append(quotaMetric(
-                id: "daily", title: "Daily Quota",
+                id: "daily", title: localized("Daily Quota"),
                 remaining: daily, resetsAt: dailyReset,
                 windowSeconds: dailyWindowSeconds))
         }
@@ -53,14 +54,14 @@ enum DevinUsageMapper {
         // means an exhausted weekly window, not a missing one.
         if let weekly = weeklyRemaining ?? (weeklyReset != nil ? 0 : nil) {
             metrics.append(quotaMetric(
-                id: "weekly", title: "Weekly Quota",
+                id: "weekly", title: localized("Weekly Quota"),
                 remaining: weekly, resetsAt: weeklyReset,
                 windowSeconds: weeklyWindowSeconds))
         } else if hideDailyQuota, let dailyRemaining {
             // No weekly fields at all: surface the hidden daily quota so the
             // report stays meaningful — still flipped to "used".
             metrics.append(quotaMetric(
-                id: "weekly", title: "Weekly Quota",
+                id: "weekly", title: localized("Weekly Quota"),
                 remaining: dailyRemaining, resetsAt: weeklyReset,
                 windowSeconds: weeklyWindowSeconds))
         }
@@ -68,7 +69,7 @@ enum DevinUsageMapper {
         if let extraBalance {
             metrics.append(AgentUsageMetric(
                 id: "extra-balance",
-                title: "Extra Usage Balance",
+                title: localized("Extra Usage Balance"),
                 section: .creditsAndResets,
                 value: .text(String(format: "$%.2f", extraBalance))))
         }

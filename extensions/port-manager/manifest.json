@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.port-manager",
   "name": "Port Manager",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Prism",
   "description": "See which programs listen on which TCP ports, how far each port reaches, and kill the process behind one.",
   "icon": { "symbol": "network", "tint": "teal" },

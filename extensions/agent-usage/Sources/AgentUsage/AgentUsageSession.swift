@@ -51,7 +51,7 @@ final class AgentUsageSession {
 
     func widget(_ widget: String, context: PrismContext) throws -> ExtensionWidgetContent {
         guard let template = Self.widgetTemplates[widget] else {
-            throw PrismExtensionError("Agent Usage has no widget “\(widget)”.")
+            throw PrismExtensionError(localized("Agent Usage has no widget “\(widget)”."))
         }
         let controller = prepare(context)
         controller.refreshIfNeeded()
@@ -69,7 +69,7 @@ final class AgentUsageSession {
                 id: row.id.rawValue,
                 title: row.displayName,
                 icon: row.icon.extensionIcon,
-                badge: controller.isConfigured(row.id) ? "Configured" : nil,
+                badge: controller.isConfigured(row.id) ? localized("Configured") : nil,
                 isOn: controller.isDetected(row.id)
             )
         }

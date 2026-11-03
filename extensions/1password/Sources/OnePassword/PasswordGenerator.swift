@@ -24,9 +24,9 @@ enum PasswordRecipe: String, CaseIterable, Sendable {
 
     var summary: String {
         switch self {
-        case .random20, .random32: "\(length) characters with letters, digits, and symbols"
-        case .lettersAndDigits: "\(length) characters with letters and digits"
-        case .pin: "\(length)-digit PIN"
+        case .random20, .random32: localized("\(length) characters with letters, digits, and symbols")
+        case .lettersAndDigits: localized("\(length) characters with letters and digits")
+        case .pin: localized("\(length)-digit PIN")
         }
     }
 

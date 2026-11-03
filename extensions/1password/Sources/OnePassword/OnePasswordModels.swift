@@ -74,17 +74,60 @@ enum OnePasswordCategory {
 
     static func title(_ category: String) -> String {
         switch category {
-        case "API_CREDENTIAL": "API Credential"
-        case "SSH_KEY": "SSH Key"
+        case "LOGIN": localized("Login")
+        case "PASSWORD": localized("Password")
+        case "SECURE_NOTE": localized("Secure Note")
+        case "CREDIT_CARD": localized("Credit Card")
+        case "IDENTITY": localized("Identity")
+        case "API_CREDENTIAL": localized("API Credential")
+        case "SSH_KEY": localized("SSH Key")
+        case "DOCUMENT": localized("Document")
+        case "DATABASE": localized("Database")
+        case "SERVER": localized("Server")
+        case "SOFTWARE_LICENSE": localized("Software License")
+        case "BANK_ACCOUNT": localized("Bank Account")
+        case "WIRELESS_ROUTER": localized("Wireless Router")
+        case "EMAIL_ACCOUNT": localized("Email Account")
+        case "MEMBERSHIP": localized("Membership")
+        case "REWARD_PROGRAM": localized("Reward Program")
+        case "PASSPORT": localized("Passport")
+        case "DRIVER_LICENSE": localized("Driver License")
+        case "OUTDOOR_LICENSE": localized("Outdoor License")
+        case "SOCIAL_SECURITY_NUMBER": localized("Social Security Number")
+        case "MEDICAL_RECORD": localized("Medical Record")
+        case "CRYPTO_WALLET": localized("Crypto Wallet")
+        // A category newer than this list, as 1Password names it.
         default: category.split(separator: "_").map { $0.capitalized }.joined(separator: " ")
         }
     }
 
-    /// The plural shown in ⌘P.
+    /// The plural shown in ⌘P, for the categories in `filtered`.
     static func pluralTitle(_ category: String) -> String {
         switch category {
-        case "IDENTITY": "Identities"
+        case "LOGIN": localized("Logins")
+        case "PASSWORD": localized("Passwords")
+        case "SECURE_NOTE": localized("Secure Notes")
+        case "CREDIT_CARD": localized("Credit Cards")
+        case "IDENTITY": localized("Identities")
+        case "API_CREDENTIAL": localized("API Credentials")
+        case "SSH_KEY": localized("SSH Keys")
+        case "DOCUMENT": localized("Documents")
         default: title(category) + "s"
+        }
+    }
+
+    /// The empty state of a category filter, as a whole phrase.
+    static func noneTitle(_ category: String) -> String {
+        switch category {
+        case "LOGIN": localized("No Logins")
+        case "PASSWORD": localized("No Passwords")
+        case "SECURE_NOTE": localized("No Secure Notes")
+        case "CREDIT_CARD": localized("No Credit Cards")
+        case "IDENTITY": localized("No Identities")
+        case "API_CREDENTIAL": localized("No API Credentials")
+        case "SSH_KEY": localized("No SSH Keys")
+        case "DOCUMENT": localized("No Documents")
+        default: localized("No \(pluralTitle(category))")
         }
     }
 

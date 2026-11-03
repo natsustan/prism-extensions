@@ -23,17 +23,17 @@ enum LoremKind: String, CaseIterable, Sendable {
         let one = count == 1
         return switch self {
         case .paragraphs:
-            one ? String(localized: "1 Paragraph", bundle: .module.prismLocalized)
-                : String(localized: "\(count) Paragraphs", bundle: .module.prismLocalized)
+            one ? localized("1 Paragraph")
+                : localized("\(count) Paragraphs")
         case .sentences:
-            one ? String(localized: "1 Sentence", bundle: .module.prismLocalized)
-                : String(localized: "\(count) Sentences", bundle: .module.prismLocalized)
+            one ? localized("1 Sentence")
+                : localized("\(count) Sentences")
         case .words where language.countsCharacters:
-            one ? String(localized: "1 Character", bundle: .module.prismLocalized)
-                : String(localized: "\(count) Characters", bundle: .module.prismLocalized)
+            one ? localized("1 Character")
+                : localized("\(count) Characters")
         case .words:
-            one ? String(localized: "1 Word", bundle: .module.prismLocalized)
-                : String(localized: "\(count) Words", bundle: .module.prismLocalized)
+            one ? localized("1 Word")
+                : localized("\(count) Words")
         }
     }
 
@@ -42,17 +42,17 @@ enum LoremKind: String, CaseIterable, Sendable {
         let one = count == 1
         return switch self {
         case .paragraphs:
-            one ? String(localized: "Copied 1 paragraph", bundle: .module.prismLocalized)
-                : String(localized: "Copied \(count) paragraphs", bundle: .module.prismLocalized)
+            one ? localized("Copied 1 paragraph")
+                : localized("Copied \(count) paragraphs")
         case .sentences:
-            one ? String(localized: "Copied 1 sentence", bundle: .module.prismLocalized)
-                : String(localized: "Copied \(count) sentences", bundle: .module.prismLocalized)
+            one ? localized("Copied 1 sentence")
+                : localized("Copied \(count) sentences")
         case .words where language.countsCharacters:
-            one ? String(localized: "Copied 1 character", bundle: .module.prismLocalized)
-                : String(localized: "Copied \(count) characters", bundle: .module.prismLocalized)
+            one ? localized("Copied 1 character")
+                : localized("Copied \(count) characters")
         case .words:
-            one ? String(localized: "Copied 1 word", bundle: .module.prismLocalized)
-                : String(localized: "Copied \(count) words", bundle: .module.prismLocalized)
+            one ? localized("Copied 1 word")
+                : localized("Copied \(count) words")
         }
     }
 

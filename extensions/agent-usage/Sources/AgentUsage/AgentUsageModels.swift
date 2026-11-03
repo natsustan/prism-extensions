@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 /// One AI coding agent Prism can report usage for. The raw values are stable
 /// preference keys, so persisted toggles survive renames of the display name.
@@ -43,9 +44,9 @@ struct AgentUsageMetric: Identifiable, Equatable, Codable, Sendable {
 
         var title: String {
             switch self {
-            case .limits: "Limits"
-            case .perModel: "Per-model"
-            case .creditsAndResets: "Credits & Resets"
+            case .limits: localized("Limits")
+            case .perModel: localized("Per-model")
+            case .creditsAndResets: localized("Credits & Resets")
             }
         }
     }
@@ -134,13 +135,13 @@ struct AgentUsageReport: Identifiable, Equatable, Sendable {
     var summaryText: String {
         // Export absolute timestamps: pasted text cannot keep a countdown current.
         var lines = [providerName + (plan.map { " · \($0)" } ?? ""),
-                     "Fetched at: \(fetchedAt.ISO8601Format())"]
+                     localized("Fetched at: \(fetchedAt.ISO8601Format())")]
         for metric in metrics {
             switch metric.value {
             case let .progress(used, limit, format, resetsAt, _):
                 let value = AgentUsageFormat.progressText(
                     used: used, limit: limit, format: format, showsRemaining: false)
-                let reset = resetsAt.map { ", resets at \($0.ISO8601Format())" } ?? ""
+                let reset = resetsAt.map { localized(", resets at \($0.ISO8601Format())") } ?? ""
                 lines.append("\(metric.title): \(value)\(reset)")
             case let .text(text), let .badge(text):
                 lines.append("\(metric.title): \(text)")
@@ -192,10 +193,10 @@ enum AgentUsageFailure: Error, Equatable, Codable, Sendable {
     /// sentence: the Agent Usage list row and the AI usage widgets.
     var shortStatusText: String {
         switch self {
-        case .notConfigured: "Not Configured"
-        case .authExpired: "Sign In"
-        case .network: "Offline"
-        case .invalidResponse: "Error"
+        case .notConfigured: localized("Not Configured")
+        case .authExpired: localized("Sign In")
+        case .network: localized("Offline")
+        case .invalidResponse: localized("Error")
         }
     }
 }

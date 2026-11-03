@@ -4,7 +4,7 @@ import Testing
 @testable import AgentUsage
 
 @MainActor
-@Suite("Agent usage controller", .serialized)
+@Suite("Agent usage controller", .serialized, .english)
 struct AgentUsageControllerTests {
     private func makeDefaults() -> UserDefaults {
         UserDefaults(suiteName: "com.spike.prism.tests.agentusage.\(UUID().uuidString)")!
@@ -432,7 +432,7 @@ struct AgentUsageControllerTests {
 }
 
 @MainActor
-@Suite("Agent usage provider cancellation")
+@Suite("Agent usage provider cancellation", .english)
 struct AgentUsageProviderCancellationTests {
     @Test("cancelling usage stops the request and skips optional follow-up requests",
           arguments: AgentUsageProviderID.allCases, [false, true])

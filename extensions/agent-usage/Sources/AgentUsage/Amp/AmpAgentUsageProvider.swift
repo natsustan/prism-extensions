@@ -20,7 +20,7 @@ struct AmpAgentUsageProvider: AgentUsageProvider {
             credentials = try authStore.loadCredentials()
         } catch {
             return .failure(.notConfigured(
-                "Not signed in. Run `amp login` to connect this Mac."))
+                localized("Not signed in. Run `amp login` to connect this Mac.")))
         }
 
         let data: Data
@@ -40,17 +40,17 @@ struct AmpAgentUsageProvider: AgentUsageProvider {
     static func failure(from error: Error) -> AgentUsageFailure {
         switch error {
         case AgentUsageClientError.unauthorized, AmpUsageError.authRejected:
-            return .authExpired("Amp rejected the saved API key. Run `amp login` to refresh it.")
+            return .authExpired(localized("Amp rejected the saved API key. Run `amp login` to refresh it."))
         case let AgentUsageClientError.http(status):
-            return .network("Amp usage request failed (HTTP \(status)). Try again in a moment.")
+            return .network(localized("Amp usage request failed (HTTP \(status)). Try again in a moment."))
         case AgentUsageClientError.transport:
-            return .network("Could not reach Amp. Check the connection and try again.")
+            return .network(localized("Could not reach Amp. Check the connection and try again."))
         case let AmpUsageError.requestFailed(message):
-            return .invalidResponse("Amp usage request failed: \(message)")
+            return .invalidResponse(localized("Amp usage request failed: \(message)"))
         case AmpUsageError.invalidResponse, AgentUsageClientError.invalidResponse:
-            return .invalidResponse("Amp returned an unexpected response.")
+            return .invalidResponse(localized("Amp returned an unexpected response."))
         default:
-            return .invalidResponse("Amp usage could not be read.")
+            return .invalidResponse(localized("Amp usage could not be read."))
         }
     }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 
 /// Display formatting for usage values. Pure functions, so the exact strings
 /// the launcher shows stay covered by tests.
@@ -12,9 +13,11 @@ enum AgentUsageFormat {
     ) -> String {
         let value = limit > 0 ? min(max(used, 0), limit) / limit * 100 : max(used, 0)
         if showsRemaining {
-            return "\(percentText(min(max(100 - value, 0), 100))) remaining"
+            let remaining = percentText(min(max(100 - value, 0), 100))
+            return localized("\(remaining) remaining")
         }
-        return "\(percentText(value)) used"
+        let used = percentText(value)
+        return localized("\(used) used")
     }
 
     /// Just the number, for the list row's trailing badge.
@@ -28,14 +31,14 @@ enum AgentUsageFormat {
     /// one-minute remainder.
     static func resetCountdownText(resetsAt: Date, now: Date) -> String {
         let interval = resetsAt.timeIntervalSince(now)
-        guard interval > 60 else { return "Due" }
+        guard interval > 60 else { return localized("Due") }
         return durationText(interval)
     }
 
     /// "Oct 4 10:01 AM (18d 9h)" — an absolute date with its countdown, the way
     /// the detail pane lists expiring reset credits.
     static func dateText(_ date: Date, now: Date) -> String {
-        let absolute = date.formatted(.dateTime.month(.abbreviated).day().hour().minute())
+        let absolute = date.formatted(dayAndTime)
         let interval = date.timeIntervalSince(now)
         guard interval > 0 else { return absolute }
         return "\(absolute) (\(durationText(interval)))"
@@ -52,19 +55,21 @@ enum AgentUsageFormat {
         case .percent:
             let value = limit > 0 ? clampedUsed / limit * 100 : clampedUsed
             if showsRemaining {
-                let remaining = min(max(100 - value, 0), 100)
-                return "\(percentText(remaining)) left"
+                let remaining = percentText(min(max(100 - value, 0), 100))
+                return localized("\(remaining) left")
             }
-            return "\(percentText(value)) used"
+            let used = percentText(value)
+            return localized("\(used) used")
         case .count:
             if showsRemaining {
-                let remaining = max(limit - clampedUsed, 0)
-                return "\(countText(remaining)) left"
+                let remaining = countText(max(limit - clampedUsed, 0))
+                return localized("\(remaining) left")
             }
-            return "\(countText(clampedUsed)) used"
+            let used = countText(clampedUsed)
+            return localized("\(used) used")
         case .currency:
-            let value = showsRemaining ? max(limit - clampedUsed, 0) : clampedUsed
-            return "\(String(format: "$%.2f", value)) \(showsRemaining ? "left" : "used")"
+            let amount = String(format: "$%.2f", showsRemaining ? max(limit - clampedUsed, 0) : clampedUsed)
+            return showsRemaining ? localized("\(amount) left") : localized("\(amount) used")
         }
     }
 
@@ -83,7 +88,9 @@ enum AgentUsageFormat {
         guard value.isFinite else { return "—" }
         let rounded = value.rounded()
         if rounded == 0, value > 0 { return "<1" }
-        return rounded.formatted(.number.precision(.fractionLength(0)).grouping(.automatic))
+        return rounded.formatted(
+            .number.precision(.fractionLength(0)).grouping(.automatic).locale(PrismLocalization.locale)
+        )
     }
 
     /// Fraction 0...1 for the row's meter.
@@ -112,10 +119,11 @@ enum AgentUsageFormat {
     /// week the weekday is the shorter anchor, further out the date is.
     static func resetDetailText(resetsAt: Date, now: Date) -> String {
         let interval = resetsAt.timeIntervalSince(now)
-        guard interval > 60 else { return "Due" }
+        guard interval > 60 else { return localized("Due") }
         let absolute = interval < 7 * 86_400
-            ? resetsAt.formatted(.dateTime.weekday(.abbreviated).hour().minute())
-            : resetsAt.formatted(.dateTime.month(.abbreviated).day().hour().minute())
+            ? resetsAt.formatted(Date.FormatStyle.dateTime.weekday(.abbreviated).hour().minute()
+                .locale(PrismLocalization.locale))
+            : resetsAt.formatted(dayAndTime)
         return "\(absolute) · \(durationText(interval))"
     }
 
@@ -124,20 +132,25 @@ enum AgentUsageFormat {
     /// enough that a weekday-and-time reading is more useful than a countdown.
     static func resetText(resetsAt: Date, now: Date) -> String {
         let interval = resetsAt.timeIntervalSince(now)
-        if interval <= 60 { return "Resets soon" }
-        if interval < 12 * 3600 { return "Resets " + absoluteText(resetsAt: resetsAt, now: now) }
-        return "Resets in " + durationText(interval)
+        if interval <= 60 { return localized("Resets soon") }
+        if interval < 12 * 3600 {
+            let calendar = Calendar.current
+            let time = resetsAt.formatted(Date.FormatStyle(date: .omitted, time: .shortened, locale: PrismLocalization.locale))
+            if calendar.isDate(resetsAt, inSameDayAs: now) { return localized("Resets today at \(time)") }
+            if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now),
+               calendar.isDate(resetsAt, inSameDayAs: tomorrow) {
+                return localized("Resets tomorrow at \(time)")
+            }
+            let date = resetsAt.formatted(dayAndTime)
+            return localized("Resets \(date)")
+        }
+        let duration = durationText(interval)
+        return localized("Resets in \(duration)")
     }
 
-    private static func absoluteText(resetsAt: Date, now: Date) -> String {
-        let calendar = Calendar.current
-        let time = resetsAt.formatted(date: .omitted, time: .shortened)
-        if calendar.isDate(resetsAt, inSameDayAs: now) { return "today at \(time)" }
-        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now),
-           calendar.isDate(resetsAt, inSameDayAs: tomorrow) {
-            return "tomorrow at \(time)"
-        }
-        return resetsAt.formatted(.dateTime.month(.abbreviated).day().hour().minute())
+    /// "Oct 4 10:01 AM" in Prism's language.
+    private static var dayAndTime: Date.FormatStyle {
+        Date.FormatStyle.dateTime.month(.abbreviated).day().hour().minute().locale(PrismLocalization.locale)
     }
 
     /// Compact countdown: "3d 4h", "1h", "12m".
@@ -149,20 +162,18 @@ enum AgentUsageFormat {
         let minutes = totalMinutes % 60
         // Whole units drop their empty tail, so a one-hour window reads "1h"
         // rather than "1h 0m".
-        if days > 0 {
-            if hours == 0, minutes == 0 { return "\(days)d" }
-            return minutes == 0 ? "\(days)d \(hours)h" : "\(days)d \(hours)h \(minutes)m"
-        }
-        if hours > 0 {
-            return minutes == 0 ? "\(hours)h" : "\(hours)h \(minutes)m"
-        }
-        return "\(minutes)m"
+        var parts = [String]()
+        if days > 0 { parts.append(localized("\(days)d")) }
+        if hours > 0 || (days > 0 && minutes > 0) { parts.append(localized("\(hours)h")) }
+        if minutes > 0 || parts.isEmpty { parts.append(localized("\(minutes)m")) }
+        return parts.joined(separator: " ")
     }
 
     /// Footer freshness line: "Updated just now", "Updated 3m ago".
     static func updatedText(fetchedAt: Date, now: Date) -> String {
         let interval = now.timeIntervalSince(fetchedAt)
-        guard interval > 45 else { return "Updated just now" }
-        return "Updated \(durationText(interval)) ago"
+        guard interval > 45 else { return localized("Updated just now") }
+        let duration = durationText(interval)
+        return localized("Updated \(duration) ago")
     }
 }

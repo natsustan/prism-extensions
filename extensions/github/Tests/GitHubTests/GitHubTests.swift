@@ -67,13 +67,14 @@ let referenceDate = Date(timeIntervalSince1970: 1_792_411_200)
 
 func makeHost(
     _ github: FakeGitHub, clock: Clock = Clock(referenceDate), token: String = "ghp_test", server: String = "https://github.com",
-    cli: GitHubCLI = .none
+    cli: GitHubCLI = .none, language: String = "en"
 ) async throws -> PrismTestHost {
     let transport = await github.transport
     return try await PrismTestHost(
         GitHub(transport: transport, cli: cli, now: { clock.now }),
         extensionID: "prism.github",
-        preferences: ["token": .string(token), "server": .string(server)]
+        preferences: ["token": .string(token), "server": .string(server)],
+        language: language
     )
 }
 
@@ -526,5 +527,35 @@ struct GitHubRowIconTests {
         let issue = try GitHubClient.decoder.decode(GitHubIssue.self, from: Data(json.utf8))
         #expect(GitHubRows.stateIcon(for: issue).image == "icons/octicons/skip.svg")
         #expect(GitHubRows.stateIcon(for: issue).tint == "gray")
+    }
+}
+
+@Suite("GitHub in Chinese")
+struct GitHubLanguageTests {
+    @Test("in Simplified Chinese, sections, reasons, ages, and filters are Chinese; PR and Issue stay")
+    func simplifiedChinese() async throws {
+        let github = FakeGitHub()
+        await github.route("/notifications", json: notificationsJSON)
+        await github.route("/search/issues", json: searchJSON())
+        let prism = try await makeHost(github, language: "zh-Hans")
+
+        let notifications = try await prism.list("notifications")
+        #expect(notifications.filters.map(\.title) == ["未读", "全部"])
+        #expect(notifications.items[0].accessories.compactMap(\.text) == ["请求审查", "1 小时"])
+        #expect(notifications.items[0].actions.first?.title == "在浏览器中打开")
+
+        let pulls = try await prism.list("pull-requests")
+        #expect(pulls.searchPlaceholder == "搜索你的 PR…")
+        #expect(pulls.filters.first?.title == "我创建的")
+        #expect(pulls.emptyMessage?.title == "没有 PR")
+    }
+
+    @Test("Traditional Chinese says Repo and uses Taiwan terms in setup messages")
+    func traditionalChinese() async throws {
+        let prism = try await makeHost(FakeGitHub(), token: "", language: "zh-Hant")
+        let list = try await prism.list("repositories")
+        #expect(list.searchPlaceholder == "搜尋 Repo…")
+        #expect(list.items.first?.title == "加入 GitHub Token")
+        #expect(list.items.first?.primaryAction?.title == "在 GitHub 上建立 Token")
     }
 }

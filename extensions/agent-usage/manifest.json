@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.agent-usage",
   "name": "Agent Usage",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": "Prism",
   "description": "Quotas for your AI coding agents — Codex, Claude, Grok, Amp, Antigravity, Devin, and Z.ai — in the launcher and in widgets.",
   "icon": { "symbol": "gauge.with.needle", "tint": "indigo" },

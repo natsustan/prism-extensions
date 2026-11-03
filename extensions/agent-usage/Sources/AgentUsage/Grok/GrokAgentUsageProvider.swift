@@ -23,7 +23,7 @@ struct GrokAgentUsageProvider: AgentUsageProvider {
         do {
             credentials = try authStore.loadCredentials()
         } catch {
-            return .failure(.notConfigured("Not signed in. Run `grok login` to connect this Mac."))
+            return .failure(.notConfigured(localized("Not signed in. Run `grok login` to connect this Mac.")))
         }
 
         let usageClient = GrokUsageClient(client: client)
@@ -102,15 +102,15 @@ struct GrokAgentUsageProvider: AgentUsageProvider {
     static func failure(from error: Error) -> AgentUsageFailure {
         switch error {
         case AgentUsageClientError.unauthorized:
-            return .authExpired("Grok rejected the saved login. Run `grok login` to refresh it.")
+            return .authExpired(localized("Grok rejected the saved login. Run `grok login` to refresh it."))
         case let AgentUsageClientError.http(status):
-            return .network("Grok usage request failed (HTTP \(status)). Try again in a moment.")
+            return .network(localized("Grok usage request failed (HTTP \(status)). Try again in a moment."))
         case AgentUsageClientError.transport:
-            return .network("Could not reach Grok. Check the connection and try again.")
+            return .network(localized("Could not reach Grok. Check the connection and try again."))
         case AgentUsageClientError.invalidResponse:
-            return .invalidResponse("Grok returned an unexpected response.")
+            return .invalidResponse(localized("Grok returned an unexpected response."))
         default:
-            return .invalidResponse("Grok usage could not be read.")
+            return .invalidResponse(localized("Grok usage could not be read."))
         }
     }
 }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- In Simplified or Traditional Chinese, sections, actions, the access row,
+  and messages are in Chinese too.
+
 ## 1.1.0
 
 - When Prism runs in Simplified or Traditional Chinese, it shows this

@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import AgentUsage
 
-@Suite("Grok auth store")
+@Suite("Grok auth store", .english)
 struct GrokAuthStoreTests {
     private static let now = Date(timeIntervalSince1970: 1_700_000_000)
     private static let liveKey = "https://auth.x.ai::client-live"

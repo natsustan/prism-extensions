@@ -42,17 +42,19 @@ struct AppleNotes: PrismExtension {
 
     func list(command: String, query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
         guard command == CommandID.search else {
-            throw PrismExtensionError("Apple Notes has no list “\(command)”.")
+            throw PrismExtensionError(localized("Apple Notes has no list “\(command)”."))
         }
         let notes: [SearchableNote]
         do {
             notes = try library.notes(from: store, pinyin: pinyinCache, directory: context.dataDirectory)
         } catch NoteStoreError.accessDenied {
-            return ExtensionList(items: [Self.allowAccessItem], filtering: .extension, searchPlaceholder: Self.searchPlaceholder)
+            return ExtensionList(
+                items: [Self.allowAccessItem], filtering: .extension, searchPlaceholder: Self.searchPlaceholder
+            )
         } catch NoteStoreError.missing {
             notes = []
         } catch let NoteStoreError.unreadable(reason) {
-            throw PrismExtensionError("Couldn’t read Apple Notes: \(reason)")
+            throw PrismExtensionError(localized("Couldn’t read Apple Notes: \(reason)"))
         }
         let search = NoteSearch(query: query)
         let results = search.results(in: notes, limit: Self.resultLimit)
@@ -62,9 +64,9 @@ struct AppleNotes: PrismExtension {
             searchPlaceholder: Self.searchPlaceholder,
             emptyMessage: search.words.isEmpty
                 ? ExtensionListMessage(
-                    title: "No Notes", message: "Notes you write in Apple Notes appear here.", symbol: "note.text"
+                    title: localized("No Notes"), message: localized("Notes you write in Apple Notes appear here."), symbol: "note.text"
                 )
-                : ExtensionListMessage(title: "No Matching Notes", symbol: "magnifyingglass"),
+                : ExtensionListMessage(title: localized("No Matching Notes"), symbol: "magnifyingglass"),
             fetchedAt: Date()
         )
     }
@@ -73,32 +75,32 @@ struct AppleNotes: PrismExtension {
         switch action {
         case ActionID.open:
             guard let url = Self.noteURL(item) else {
-                throw PrismExtensionError("This note can’t be opened.")
+                throw PrismExtensionError(localized("This note can’t be opened."))
             }
             try await openURL(url)
             return .done
         default:
-            throw PrismExtensionError("Apple Notes has no action “\(action)”.")
+            throw PrismExtensionError(localized("Apple Notes has no action “\(action)”."))
         }
     }
 
     // MARK: - Items
 
-    static let searchPlaceholder = "Search notes by title, folder, content, or tags…"
+    static var searchPlaceholder: String { localized("Search notes by title, folder, content, or tags…") }
     /// Notes' own icon; the gold tile where Notes is missing.
     static let noteIcon = ExtensionIcon(symbol: "note.text", tint: "gold", app: "com.apple.Notes")
 
     static func item(for note: Note) -> ExtensionListItem {
         let link = noteURL(note.id)?.absoluteString
-        var actions = [ExtensionAction(id: ActionID.open, title: "Open in Notes", symbol: "note.text")]
+        var actions = [ExtensionAction(id: ActionID.open, title: localized("Open in Notes"), symbol: "note.text")]
         if let link {
             actions.append(ExtensionAction(
-                id: ActionID.copyLink, title: "Copy Note Link", symbol: "link",
+                id: ActionID.copyLink, title: localized("Copy Note Link"), symbol: "link",
                 kind: .copy(text: link), shortcut: ExtensionShortcut("cmd+shift+c")
             ))
         }
         actions.append(ExtensionAction(
-            id: ActionID.copyTitle, title: "Copy Note Title", symbol: "doc.on.doc",
+            id: ActionID.copyTitle, title: localized("Copy Note Title"), symbol: "doc.on.doc",
             kind: .copy(text: note.title), shortcut: ExtensionShortcut("cmd+shift+t")
         ))
         return ExtensionListItem(
@@ -107,7 +109,7 @@ struct AppleNotes: PrismExtension {
             subtitle: subtitle(note.snippet),
             icon: noteIcon,
             accessories: accessories(for: note),
-            section: note.isPinned ? "Pinned" : "Notes",
+            section: note.isPinned ? localized("Pinned") : localized("Notes"),
             actions: actions
         )
     }
@@ -125,15 +127,15 @@ struct AppleNotes: PrismExtension {
     static func accessories(for note: Note) -> [ExtensionListAccessory] {
         var accessories = [ExtensionListAccessory]()
         if note.isLocked {
-            accessories.append(ExtensionListAccessory(symbol: "lock.fill", help: "Locked note"))
+            accessories.append(ExtensionListAccessory(symbol: "lock.fill", help: localized("Locked note")))
         }
         if note.hasChecklist {
             accessories.append(note.isChecklistInProgress
-                ? ExtensionListAccessory(symbol: "circle", help: "Checklist in progress")
-                : ExtensionListAccessory(symbol: "checkmark.circle.fill", tint: "green", help: "Checklist done"))
+                ? ExtensionListAccessory(symbol: "circle", help: localized("Checklist in progress"))
+                : ExtensionListAccessory(symbol: "checkmark.circle.fill", tint: "green", help: localized("Checklist done")))
         }
         if !note.folder.isEmpty {
-            accessories.append(ExtensionListAccessory(text: note.folder, help: "Folder"))
+            accessories.append(ExtensionListAccessory(text: note.folder, help: localized("Folder")))
         }
         return accessories
     }
@@ -153,16 +155,16 @@ struct AppleNotes: PrismExtension {
     /// macOS protects the Notes library. Prism asks the user to choose the
     /// folder declared in the manifest, which lets Prism, and this extension,
     /// read it from then on; the list reloads afterwards.
-    static let allowAccessItem = ExtensionListItem(
+    static var allowAccessItem: ExtensionListItem { ExtensionListItem(
         id: allowAccessItemID,
-        title: "Allow Access to Your Notes",
-        subtitle: "Choose the Notes folder once, and Prism can search your notes",
+        title: localized("Allow Access to Your Notes"),
+        subtitle: localized("Choose the Notes folder once, and Prism can search your notes"),
         icon: ExtensionIcon(symbol: "lock.open", tint: "gray"),
         actions: [ExtensionAction(
-            id: ActionID.allowAccess, title: "Allow Access…", symbol: "folder.badge.plus",
+            id: ActionID.allowAccess, title: localized("Allow Access…"), symbol: "folder.badge.plus",
             kind: .grantFolder(id: notesFolderID)
         )]
-    )
+    ) }
 
     private static func openWithWorkspace(_ url: URL) async throws {
         _ = try await NSWorkspace.shared.open(url, configuration: NSWorkspace.OpenConfiguration())

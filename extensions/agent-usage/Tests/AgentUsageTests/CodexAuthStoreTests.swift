@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import AgentUsage
 
-@Suite("Codex auth store")
+@Suite("Codex auth store", .english)
 struct CodexAuthStoreTests {
     @Test("reads the ChatGPT access token and account id from the auth file")
     func readsCredentials() throws {

@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import AgentUsage
 
-@Suite("Z.ai auth store")
+@Suite("Z.ai auth store", .english)
 struct ZAIAuthStoreTests {
     @Test("a key saved in Prism wins over the environment and files")
     func storedKeyWins() throws {
@@ -126,7 +126,7 @@ struct ZAIAuthStoreTests {
     }
 }
 
-@Suite("Z.ai usage mapping")
+@Suite("Z.ai usage mapping", .english)
 struct ZAIUsageMapperTests {
     private static let now = Date(timeIntervalSince1970: 1_700_000_000)
 
@@ -208,7 +208,7 @@ struct ZAIUsageMapperTests {
     }
 }
 
-@Suite("Z.ai provider")
+@Suite("Z.ai provider", .english)
 struct ZAIAgentUsageProviderTests {
     @Test("the quota response becomes a report while the plan stays optional")
     func successPath() async throws {
@@ -262,7 +262,7 @@ struct ZAIAgentUsageProviderTests {
 }
 
 @MainActor
-@Suite("Z.ai provider deadline")
+@Suite("Z.ai provider deadline", .english)
 struct ZAIProviderDeadlineTests {
     @Test("late quota survives slow or skipped subscription enrichment", arguments: [0.5, 2.6])
     func optionalSubscriptionDeadline(primaryDelay: Double) async throws {
@@ -336,7 +336,7 @@ final class InMemoryZAISecretStore: ZAISecretStore, @unchecked Sendable {
 }
 
 @MainActor
-@Suite("Z.ai settings key")
+@Suite("Z.ai settings key", .english)
 struct ZAISettingsKeyTests {
     private func makeProvider(
         secrets: InMemoryZAISecretStore, client: any AgentUsageHTTPClient

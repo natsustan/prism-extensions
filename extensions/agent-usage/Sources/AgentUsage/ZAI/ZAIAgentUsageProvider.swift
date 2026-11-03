@@ -24,12 +24,12 @@ struct ZAIAgentUsageProvider: AgentUsageProvider {
         do {
             guard let key = try authStore.loadAPIKey() else {
                 return .failure(.notConfigured(
-                    "No Z.ai API key. Add one in Agent Usage settings, or export ZAI_API_KEY, or save it to ~/.config/zai/key.json."))
+                    localized("No Z.ai API key. Add one in Agent Usage settings, or export ZAI_API_KEY, or save it to ~/.config/zai/key.json.")))
             }
             apiKey = key
         } catch {
             return .failure(.invalidResponse(
-                "Could not read the Z.ai API key from the Keychain. Unlock it and try again."))
+                localized("Could not read the Z.ai API key from the Keychain. Unlock it and try again.")))
         }
 
         let usageClient = ZAIUsageClient(client: client)
@@ -49,7 +49,7 @@ struct ZAIAgentUsageProvider: AgentUsageProvider {
         // surface the reason rather than blank meters.
         if ZAIUsageMapper.isNoCodingPlan(quota.body) {
             return .failure(.notConfigured(
-                "No active GLM Coding Plan. Subscribe at z.ai/subscribe to see usage."))
+                localized("No active GLM Coding Plan. Subscribe at z.ai/subscribe to see usage.")))
         }
 
         // The subscription call is plan-name sugar; it must not blank the meters.
@@ -73,17 +73,17 @@ struct ZAIAgentUsageProvider: AgentUsageProvider {
         switch error {
         case AgentUsageClientError.unauthorized:
             return .authExpired(
-                "Z.ai rejected the API key. Check it at z.ai/manage-apikey/apikey-list.")
+                localized("Z.ai rejected the API key. Check it at z.ai/manage-apikey/apikey-list."))
         case let AgentUsageClientError.http(status):
-            return .network("Z.ai usage request failed (HTTP \(status)). Try again in a moment.")
+            return .network(localized("Z.ai usage request failed (HTTP \(status)). Try again in a moment."))
         case AgentUsageClientError.transport:
-            return .network("Could not reach Z.ai. Check the connection and try again.")
+            return .network(localized("Could not reach Z.ai. Check the connection and try again."))
         case ZAIUsageError.noCodingPlan:
-            return .notConfigured("No active GLM Coding Plan. Subscribe at z.ai/subscribe to see usage.")
+            return .notConfigured(localized("No active GLM Coding Plan. Subscribe at z.ai/subscribe to see usage."))
         case ZAIUsageError.invalidResponse, AgentUsageClientError.invalidResponse:
-            return .invalidResponse("Z.ai returned an unexpected response.")
+            return .invalidResponse(localized("Z.ai returned an unexpected response."))
         default:
-            return .invalidResponse("Z.ai usage could not be read.")
+            return .invalidResponse(localized("Z.ai usage could not be read."))
         }
     }
 }

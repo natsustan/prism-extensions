@@ -1,4 +1,5 @@
 import Foundation
+import PrismExtensionKit
 import Testing
 @testable import AgentUsage
 
@@ -267,4 +268,20 @@ extension AgentUsageTiming {
     /// a few seconds and stay far from either edge: enrichment must finish
     /// by 2 s, the refresh by 4 s.
     static let testing = AgentUsageTiming(refreshDeadline: .seconds(4), enrichmentMargin: .seconds(2))
+}
+
+/// Pins Prism's language to English for code a test calls directly, outside
+/// a request: there the text would follow the Mac's own language.
+struct EnglishTrait: SuiteTrait, TestTrait, TestScoping {
+    var isRecursive: Bool { true }
+
+    func provideScope(
+        for test: Test, testCase: Test.Case?, performing function: @Sendable () async throws -> Void
+    ) async throws {
+        try await PrismLocalization.$language.withValue("en") { try await function() }
+    }
+}
+
+extension Trait where Self == EnglishTrait {
+    static var english: Self { EnglishTrait() }
 }

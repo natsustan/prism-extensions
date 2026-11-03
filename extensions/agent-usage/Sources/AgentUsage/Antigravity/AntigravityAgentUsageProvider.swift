@@ -39,7 +39,7 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
     func fetchUsage() async -> Result<AgentUsageReport, AgentUsageFailure> {
         let optionalDeadline = AgentUsageTiming.current.enrichmentDeadline
         let outcome = await probe()
-        guard !Task.isCancelled else { return .failure(.network("Cancelled.")) }
+        guard !Task.isCancelled else { return .failure(.network(localized("Cancelled."))) }
         switch outcome {
         case .result(let result):
             return .success(AgentUsageReport(
@@ -50,7 +50,7 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
                 metrics: result.metrics,
                 fetchedAt: Date()))
         case .cancelled:
-            return .failure(.network("Cancelled."))
+            return .failure(.network(localized("Cancelled.")))
         case .answered, .unreachable, .noProcess:
             break
         }
@@ -83,20 +83,20 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
                 AntigravityUsageClient.quotaSummaryURL, accessToken: accessToken)
         } catch {
             return .failure(.network(
-                "Couldn't reach Antigravity's quota service. Check your connection."))
+                localized("Couldn't reach Antigravity's quota service. Check your connection.")))
         }
         if quota.statusCode == 401 || quota.statusCode == 403 {
             return .failure(.authExpired(
-                "Antigravity rejected the saved `agy` sign-in. Run `agy` to sign in again."))
+                localized("Antigravity rejected the saved `agy` sign-in. Run `agy` to sign in again.")))
         }
         guard quota.isSuccess else {
-            return .failure(.network("Antigravity Cloud Code API error: HTTP \(quota.statusCode)."))
+            return .failure(.network(localized("Antigravity Cloud Code API error: HTTP \(quota.statusCode).")))
         }
         guard let metrics = AntigravityUsageMapper.quotaSummaryMetrics(quota.body) else {
             return .failure(.invalidResponse(
-                "Antigravity's quota service answered with data Prism couldn't read."))
+                localized("Antigravity's quota service answered with data Prism couldn't read.")))
         }
-        guard !Task.isCancelled else { return .failure(.network("Cancelled.")) }
+        guard !Task.isCancelled else { return .failure(.network(localized("Cancelled."))) }
         let planBody = await AgentUsageRequestBudget.optionalData(before: optionalDeadline) {
             let response = try await usageClient.cloudPost(
                 AntigravityUsageClient.loadCodeAssistURL, accessToken: accessToken)
@@ -124,16 +124,15 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
         switch outcome {
         case .answered:
             return .failure(.invalidResponse(
-                "Antigravity's local API answered with data Prism couldn't read."))
+                localized("Antigravity's local API answered with data Prism couldn't read.")))
         case .unreachable:
             return .failure(.network(
-                "Antigravity is running but its local API isn't answering. "
-                + "Make sure you're signed in, restart Antigravity or `agy`, and try again."))
+                localized("Antigravity is running but its local API isn't answering. Make sure you're signed in, restart Antigravity or `agy`, and try again.")))
         case .noProcess:
             return .failure(.notConfigured(
-                "Antigravity isn't running. Open Antigravity or run `agy`, then refresh."))
+                localized("Antigravity isn't running. Open Antigravity or run `agy`, then refresh.")))
         case .cancelled:
-            return .failure(.network("Cancelled."))
+            return .failure(.network(localized("Cancelled.")))
         case .result:
             preconditionFailure("checked by caller")
         }

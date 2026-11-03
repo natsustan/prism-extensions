@@ -148,7 +148,7 @@ struct OnePasswordClient: Sendable {
         do {
             return try JSONDecoder().decode(type, from: data)
         } catch {
-            throw OnePasswordError.failed("1Password CLI answered in a way this extension doesn’t understand.")
+            throw OnePasswordError.failed(localized("1Password CLI answered in a way this extension doesn’t understand."))
         }
     }
 

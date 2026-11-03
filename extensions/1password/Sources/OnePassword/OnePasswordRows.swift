@@ -56,9 +56,9 @@ enum OnePasswordRows {
     ) -> ExtensionListItem {
         var accessories = [ExtensionListAccessory]()
         if item.favorite == true {
-            accessories.append(ExtensionListAccessory(symbol: "star.fill", tint: "gold", help: "Favorite"))
+            accessories.append(ExtensionListAccessory(symbol: "star.fill", tint: "gold", help: localized("Favorite")))
         }
-        accessories.append(ExtensionListAccessory(text: item.vault.name, help: "Vault"))
+        accessories.append(ExtensionListAccessory(text: item.vault.name, help: localized("Vault")))
         let subtitle = item.additionalInformation.flatMap { $0.isEmpty ? nil : $0 }
         return ExtensionListItem(
             id: itemID(item, account: account),
@@ -85,11 +85,11 @@ enum OnePasswordRows {
         var actions = [ExtensionAction]()
         if OnePasswordCategory.withPassword.contains(item.category) {
             let paste = ExtensionAction(
-                id: ActionID.pastePassword, title: "Paste Password", symbol: "doc.on.clipboard",
+                id: ActionID.pastePassword, title: localized("Paste Password"), symbol: "doc.on.clipboard",
                 shortcut: ExtensionShortcut("cmd+option+v"), interactive: true
             )
             let copy = ExtensionAction(
-                id: ActionID.copyPassword, title: "Copy Password", symbol: "doc.on.doc",
+                id: ActionID.copyPassword, title: localized("Copy Password"), symbol: "doc.on.doc",
                 shortcut: ExtensionShortcut("cmd+option+c"), interactive: true
             )
             actions += returnPastes ? [paste, copy] : [copy, paste]
@@ -97,25 +97,25 @@ enum OnePasswordRows {
         if item.category == "LOGIN" {
             if let username = item.additionalInformation, !username.isEmpty {
                 actions.append(ExtensionAction(
-                    id: ActionID.copyUsername, title: "Copy Username", symbol: "person",
+                    id: ActionID.copyUsername, title: localized("Copy Username"), symbol: "person",
                     kind: .copy(text: username), shortcut: ExtensionShortcut("cmd+shift+c")
                 ))
                 actions.append(ExtensionAction(
-                    id: ActionID.pasteUsername, title: "Paste Username", symbol: "person.text.rectangle",
+                    id: ActionID.pasteUsername, title: localized("Paste Username"), symbol: "person.text.rectangle",
                     shortcut: ExtensionShortcut("cmd+shift+v"), interactive: true
                 ))
             }
             actions.append(ExtensionAction(
-                id: ActionID.copyOneTimePassword, title: "Copy One-Time Password", symbol: "clock",
+                id: ActionID.copyOneTimePassword, title: localized("Copy One-Time Password"), symbol: "clock",
                 shortcut: ExtensionShortcut("ctrl+cmd+c"), interactive: true
             ))
             actions.append(ExtensionAction(
-                id: ActionID.pasteOneTimePassword, title: "Paste One-Time Password", symbol: "clock.badge.checkmark",
+                id: ActionID.pasteOneTimePassword, title: localized("Paste One-Time Password"), symbol: "clock.badge.checkmark",
                 shortcut: ExtensionShortcut("ctrl+cmd+v"), interactive: true
             ))
         }
         let view = ExtensionAction(
-            id: ActionID.view, title: "Open in 1Password", symbol: "arrow.up.forward.app",
+            id: ActionID.view, title: localized("Open in 1Password"), symbol: "arrow.up.forward.app",
             kind: .open(url: link(item: item, account: account)), shortcut: ExtensionShortcut("cmd+shift+o")
         )
         // Anything without a password opens in 1Password on Return, even with a website.
@@ -123,7 +123,7 @@ enum OnePasswordRows {
         if opensInApp { actions.append(view) }
         if let website = item.website {
             actions.append(ExtensionAction(
-                id: ActionID.openWebsite, title: "Open in Browser", symbol: "safari",
+                id: ActionID.openWebsite, title: localized("Open in Browser"), symbol: "safari",
                 kind: .open(url: website), shortcut: ExtensionShortcut("cmd+o")
             ))
         }
@@ -149,8 +149,8 @@ enum OnePasswordRows {
 
     static func filters(for snapshot: VaultSnapshot?) -> [ExtensionListFilter] {
         var filters = [
-            ExtensionListFilter(id: FilterID.all, title: "All Items", symbol: "square.grid.2x2"),
-            ExtensionListFilter(id: FilterID.favorites, title: "Favorites", symbol: "star"),
+            ExtensionListFilter(id: FilterID.all, title: localized("All Items"), symbol: "square.grid.2x2"),
+            ExtensionListFilter(id: FilterID.favorites, title: localized("Favorites"), symbol: "star"),
         ]
         filters += OnePasswordCategory.filtered.map {
             ExtensionListFilter(
@@ -166,7 +166,7 @@ enum OnePasswordRows {
                 ExtensionListFilter(
                     id: "\(FilterID.vaultPrefix)\(entry.account.accountUUID):\(vault.id)",
                     // Two accounts can both have a vault named Personal.
-                    title: accounts.count > 1 ? "\(vault.name) (\(entry.account.name))" : vault.name,
+                    title: accounts.count > 1 ? localized("\(vault.name) (\(entry.account.name))") : vault.name,
                     symbol: "lock.square.stack"
                 )
             }
@@ -189,16 +189,20 @@ enum OnePasswordRows {
     static func emptyMessage(for filter: String?) -> ExtensionListMessage {
         switch filter {
         case FilterID.favorites:
-            ExtensionListMessage(title: "No Favorites", message: "Items you mark as favorites in 1Password appear here.", symbol: "star")
+            ExtensionListMessage(
+                title: localized("No Favorites"), message: localized("Items you mark as favorites in 1Password appear here."), symbol: "star"
+            )
         case let filter? where filter.hasPrefix(FilterID.categoryPrefix):
             ExtensionListMessage(
-                title: "No \(OnePasswordCategory.pluralTitle(String(filter.dropFirst(FilterID.categoryPrefix.count))))",
+                title: OnePasswordCategory.noneTitle(String(filter.dropFirst(FilterID.categoryPrefix.count))),
                 symbol: "magnifyingglass"
             )
         case let filter? where filter.hasPrefix(FilterID.vaultPrefix):
-            ExtensionListMessage(title: "This Vault Is Empty", symbol: "lock.square.stack")
+            ExtensionListMessage(title: localized("This Vault Is Empty"), symbol: "lock.square.stack")
         default:
-            ExtensionListMessage(title: "No Items", message: "Items in your 1Password vaults appear here.", symbol: "key")
+            ExtensionListMessage(
+                title: localized("No Items"), message: localized("Items in your 1Password vaults appear here."), symbol: "key"
+            )
         }
     }
 
@@ -211,7 +215,7 @@ enum OnePasswordRows {
         guard let item, let details, error != .notInstalled else { return item }
         // What `op` said, for when the row's advice doesn't fit.
         let copy = ExtensionAction(
-            id: ActionID.copyErrorDetails, title: "Copy Error Details", symbol: "doc.on.clipboard",
+            id: ActionID.copyErrorDetails, title: localized("Copy Error Details"), symbol: "doc.on.clipboard",
             kind: .copy(text: details), shortcut: ExtensionShortcut("cmd+shift+e")
         )
         return ExtensionListItem(
@@ -223,37 +227,37 @@ enum OnePasswordRows {
         switch error {
         case .notInstalled:
             ExtensionListItem(
-                id: "setup-install", title: "Install 1Password CLI",
-                subtitle: "Search 1Password reads your vaults through the op command.",
+                id: "setup-install", title: localized("Install 1Password CLI"),
+                subtitle: localized("Search 1Password reads your vaults through the op command."),
                 icon: ExtensionIcon(symbol: "arrow.down.circle", tint: "blue"),
                 actions: [
-                    ExtensionAction(id: ActionID.install, title: "Open Install Guide", symbol: "safari", kind: .open(url: cliGuide)),
+                    ExtensionAction(id: ActionID.install, title: localized("Open Install Guide"), symbol: "safari", kind: .open(url: cliGuide)),
                     ExtensionAction(
-                        id: ActionID.copyInstallCommand, title: "Copy Homebrew Command", symbol: "terminal",
+                        id: ActionID.copyInstallCommand, title: localized("Copy Homebrew Command"), symbol: "terminal",
                         kind: .copy(text: installCommand), shortcut: ExtensionShortcut("cmd+shift+c")
                     ),
                 ]
             )
         case .noAccounts:
             ExtensionListItem(
-                id: "setup-integration", title: "Turn On 1Password CLI Integration",
-                subtitle: "In 1Password, choose Settings → Developer → Integrate with 1Password CLI.",
+                id: "setup-integration", title: localized("Turn On 1Password CLI Integration"),
+                subtitle: localized("In 1Password, choose Settings → Developer → Integrate with 1Password CLI."),
                 icon: ExtensionIcon(symbol: "switch.2", tint: "blue", app: appBundleID),
                 actions: [
-                    ExtensionAction(id: ActionID.openApp, title: "Open 1Password Settings", symbol: "gear", kind: .open(url: settings)),
-                    ExtensionAction(id: ActionID.learnMore, title: "Learn More", symbol: "safari", kind: .open(url: integrationGuide)),
+                    ExtensionAction(id: ActionID.openApp, title: localized("Open 1Password Settings"), symbol: "gear", kind: .open(url: settings)),
+                    ExtensionAction(id: ActionID.learnMore, title: localized("Learn More"), symbol: "safari", kind: .open(url: integrationGuide)),
                 ]
             )
         case .notSignedIn, .timedOut:
             ExtensionListItem(
-                id: "setup-sign-in", title: "Sign In to 1Password",
+                id: "setup-sign-in", title: localized("Sign In to 1Password"),
                 subtitle: error == .timedOut
-                    ? "1Password didn’t answer in time. Unlock it, then approve Prism."
-                    : "Unlock 1Password, then approve Prism when it asks.",
+                    ? localized("1Password didn’t answer in time. Unlock it, then approve Prism.")
+                    : localized("Unlock 1Password, then approve Prism when it asks."),
                 icon: ExtensionIcon(symbol: "lock.open", tint: "blue", app: appBundleID),
                 actions: [
-                    ExtensionAction(id: ActionID.signIn, title: "Sign In", symbol: "person.badge.key", interactive: true),
-                    ExtensionAction(id: ActionID.openApp, title: "Open 1Password Settings", symbol: "gear", kind: .open(url: settings)),
+                    ExtensionAction(id: ActionID.signIn, title: localized("Sign In"), symbol: "person.badge.key", interactive: true),
+                    ExtensionAction(id: ActionID.openApp, title: localized("Open 1Password Settings"), symbol: "gear", kind: .open(url: settings)),
                 ]
             )
         case .missingField, .failed:
@@ -266,18 +270,18 @@ enum OnePasswordRows {
 
     static func failureMessage(_ error: OnePasswordError) -> ExtensionListMessage {
         ExtensionListMessage(
-            title: "Couldn’t Load 1Password", message: describe(error), symbol: "exclamationmark.triangle"
+            title: localized("Couldn’t Load 1Password"), message: describe(error), symbol: "exclamationmark.triangle"
         )
     }
 
     /// The error as a sentence for a HUD or a message.
     static func describe(_ error: OnePasswordError) -> String {
         switch error {
-        case .notInstalled: "Install 1Password CLI to use 1Password in Prism."
-        case .noAccounts: "Turn on Integrate with 1Password CLI in 1Password’s Developer settings."
-        case .notSignedIn: "Unlock 1Password and approve Prism, then try again."
-        case .timedOut: "1Password didn’t answer in time. Unlock it, then try again."
-        case .missingField: "This item doesn’t have that."
+        case .notInstalled: localized("Install 1Password CLI to use 1Password in Prism.")
+        case .noAccounts: localized("Turn on Integrate with 1Password CLI in 1Password’s Developer settings.")
+        case .notSignedIn: localized("Unlock 1Password and approve Prism, then try again.")
+        case .timedOut: localized("1Password didn’t answer in time. Unlock it, then try again.")
+        case .missingField: localized("This item doesn’t have that.")
         case let .failed(message): message
         }
     }
@@ -291,9 +295,9 @@ enum OnePasswordRows {
             subtitle: recipe.summary,
             icon: ExtensionIcon(symbol: recipe == .pin ? "number" : "key.horizontal", tint: "blue"),
             actions: [
-                ExtensionAction(id: ActionID.paste, title: "Paste Password", symbol: "doc.on.clipboard"),
+                ExtensionAction(id: ActionID.paste, title: localized("Paste Password"), symbol: "doc.on.clipboard"),
                 ExtensionAction(
-                    id: ActionID.copy, title: "Copy Password", symbol: "doc.on.doc", shortcut: ExtensionShortcut("cmd+shift+c")
+                    id: ActionID.copy, title: localized("Copy Password"), symbol: "doc.on.doc", shortcut: ExtensionShortcut("cmd+shift+c")
                 ),
             ]
         )

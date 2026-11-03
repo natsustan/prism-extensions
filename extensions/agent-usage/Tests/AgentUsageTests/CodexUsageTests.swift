@@ -4,7 +4,7 @@ import Testing
 
 /// Fixtures are synthetic: the shapes mirror the live endpoints, the numbers and
 /// accounts do not come from any real login.
-@Suite("Codex usage mapping")
+@Suite("Codex usage mapping", .english)
 struct CodexUsageMapperTests {
     private static let credentials = CodexCredentials(
         accessToken: "test-access-token",
@@ -297,7 +297,7 @@ struct CodexUsageMapperTests {
     }
 }
 
-@Suite("Codex usage client")
+@Suite("Codex usage client", .english)
 struct CodexUsageClientTests {
     private static let credentials = CodexCredentials(
         accessToken: "test-access-token",
@@ -363,7 +363,7 @@ final class HeaderRecorder: @unchecked Sendable {
 }
 
 @MainActor
-@Suite("Codex provider deadline")
+@Suite("Codex provider deadline", .english)
 struct CodexProviderDeadlineTests {
     @Test("late primary quota survives slow or skipped optional reset credits", arguments: [0.5, 2.6])
     func optionalCreditsDeadline(primaryDelay: Double) async throws {

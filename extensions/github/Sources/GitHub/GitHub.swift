@@ -107,8 +107,11 @@ struct GitHub: PrismExtension {
         return shape.list(
             items: entry.value.map { GitHubRows.item(for: $0, server: client.server, sectioned: includeRead, now: now) },
             emptyMessage: includeRead
-                ? ExtensionListMessage(title: "No Notifications", symbol: "bell")
-                : ExtensionListMessage(title: "You’re All Caught Up", message: "New notifications on GitHub appear here.", symbol: "checkmark.circle"),
+                ? ExtensionListMessage(title: localized("No Notifications"), symbol: "bell")
+                : ExtensionListMessage(
+                    title: localized("You’re All Caught Up"), message: localized("New notifications on GitHub appear here."),
+                    symbol: "checkmark.circle"
+                ),
             entry: entry
         )
     }
@@ -148,11 +151,11 @@ struct GitHub: PrismExtension {
             items: items,
             emptyMessage: text.isEmpty
                 ? ExtensionListMessage(
-                    title: "No \(kind.plural)",
-                    message: chosen == nil ? "\(kind.sentencePlural) you created, were assigned, or were mentioned in appear here." : nil,
+                    title: kind.noneTitle,
+                    message: chosen == nil ? kind.emptyMessage : nil,
                     symbol: kind.symbol
                 )
-                : ExtensionListMessage(title: "No Matching \(kind.plural)", symbol: "magnifyingglass"),
+                : ExtensionListMessage(title: kind.noMatchTitle, symbol: "magnifyingglass"),
             fetchedAt: entries.map(\.fetchedAt).min(),
             error: entries.lazy.compactMap(\.error).first
         )
@@ -165,7 +168,7 @@ struct GitHub: PrismExtension {
         if filter == FilterID.everywhere {
             guard !text.isEmpty else {
                 return shape.list(items: [], emptyMessage: ExtensionListMessage(
-                    title: "Search All of GitHub", message: "Type a repository name, owner, or topic.", symbol: "magnifyingglass"
+                    title: localized("Search All of GitHub"), message: localized("Type a repository name, owner, or topic."), symbol: "magnifyingglass"
                 ))
             }
             let entry = try await cache.value(cacheKey(client, "repositories", text), maxAge: Self.searchMaxAge) {
@@ -173,7 +176,7 @@ struct GitHub: PrismExtension {
             }
             return shape.list(
                 items: entry.value.map { GitHubRows.item(for: $0, showsStars: true, now: date) },
-                emptyMessage: ExtensionListMessage(title: "No Matching Repositories", symbol: "magnifyingglass"),
+                emptyMessage: ExtensionListMessage(title: localized("No Matching Repositories"), symbol: "magnifyingglass"),
                 entry: entry
             )
         }
@@ -186,10 +189,10 @@ struct GitHub: PrismExtension {
         return shape.list(
             items: matches.map { GitHubRows.item(for: $0, showsStars: starred, now: date) },
             emptyMessage: text.isEmpty
-                ? ExtensionListMessage(title: starred ? "No Starred Repositories" : "No Repositories", symbol: "book.closed")
+                ? ExtensionListMessage(title: starred ? localized("No Starred Repositories") : localized("No Repositories"), symbol: "book.closed")
                 : ExtensionListMessage(
-                    title: "No Matching Repositories",
-                    message: "Choose All of GitHub with ⌘P to search beyond your own.", symbol: "magnifyingglass"
+                    title: localized("No Matching Repositories"),
+                    message: localized("Choose All of GitHub with ⌘P to search beyond your own."), symbol: "magnifyingglass"
                 ),
             entry: entry
         )
@@ -231,10 +234,10 @@ struct GitHub: PrismExtension {
         case CommandID.notifications:
             return ListShape(
                 filtering: .prism,
-                searchPlaceholder: "Filter notifications…",
+                searchPlaceholder: localized("Filter notifications…"),
                 filters: [
-                    ExtensionListFilter(id: FilterID.unread, title: "Unread", symbol: "circle.fill"),
-                    ExtensionListFilter(id: FilterID.all, title: "All", symbol: "tray.full"),
+                    ExtensionListFilter(id: FilterID.unread, title: localized("Unread"), symbol: "circle.fill"),
+                    ExtensionListFilter(id: FilterID.all, title: localized("All"), symbol: "tray.full"),
                 ],
                 now: now
             )
@@ -242,23 +245,23 @@ struct GitHub: PrismExtension {
             let kind: GitHubIssueKind = command == CommandID.pullRequests ? .pullRequest : .issue
             return ListShape(
                 filtering: .extension,
-                searchPlaceholder: "Search your \(kind.sentencePlural.lowercased())…",
+                searchPlaceholder: kind.searchPlaceholder,
                 filters: kind.sections.map { ExtensionListFilter(id: $0.id, title: $0.title, symbol: $0.symbol) },
                 now: now
             )
         case CommandID.repositories:
             return ListShape(
                 filtering: .extension,
-                searchPlaceholder: "Search repositories…",
+                searchPlaceholder: localized("Search repositories…"),
                 filters: [
-                    ExtensionListFilter(id: FilterID.mine, title: "Your Repositories", symbol: "person"),
-                    ExtensionListFilter(id: FilterID.starred, title: "Starred", symbol: "star"),
-                    ExtensionListFilter(id: FilterID.everywhere, title: "All of GitHub", symbol: "globe"),
+                    ExtensionListFilter(id: FilterID.mine, title: localized("Your Repositories"), symbol: "person"),
+                    ExtensionListFilter(id: FilterID.starred, title: localized("Starred"), symbol: "star"),
+                    ExtensionListFilter(id: FilterID.everywhere, title: localized("All of GitHub"), symbol: "globe"),
                 ],
                 now: now
             )
         default:
-            throw PrismExtensionError("GitHub has no list “\(command)”.")
+            throw PrismExtensionError(localized("GitHub has no list “\(command)”."))
         }
     }
 

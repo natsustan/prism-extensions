@@ -100,11 +100,11 @@ final class AntigravityAuthStore: @unchecked Sendable {
         }
         guard let refreshToken = credentials.refreshToken else {
             return .failed(.authExpired(
-                "Antigravity's saved sign-in has no refresh token. Run `agy` to sign in again."))
+                localized("Antigravity's saved sign-in has no refresh token. Run `agy` to sign in again.")))
         }
         guard let client = oauthClient(credentials) else {
             return .failed(.authExpired(
-                "Antigravity's sign-in needs refreshing. Run `agy` or open Antigravity, then refresh."))
+                localized("Antigravity's sign-in needs refreshing. Run `agy` or open Antigravity, then refresh.")))
         }
         return await refresh(refreshToken, client: client, key: key)
     }
@@ -137,18 +137,18 @@ final class AntigravityAuthStore: @unchecked Sendable {
         do {
             response = try await httpClient.send(request)
         } catch {
-            return .failed(.network("Couldn't reach the sign-in endpoint. Check your connection."))
+            return .failed(.network(localized("Couldn't reach the sign-in endpoint. Check your connection.")))
         }
         if response.statusCode == 400 || response.statusCode == 401 || response.statusCode == 403 {
             return .failed(.authExpired(
-                "Antigravity's saved sign-in expired. Run `agy` to sign in again."))
+                localized("Antigravity's saved sign-in expired. Run `agy` to sign in again.")))
         }
         guard response.isSuccess,
               let root = AgentUsageParse.jsonObject(response.body),
               let token = AgentUsageParse.string(root["access_token"])
         else {
             return .failed(.invalidResponse(
-                "The sign-in endpoint answered with data Prism couldn't read."))
+                localized("The sign-in endpoint answered with data Prism couldn't read.")))
         }
         let expiresIn = AgentUsageParse.number(root["expires_in"]) ?? 3600
         lock.withLock {
