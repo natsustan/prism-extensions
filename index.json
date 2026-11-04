@@ -377,7 +377,7 @@
         "tasks" : [
 
         ],
-        "version" : "1.3.0",
+        "version" : "1.3.1",
         "widgets" : [
           {
             "id" : "numbers",
@@ -412,12 +412,12 @@
         ]
       },
       "package" : {
-        "sha256" : "108da3efe3e6329519db97e3e1fb2367f2f431c8fac1d4b0c3ce78a5658ecbd7",
-        "size" : 2078824,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.agent-usage%401.3.0/prism.agent-usage-1.3.0.prismextension"
+        "sha256" : "c3c79b9a17f623d4823704fafe8b39a117d7f5f85c4d14dbad680cef4ab9644a",
+        "size" : 2090656,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.agent-usage%401.3.1/prism.agent-usage-1.3.1.prismextension"
       },
-      "publishedAt" : 1793691267,
-      "releaseNotes" : "- In Simplified or Traditional Chinese, the list, detail pane, widgets,\n  quota labels, reset times, and sign-in and error messages are in Chinese\n  too. Agent and plan names stay as each service writes them.",
+      "publishedAt" : 1793801678,
+      "releaseNotes" : "- Widgets show fresh quotas as soon as they arrive, instead of a few\n  seconds later, and Prism checks on them less often while they wait.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/agent-usage"
     },
     {
@@ -1571,7 +1571,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1793691553,
+  "generatedAt" : 1793801678,
   "revoked" : [
 
   ]
