@@ -63,8 +63,23 @@ struct AgentUsageExtensionTests {
         await fixture.settle()
         list = try await fixture.prism.list("usage")
         #expect(await fixture.prism.changedLists.contains("usage"))
+        #expect(await fixture.prism.changedWidgets.contains { $0 == nil })
         #expect(list.items[0].accessories.last?.text == "58%")
         #expect(await fixture.codex.fetchCount() == 1)
+    }
+
+    @Test("a widget shows cached numbers at once and tells Prism when fresh ones land")
+    func widgetChanges() async throws {
+        let fixture = try await AgentUsageFixture()
+        #expect(await fixture.prism.initializeResult.notifiesWidgetChanges == true)
+        _ = try await fixture.prism.widget("rings")
+        await fixture.settle()
+        guard case let .quota(_, card) = try await fixture.prism.widget("rings") else {
+            Issue.record("The rings widget is a quota card")
+            return
+        }
+        #expect(await fixture.prism.changedWidgets.contains { $0 == nil })
+        #expect(card.items.first?.value == "58%")
     }
 
     @Test("the Agents preference lists every provider with detection defaults and orders the list")
