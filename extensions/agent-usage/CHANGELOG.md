@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1
+
+- Widgets show fresh quotas as soon as they arrive, instead of a few
+  seconds later, and Prism checks on them less often while they wait.
+
 ## 1.3.0
 
 - In Simplified or Traditional Chinese, the list, detail pane, widgets,

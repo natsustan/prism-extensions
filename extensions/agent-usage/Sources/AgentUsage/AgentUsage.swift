@@ -49,6 +49,10 @@ struct AgentUsage: PrismExtension {
         return ExtensionActionResult(.keepOpen(message: ""))
     }
 
+    /// Fetches finish after the load that started them; the session says so
+    /// with `widgetChanged`, so Prism need not poll the widgets.
+    var notifiesWidgetChanges: Bool { true }
+
     func widget(_ widget: String, context: PrismContext) async throws -> ExtensionWidgetContent {
         try await session.widget(widget, context: context)
     }

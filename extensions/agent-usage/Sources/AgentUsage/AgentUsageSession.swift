@@ -136,7 +136,10 @@ final class AgentUsageSession {
     private func controllerChanged() {
         saveCache()
         guard let context else { return }
-        Task { await context.listChanged(AgentUsage.CommandID.usage) }
+        Task {
+            await context.listChanged(AgentUsage.CommandID.usage)
+            await context.widgetChanged()
+        }
     }
 
     /// The user's agent order and switches, as the controller reads them.
