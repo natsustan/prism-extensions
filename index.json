@@ -517,18 +517,18 @@
         "tasks" : [
 
         ],
-        "version" : "1.2.0",
+        "version" : "1.3.0",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "77dcba4821053765fa2afc0cf13f1cfd2c8af4a3d04edcdc01edfb4059b6a066",
-        "size" : 1186600,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.apple-notes%401.2.0/prism.apple-notes-1.2.0.prismextension"
+        "sha256" : "fc3632724b923d31c6c157ba7560ed26d9ab30230d2a3687eabcc8b37edfae85",
+        "size" : 1208160,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.apple-notes%401.3.0/prism.apple-notes-1.3.0.prismextension"
       },
-      "publishedAt" : 1793691305,
-      "releaseNotes" : "- In Simplified or Traditional Chinese, sections, actions, the access row,\n  and messages are in Chinese too.",
+      "publishedAt" : 1793885714,
+      "releaseNotes" : "- A row's second line starts with when the note last changed (the time\n  today, then Yesterday, then the date, following the 24-hour and date\n  formats in System Settings) and its folder, then the start of its text,\n  so every row has two lines. Notes' default folder isn't named.\n- A title written over several lines, or with tabs, shows in full on one\n  line instead of stopping at the first break.\n- The list has headings only when pinned notes are among the results.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/apple-notes"
     },
     {
@@ -1571,7 +1571,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1793801678,
+  "generatedAt" : 1793885714,
   "revoked" : [
 
   ]
