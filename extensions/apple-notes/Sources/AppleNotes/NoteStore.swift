@@ -16,6 +16,8 @@ struct Note: Hashable, Sendable {
     let isChecklistInProgress: Bool
     /// Inline hashtags, without the leading `#`.
     var tags: [String] = []
+    /// In the account's own Notes folder rather than one the user made.
+    var isInDefaultFolder = false
 }
 
 enum NoteStoreError: Error, Equatable {
@@ -60,7 +62,8 @@ struct NoteStore: Sendable {
                 isPinned: row.int(7) == 1,
                 isLocked: row.int(8) == 1,
                 hasChecklist: row.int(9) == 1,
-                isChecklistInProgress: row.int(10) == 1
+                isChecklistInProgress: row.int(10) == 1,
+                isInDefaultFolder: row.string(11)?.hasPrefix("DefaultFolder") == true
             ))
         }
         try database.rows(Self.tagsQuery) { row in
@@ -103,7 +106,9 @@ struct NoteStore: Sendable {
         }
     }
 
-    /// Folder type 1 is Recently Deleted, whatever its localized title.
+    /// Folder type 1 is Recently Deleted, whatever its localized title. Each
+    /// account's default Notes folder has an identifier starting with
+    /// `DefaultFolder` (`DefaultFolder-CloudKit` for iCloud), whatever its title.
     private static let notesQuery = """
         SELECT
             note.Z_PK,
@@ -116,7 +121,8 @@ struct NoteStore: Sendable {
             note.ZISPINNED,
             note.ZISPASSWORDPROTECTED,
             note.ZHASCHECKLIST,
-            note.ZHASCHECKLISTINPROGRESS
+            note.ZHASCHECKLISTINPROGRESS,
+            folder.ZIDENTIFIER
         FROM ZICCLOUDSYNCINGOBJECT AS note
         INNER JOIN ZICCLOUDSYNCINGOBJECT AS folder ON note.ZFOLDER = folder.Z_PK
         LEFT JOIN ZICCLOUDSYNCINGOBJECT AS account ON note.ZACCOUNT4 = account.Z_PK

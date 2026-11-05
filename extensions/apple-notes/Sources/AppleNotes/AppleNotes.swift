@@ -30,14 +30,23 @@ struct AppleNotes: PrismExtension {
     let pinyinCache = PinyinCache()
     let library = NoteLibrary()
     let openURL: @Sendable (URL) async throws -> Void
+    let now: @Sendable () -> Date
+    let calendar: Calendar
 
     init() {
         self.init(store: NoteStore(), openURL: Self.openWithWorkspace)
     }
 
-    init(store: NoteStore, openURL: @escaping @Sendable (URL) async throws -> Void) {
+    init(
+        store: NoteStore,
+        openURL: @escaping @Sendable (URL) async throws -> Void,
+        now: @escaping @Sendable () -> Date = Date.init,
+        calendar: Calendar = .autoupdatingCurrent
+    ) {
         self.store = store
         self.openURL = openURL
+        self.now = now
+        self.calendar = calendar
     }
 
     func list(command: String, query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
@@ -56,8 +65,13 @@ struct AppleNotes: PrismExtension {
         }
         let search = NoteSearch(query: query)
         let results = search.results(in: notes, limit: Self.resultLimit)
+        let loadedAt = now()
+        let dates = NoteDates(
+            now: loadedAt, calendar: calendar, locale: NoteDates.locale(prismLanguage: PrismLocalization.language)
+        )
+        let hasPinned = results.contains(where: \.isPinned)
         return ExtensionList(
-            items: results.map(Self.item(for:)),
+            items: results.map { Self.item(for: $0, headed: hasPinned, dates: dates) },
             filtering: .extension,
             searchPlaceholder: Self.searchPlaceholder,
             emptyMessage: search.words.isEmpty
@@ -65,7 +79,7 @@ struct AppleNotes: PrismExtension {
                     title: localized("No Notes"), message: localized("Notes you write in Apple Notes appear here."), symbol: "note.text"
                 )
                 : ExtensionListMessage(title: localized("No Matching Notes"), symbol: "magnifyingglass"),
-            fetchedAt: Date()
+            fetchedAt: loadedAt
         )
     }
 
@@ -88,7 +102,10 @@ struct AppleNotes: PrismExtension {
     /// Notes' own icon; the gold tile where Notes is missing.
     static let noteIcon = ExtensionIcon(symbol: "note.text", tint: "gold", app: "com.apple.Notes")
 
-    static func item(for note: Note) -> ExtensionListItem {
+    /// Headings appear only when pinned notes are listed, to set them apart;
+    /// otherwise a lone "Notes" heading would repeat the scope's own title.
+    static func item(for note: Note, headed: Bool, dates: NoteDates) -> ExtensionListItem {
+        let title = oneLine(note.title) ?? note.title
         let link = noteURL(note.id)?.absoluteString
         var actions = [ExtensionAction(id: ActionID.open, title: localized("Open in Notes"), symbol: "note.text")]
         if let link {
@@ -103,23 +120,32 @@ struct AppleNotes: PrismExtension {
         ))
         return ExtensionListItem(
             id: note.id,
-            title: note.title,
-            subtitle: subtitle(note.snippet),
+            title: title,
+            subtitle: subtitle(for: note, dates: dates),
             icon: noteIcon,
             accessories: accessories(for: note),
-            section: note.isPinned ? localized("Pinned") : localized("Notes"),
+            section: headed ? (note.isPinned ? localized("Pinned") : localized("Notes")) : nil,
             actions: actions
         )
     }
 
-    /// Snippets keep the note's line breaks; a row shows one line.
-    static func subtitle(_ snippet: String?) -> String? {
-        guard let snippet else { return nil }
-        let line = snippet.split(whereSeparator: \.isNewline)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
+    /// Titles and snippets keep the note's tabs and line breaks, including
+    /// the line separators (U+2028) Notes writes for Shift-Return; a row
+    /// shows one line, so each run of them becomes a single space.
+    static func oneLine(_ text: String) -> String? {
+        let line = text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
         return line.isEmpty ? nil : line
+    }
+
+    /// When the note last changed, its folder, then the start of its text,
+    /// as Notes' list puts the date before the preview. Every row then has
+    /// a second line, even a note with nothing after its title. Notes'
+    /// default folder holds most notes, so naming it says nothing.
+    static func subtitle(for note: Note, dates: NoteDates) -> String {
+        let folder = note.folder.isEmpty || note.isInDefaultFolder ? nil : note.folder
+        return [dates.label(for: note.modifiedAt), folder, note.snippet.flatMap(oneLine)]
+            .compactMap { $0 }
+            .joined(separator: " ")
     }
 
     static func accessories(for note: Note) -> [ExtensionListAccessory] {
@@ -131,9 +157,6 @@ struct AppleNotes: PrismExtension {
             accessories.append(note.isChecklistInProgress
                 ? ExtensionListAccessory(symbol: "circle", help: localized("Checklist in progress"))
                 : ExtensionListAccessory(symbol: "checkmark.circle.fill", tint: "green", help: localized("Checklist done")))
-        }
-        if !note.folder.isEmpty {
-            accessories.append(ExtensionListAccessory(text: note.folder, help: localized("Folder")))
         }
         return accessories
     }
