@@ -61,8 +61,11 @@ private final class NotesFixture {
         try insert(["ZNAME": Self.quoted(name)])
     }
 
-    func folder(_ title: String, type: Int = 0, deleted: Bool = false) throws -> Int64 {
-        try insert(["ZTITLE2": Self.quoted(title), "ZFOLDERTYPE": "\(type)", "ZMARKEDFORDELETION": deleted ? "1" : "0"])
+    func folder(_ title: String, identifier: String? = nil, type: Int = 0, deleted: Bool = false) throws -> Int64 {
+        try insert([
+            "ZTITLE2": Self.quoted(title), "ZIDENTIFIER": Self.quoted(identifier),
+            "ZFOLDERTYPE": "\(type)", "ZMARKEDFORDELETION": deleted ? "1" : "0",
+        ])
     }
 
     @discardableResult
@@ -109,11 +112,22 @@ private final class OpenedURLs: Sendable {
 
 @Suite("Apple Notes")
 struct AppleNotesTests {
+    /// Fixture notes are modified seconds after 2001-01-01 00:00 UTC, so by
+    /// default they were all written today.
+    static let today = Date(timeIntervalSinceReferenceDate: 3_600)
+
+    static let utc: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        return calendar
+    }()
+
     private func host(
-        _ url: URL, opened: OpenedURLs = OpenedURLs(), dataDirectory: URL? = nil, language: String = "en"
+        _ url: URL, opened: OpenedURLs = OpenedURLs(), dataDirectory: URL? = nil, language: String = "en",
+        now: Date = AppleNotesTests.today
     ) async throws -> PrismTestHost {
         try await PrismTestHost(
-            AppleNotes(store: NoteStore(url: url), openURL: { opened.open($0) }),
+            AppleNotes(store: NoteStore(url: url), openURL: { opened.open($0) }, now: { now }, calendar: Self.utc),
             extensionID: "prism.apple-notes",
             dataDirectory: dataDirectory,
             language: language
@@ -142,7 +156,13 @@ struct AppleNotesTests {
         #expect(list.showsDetail == false)
     }
 
-    @Test("A row shows the snippet on one line, the folder, and lock and checklist states")
+    /// The time a fixture note modified at `seconds` shows, in `language`.
+    private func time(_ seconds: TimeInterval, language: String = "en") -> String {
+        NoteDates(now: Self.today, calendar: Self.utc, locale: NoteDates.locale(prismLanguage: language))
+            .label(for: Date(timeIntervalSinceReferenceDate: seconds))
+    }
+
+    @Test("A row's second line is the date, the folder, and the snippet on one line; lock and checklist sit at the end")
     func rowContent() async throws {
         let fixture = try NotesFixture()
         let work = try fixture.folder("Work")
@@ -154,14 +174,77 @@ struct AppleNotesTests {
 
         #expect(items[0].id == id)
         #expect(items[0].icon?.app == "com.apple.Notes")
-        #expect(items[0].subtitle == "first line second line")
-        #expect(items[0].accessories.map(\.symbol) == ["lock.fill", "circle", nil])
-        #expect(items[0].accessories.last?.text == "Work")
-        #expect(items[1].subtitle == nil)
+        #expect(items[0].subtitle == "\(time(3)) Work first line second line")
+        #expect(items[0].accessories.map(\.symbol) == ["lock.fill", "circle"])
+        // Without text after the title, the date and folder still fill the line.
+        #expect(items[1].subtitle == "\(time(2)) Work")
         #expect(items[1].accessories.first?.symbol == "checkmark.circle.fill")
         #expect(items[0].actions.map(\.id) == ["open", "copy-link", "copy-title"])
         #expect(items[0].actions[1].kind == .copy(text: "applenotes://showNote?identifier=\(id)"))
         #expect(items[0].actions[2].kind == .copy(text: "Plan"))
+    }
+
+    @Test("A row shows its title on one line and leaves out Notes' default folder")
+    func titleAndDefaultFolder() async throws {
+        let fixture = try NotesFixture()
+        let notes = try fixture.folder("Notes", identifier: "DefaultFolder-CloudKit")
+        try fixture.note("这是甲方的需求\u{2028}\u{2028}希望制作", snippet: "-Eco Mall）", folder: notes, modified: 2)
+        try fixture.note("marble\tkey", folder: notes, modified: 1)
+
+        let items = try await host(fixture.url).list("search-notes").items
+
+        #expect(items.map(\.title) == ["这是甲方的需求 希望制作", "marble key"])
+        #expect(items.map(\.subtitle) == ["\(time(2)) -Eco Mall）", time(1)])
+        #expect(items.map(\.section) == [nil, nil])
+        // Copying keeps the title as Notes stores it.
+        #expect(items[0].actions[2].kind == .copy(text: "这是甲方的需求\u{2028}\u{2028}希望制作"))
+        // The default folder still matches by name.
+        #expect(try await titles(host(fixture.url), "notes marble") == ["marble key"])
+    }
+
+    @Test("A row's date is the time today, then Yesterday, then the short date, counted from the list's own moment")
+    func rowDates() async throws {
+        // Thursday, 5 November 2026, 17:59 UTC: years from the clock the tests run on.
+        let now = try Date("2026-11-05T17:59:00Z", strategy: .iso8601)
+        func label(_ date: Date, _ locale: String) -> String {
+            NoteDates(now: now, calendar: Self.utc, locale: Locale(identifier: locale)).label(for: date)
+        }
+        // The hour setting of System Settings travels in the locale.
+        #expect(label(now, "en_US@hours=h23") == "17:59")
+        #expect(label(now, "en_US@hours=h12") == "5:59\u{202F}PM")
+        #expect(label(now.addingTimeInterval(-86_400), "en_US") == "Yesterday")
+        // No other relative words, such as 前天, and the future reads as a date.
+        #expect(label(now.addingTimeInterval(-2 * 86_400), "zh_CN") == "2026/11/3")
+        #expect(label(now.addingTimeInterval(2 * 86_400), "en_US") == "11/7/26")
+        #expect(label(try Date("2026-10-20T10:00:00Z", strategy: .iso8601), "en_US") == "10/20/26")
+
+        let fixture = try NotesFixture()
+        try fixture.note("Plan", folder: fixture.folder("Work"),
+                         modified: now.addingTimeInterval(-86_400).timeIntervalSinceReferenceDate)
+        #expect(try await host(fixture.url, language: "zh-Hans", now: now).list("search-notes").items[0].subtitle == "昨天 Work")
+    }
+
+    @Test("Prism's language uses the Mac's own locale when they match, and the Mac's region when not")
+    func dateLocale() {
+        let taiwan = Locale(identifier: "zh_TW")
+        #expect(NoteDates.locale(prismLanguage: nil, system: taiwan) == taiwan)
+        #expect(NoteDates.locale(prismLanguage: "zh-Hant", system: taiwan) == taiwan)
+        #expect(NoteDates.locale(prismLanguage: "zh-Hans", system: taiwan).language.script?.identifier == "Hans")
+        let us = Locale(identifier: "en_US")
+        #expect(NoteDates.locale(prismLanguage: "en", system: us) == us)
+    }
+
+    @Test("Search results keep their ranking and have a heading only beside pinned matches")
+    func searchSections() async throws {
+        let fixture = try NotesFixture()
+        let notes = try fixture.folder("Notes")
+        try fixture.note("Budget", folder: notes, modified: 1)
+        try fixture.note("Groceries", snippet: "budget", folder: notes, modified: 2)
+
+        let items = try await host(fixture.url).list("search-notes", query: "budget").items
+
+        #expect(items.map(\.title) == ["Budget", "Groceries"])
+        #expect(items.map(\.section) == [nil, nil])
     }
 
     private func titles(_ prism: PrismTestHost, _ query: String) async throws -> [String] {
@@ -344,9 +427,12 @@ struct AppleNotesTests {
         let list = try await host(fixture.url, language: "zh-Hans").list("search-notes")
 
         #expect(list.items.map(\.section) == ["已置顶", "备忘录"])
+        #expect(list.items[1].accessories.map(\.help) == ["已锁定的备忘录"])
+        #expect(list.items[1].subtitle == "\(time(1, language: "zh-Hans")) Work")
+        let searched = try await host(fixture.url, language: "zh-Hans").list("search-notes", query: "work")
+        #expect(searched.items.map(\.section) == ["已置顶", "备忘录"])
         #expect(list.items[0].title == "Plan")
         #expect(list.items[0].actions.map(\.title) == ["在备忘录中打开", "拷贝备忘录链接", "拷贝备忘录标题"])
-        #expect(list.items[1].accessories.first?.help == "已锁定的备忘录")
         #expect(list.searchPlaceholder == "按标题、文件夹、内容或标签搜索备忘录…")
     }
 

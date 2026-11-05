@@ -161,22 +161,6 @@
         }
       }
     },
-    "Folder" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文件夹"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "檔案夾"
-          }
-        }
-      }
-    },
     "Locked note" : {
       "localizations" : {
         "zh-Hans" : {
@@ -317,6 +301,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法打開這則備忘錄。"
+          }
+        }
+      }
+    },
+    "Yesterday" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昨天"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昨天"
           }
         }
       }
