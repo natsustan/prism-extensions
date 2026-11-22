@@ -1,0 +1,62 @@
+{
+  "protocol": 1,
+  "id": "prism.kill-process",
+  "name": "Kill Process",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Find running apps and processes by CPU or memory usage, and kill or restart them.",
+  "icon": { "symbol": "waveform.path.ecg", "tint": "red" },
+  "executable": ".build/release/KillProcess",
+  "commands": [
+    {
+      "id": "kill-process",
+      "title": "Kill Process",
+      "mode": "list",
+      "keywords": ["process", "processes", "quit", "force quit", "activity monitor", "cpu", "memory", "ram", "pid", "restart", "terminate", "task manager"]
+    }
+  ],
+  "preferences": [
+    {
+      "id": "closeAfterKill",
+      "type": "bool",
+      "title": "Close After Kill",
+      "caption": "Close the launcher and show a confirmation after killing or restarting a process. When off, the list stays open and reloads.",
+      "default": false
+    }
+  ],
+  "capabilities": ["inspectProcesses", "spawnProcesses"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "结束进程",
+      "description": "按 CPU 或内存占用查找正在运行的 App 和进程，并结束或重启它们。",
+      "commands": {
+        "kill-process": {
+          "title": "结束进程",
+          "keywords": ["结束进程", "杀掉进程", "强制退出", "活动监视器", "内存", "重启", "jieshujincheng", "jsjc"]
+        }
+      },
+      "preferences": {
+        "closeAfterKill": {
+          "title": "结束后关闭启动器",
+          "caption": "结束或重启进程后关闭启动器并显示提示。关闭后列表保持打开并刷新。"
+        }
+      }
+    },
+    "zh-Hant": {
+      "name": "結束程序",
+      "description": "依 CPU 或記憶體用量尋找執行中的 App 與程序，並結束或重新啟動它們。",
+      "commands": {
+        "kill-process": {
+          "title": "結束程序",
+          "keywords": ["結束程序", "強制結束", "活動監視器", "記憶體", "重新啟動", "进程", "jieshuchengxu", "jscx"]
+        }
+      },
+      "preferences": {
+        "closeAfterKill": {
+          "title": "結束後關閉啟動器",
+          "caption": "結束或重新啟動程序後關閉啟動器並顯示提示。關閉後列表會保持開啟並重新載入。"
+        }
+      }
+    }
+  }
+}
