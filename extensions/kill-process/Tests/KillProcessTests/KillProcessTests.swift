@@ -133,6 +133,41 @@ struct KillProcessTests {
         #expect(safariBackAlone.subtitle == nil)
     }
 
+    @Test("groups same app bundle separately per user so another user does not block actions")
+    func multiUserAppGrouping() async throws {
+        let fake = typicalMac()
+        fake.add(.fake(
+            90, "Google Chrome", user: 502, parent: 1,
+            path: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+            cpu: 10.0, memoryMB: 300
+        ))
+        fake.add(.fake(
+            91, "Google Chrome Helper (Renderer)", user: 502, parent: 90,
+            path: "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/130/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)",
+            cpu: 5.0, memoryMB: 100
+        ))
+
+        let prism = try await PrismTestHost(KillProcess(fake: fake))
+        let list = try await prism.list(command)
+        let chromes = list.items.filter { $0.title == "Google Chrome" }
+        #expect(chromes.count == 2)
+
+        let mine = try #require(chromes.first { $0.id == "app:100@1700000000.250000" })
+        #expect(mine.subtitle == "2 processes")
+        #expect(mine.action(id: ActionID.kill) != nil)
+        #expect(mine.action(id: ActionID.forceKill) != nil)
+        #expect(mine.action(id: ActionID.restart) != nil)
+
+        let theirs = try #require(chromes.first { $0.id == "app:90@1700000000.250000" })
+        #expect(theirs.subtitle == "2 processes")
+        #expect(theirs.action(id: ActionID.kill) == nil)
+        #expect(theirs.action(id: ActionID.restart) == nil)
+        #expect(theirs.action(id: ActionID.copyKillCommand)?.kind == .copy(text: "sudo kill 90"))
+
+        #expect(try await prism.perform(ActionID.kill, on: mine.id, in: command) == .reload(message: "Killed “Google Chrome”."))
+        #expect(fake.signals == [.init(pid: 100, signal: SIGTERM), .init(pid: 101, signal: SIGTERM)])
+    }
+
     @Test("toggling App Grouping persists across extension restarts")
     func toggleAppGroupingPersists() async throws {
         let fake = typicalMac()

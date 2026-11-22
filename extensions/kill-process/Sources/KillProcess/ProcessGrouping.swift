@@ -76,6 +76,11 @@ enum ProcessGrouping {
         }
     }
 
+    private struct AppGroupKey: Hashable {
+        let bundlePath: String
+        let userID: uid_t
+    }
+
     static func entries(
         from records: [ProcessRecord],
         sort: ProcessSort,
@@ -84,21 +89,22 @@ enum ProcessGrouping {
     ) -> [ProcessEntry] {
         var built: [ProcessEntry] = []
         if groupApps {
-            var groups: [String: [ProcessRecord]] = [:]
-            var order: [String] = []
+            var groups: [AppGroupKey: [ProcessRecord]] = [:]
+            var order: [AppGroupKey] = []
             for record in records {
                 if let bundlePath = record.outerAppBundlePath {
-                    if groups[bundlePath] == nil { order.append(bundlePath) }
-                    groups[bundlePath, default: []].append(record)
+                    let key = AppGroupKey(bundlePath: bundlePath, userID: record.userID)
+                    if groups[key] == nil { order.append(key) }
+                    groups[key, default: []].append(record)
                 } else {
                     built.append(singleEntry(for: record))
                 }
             }
-            for bundlePath in order {
-                guard let group = groups[bundlePath], !group.isEmpty else { continue }
+            for key in order {
+                guard let group = groups[key], !group.isEmpty else { continue }
                 // Keep a stable `app:` ID for every grouped app bundle even when it
                 // currently has one process, so helper churn preserves row identity.
-                built.append(aggregatedEntry(for: group, bundlePath: bundlePath, sort: sort))
+                built.append(aggregatedEntry(for: group, bundlePath: key.bundlePath, sort: sort))
             }
         } else {
             built = records.map(singleEntry(for:))
@@ -125,6 +131,7 @@ enum ProcessGrouping {
         let extras = snapshot
             .filter { record in
                 record.isKillable(by: currentUserID, excludingPID: excludingPID)
+                    && record.userID == main.userID
                     && record.identity != main.identity
                     && bundlePath != nil
                     && record.outerAppBundlePath == bundlePath
