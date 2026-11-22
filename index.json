@@ -1331,6 +1331,129 @@
       "manifest" : {
         "author" : "Prism",
         "capabilities" : [
+          "inspectProcesses",
+          "spawnProcesses"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "kill-process",
+            "interactive" : false,
+            "keywords" : [
+              "process",
+              "processes",
+              "quit",
+              "force quit",
+              "activity monitor",
+              "cpu",
+              "memory",
+              "ram",
+              "pid",
+              "restart",
+              "terminate",
+              "task manager"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "title" : "Kill Process"
+          }
+        ],
+        "description" : "Find running apps and processes by CPU or memory usage, and kill or restart them.",
+        "executable" : "bin/KillProcess",
+        "folders" : [
+
+        ],
+        "icon" : {
+          "symbol" : "waveform.path.ecg",
+          "tint" : "red"
+        },
+        "id" : "prism.kill-process",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "kill-process" : {
+                "keywords" : [
+                  "结束进程",
+                  "杀掉进程",
+                  "强制退出",
+                  "活动监视器",
+                  "内存",
+                  "重启",
+                  "jieshujincheng",
+                  "jsjc"
+                ],
+                "title" : "结束进程"
+              }
+            },
+            "description" : "按 CPU 或内存占用查找正在运行的 App 和进程，并结束或重启它们。",
+            "name" : "结束进程",
+            "preferences" : {
+              "closeAfterKill" : {
+                "caption" : "结束或重启进程后关闭启动器并显示提示。关闭后列表保持打开并刷新。",
+                "title" : "结束后关闭启动器"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "kill-process" : {
+                "keywords" : [
+                  "結束程序",
+                  "強制結束",
+                  "活動監視器",
+                  "記憶體",
+                  "重新啟動",
+                  "进程",
+                  "jieshuchengxu",
+                  "jscx"
+                ],
+                "title" : "結束程序"
+              }
+            },
+            "description" : "依 CPU 或記憶體用量尋找執行中的 App 與程序，並結束或重新啟動它們。",
+            "name" : "結束程序",
+            "preferences" : {
+              "closeAfterKill" : {
+                "caption" : "結束或重新啟動程序後關閉啟動器並顯示提示。關閉後列表會保持開啟並重新載入。",
+                "title" : "結束後關閉啟動器"
+              }
+            }
+          }
+        },
+        "name" : "Kill Process",
+        "preferences" : [
+          {
+            "caption" : "Close the launcher and show a confirmation after killing or restarting a process. When off, the list stays open and reloads.",
+            "default" : false,
+            "id" : "closeAfterKill",
+            "title" : "Close After Kill",
+            "type" : "bool"
+          }
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "a8d34daea148670afc713006a5cf372bf25ead6187631db1a44c5a5809162b62",
+        "size" : 1297234,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.kill-process%401.0.0/prism.kill-process-1.0.0.prismextension"
+      },
+      "publishedAt" : 1795350315,
+      "releaseNotes" : "- Kill Process lists running apps and processes in a full-width list showing both CPU and memory usage, with ⌘P sorting between CPU Usage and Memory Usage.\n- Groups each app bundle’s helper processes under the app by default, with ⇧⌘G to toggle between grouped apps and individual processes.\n- Kill, Force Kill, Restart, Force Restart, Kill All, and Force Kill All confirm before signalling and verify process identity (PID and start time) so stale rows never hit reused PIDs.\n- Show in Finder and a Copy submenu (path, PID, and `sudo kill` commands for other users’ processes).\n- Full Simplified Chinese and Traditional Chinese translations for the manifest, filters, actions, confirmations, and messages.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/kill-process"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
 
         ],
         "commands" : [
@@ -1571,7 +1694,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1793885714,
+  "generatedAt" : 1795350315,
   "revoked" : [
 
   ]
