@@ -109,6 +109,30 @@ struct KillProcessTests {
         #expect(xcode.action(id: ActionID.restart) == nil)
     }
 
+    @Test("grouped app keeps a stable app: ID as helpers start and stop")
+    func groupedAppIDStability() async throws {
+        let fake = typicalMac()
+        fake.add(.fake(150, "Safari", parent: 1, path: "/Applications/Safari.app/Contents/MacOS/Safari", cpu: 3.0, memoryMB: 200))
+        let prism = try await PrismTestHost(KillProcess(fake: fake))
+
+        let alone = try await prism.list(command)
+        let safariAlone = try #require(alone.items.first { $0.title == "Safari" })
+        #expect(safariAlone.id == "app:150@1700000000.250000")
+        #expect(safariAlone.subtitle == nil)
+
+        fake.add(.fake(151, "com.apple.WebKit.WebContent", parent: 150, path: "/Applications/Safari.app/Contents/XPCServices/com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent", cpu: 4.0, memoryMB: 150))
+        let withHelper = try await prism.list(command)
+        let safariWithHelper = try #require(withHelper.items.first { $0.title == "Safari" })
+        #expect(safariWithHelper.id == "app:150@1700000000.250000")
+        #expect(safariWithHelper.subtitle == "2 processes")
+
+        fake.quit(151)
+        let backAlone = try await prism.list(command)
+        let safariBackAlone = try #require(backAlone.items.first { $0.title == "Safari" })
+        #expect(safariBackAlone.id == "app:150@1700000000.250000")
+        #expect(safariBackAlone.subtitle == nil)
+    }
+
     @Test("toggling App Grouping persists across extension restarts")
     func toggleAppGroupingPersists() async throws {
         let fake = typicalMac()
@@ -201,6 +225,35 @@ struct KillProcessTests {
         #expect(try await prism.perform(ActionID.kill, on: chrome.id, in: command)
             == ExtensionActionResult(.failed(message: "You don’t have permission to kill “Google Chrome”."), reload: true))
         #expect(fake.signals.isEmpty)
+    }
+
+    @Test("reports partial signal failures for app groups, Restart, and Kill All")
+    func partialSignalFailures() async throws {
+        // Kill: main (100) quits, helper (101) refuses -> reports failure instead of success.
+        let killFake = typicalMac()
+        killFake.refuseSignals(101)
+        let killHost = try await PrismTestHost(KillProcess(fake: killFake))
+        let chromeKill = try #require(try await killHost.list(command).items.first { $0.title == "Google Chrome" })
+        #expect(try await killHost.perform(ActionID.kill, on: chromeKill.id, in: command)
+            == ExtensionActionResult(.failed(message: "You don’t have permission to kill “Google Chrome”."), reload: true))
+
+        // Restart: main (100) quits, helper (101) refuses -> reports failure and does not reopen app.
+        let restartFake = typicalMac()
+        restartFake.refuseSignals(101)
+        let restartHost = try await PrismTestHost(KillProcess(fake: restartFake))
+        let chromeRestart = try #require(try await restartHost.list(command).items.first { $0.title == "Google Chrome" })
+        #expect(try await restartHost.perform(ActionID.restart, on: chromeRestart.id, in: command)
+            == ExtensionActionResult(.failed(message: "You don’t have permission to kill “Google Chrome”."), reload: true))
+        #expect(restartFake.opened.isEmpty)
+
+        // Kill All: one node (200) quits, another (201) refuses -> reports failure.
+        let killAllFake = typicalMac()
+        killAllFake.add(.fake(201, "node", parent: 50, path: "/opt/homebrew/bin/node", cpu: 2.0, memoryMB: 100))
+        killAllFake.refuseSignals(201)
+        let killAllHost = try await PrismTestHost(KillProcess(fake: killAllFake))
+        let node = try #require(try await killAllHost.list(command).items.first { $0.title == "node" })
+        #expect(try await killAllHost.perform(ActionID.killAll, on: node.id, in: command)
+            == ExtensionActionResult(.failed(message: "You don’t have permission to kill “node”."), reload: true))
     }
 
     @Test("Kill All appears only when multiple same-name processes exist outside a single app group")

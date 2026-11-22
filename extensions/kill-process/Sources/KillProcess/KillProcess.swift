@@ -171,7 +171,7 @@ struct KillProcess: PrismExtension {
         guard let info = system.process(parsed.identity.pid), info.identity == parsed.identity else {
             return .reload(message: localized("That process already quit."))
         }
-        guard let path = ProcessRecord.revealPath(for: info.path, aggregated: parsed.isAggregated) else {
+        guard let path = ProcessRecord.revealPath(for: info.path, aggregated: parsed.isAppGroup) else {
             return ExtensionActionResult(.failed(message: localized("The program’s location can’t be read.")))
         }
         do {
@@ -205,7 +205,7 @@ struct KillProcess: PrismExtension {
             return .reload(message: localized("That process already quit."))
         }
 
-        let title = parsed.isAggregated
+        let title = parsed.isAppGroup
             ? (resolved.main.appName ?? resolved.main.name)
             : resolved.main.name
         let result = try await sendAndWait(
@@ -250,7 +250,7 @@ struct KillProcess: PrismExtension {
             return ExtensionActionResult(.failed(message: localized("The app’s bundle no longer exists.")), reload: true)
         }
 
-        let title = parsed.isAggregated
+        let title = parsed.isAppGroup
             ? (resolved.main.appName ?? resolved.main.name)
             : resolved.main.name
         let result = try await sendAndWait(
@@ -351,6 +351,14 @@ struct KillProcess: PrismExtension {
         }
     }
 
+    private static func signalFailure(for error: SignalError) -> SignalFailure {
+        switch error {
+        case .gone: .allGoneBeforeSignal
+        case .notPermitted: .notPermitted
+        case let .failed(code): .code(code)
+        }
+    }
+
     private func sendAndWait(
         targets: [ProcessRecord],
         signal: Int32,
@@ -358,7 +366,7 @@ struct KillProcess: PrismExtension {
         requirePrimary: Bool = true
     ) async throws -> SignalWaitOutcome {
         var signalled: [ProcessIdentity] = []
-        var firstError: SignalError?
+        var failedTargets: [(identity: ProcessIdentity, error: SignalError)] = []
         for target in targets {
             do {
                 try system.send(signal, to: target.identity)
@@ -367,24 +375,21 @@ struct KillProcess: PrismExtension {
                 continue
             } catch let error {
                 if requirePrimary, target.identity == targets.first?.identity {
-                    switch error {
-                    case .notPermitted: return .failed(.notPermitted)
-                    case let .failed(code): return .failed(.code(code))
-                    case .gone: break
-                    }
-                } else if firstError == nil {
-                    firstError = error
+                    return .failed(Self.signalFailure(for: error))
                 }
+                failedTargets.append((target.identity, error))
             }
         }
         if signalled.isEmpty {
-            switch firstError {
-            case .notPermitted: return .failed(.notPermitted)
-            case let .failed(code): return .failed(.code(code))
-            case .gone, nil: return .failed(.allGoneBeforeSignal)
+            if let first = failedTargets.first {
+                return .failed(Self.signalFailure(for: first.error))
             }
+            return .failed(.allGoneBeforeSignal)
         }
         let remaining = try await waitForExit(of: signalled, timeout: timeout)
+        if let surviving = failedTargets.first(where: { system.isRunning($0.identity) }) {
+            return .failed(Self.signalFailure(for: surviving.error))
+        }
         return remaining.isEmpty ? .stopped(signalled.count) : .timedOut(remaining.count)
     }
 

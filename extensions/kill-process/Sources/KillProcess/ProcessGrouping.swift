@@ -33,23 +33,23 @@ struct ProcessEntry: Hashable, Sendable {
     let id: String
     let main: ProcessRecord
     let members: [ProcessRecord]
+    let isAppGroup: Bool
     let cpu: Double
     let memoryBytes: UInt64
 
     var isAggregated: Bool { members.count > 1 }
-    var isApp: Bool { isAggregated || main.kind == .app }
+    var isApp: Bool { isAppGroup || main.kind == .app }
 
     var appName: String? { main.appName }
 
     var displayTitle: String {
-        if isAggregated { return appName ?? main.name }
-        return main.name
+        isAppGroup ? (appName ?? main.name) : main.name
     }
 
     var restartLaunchPath: String? { main.restartLaunchPath }
 
     var revealPath: String? {
-        isAggregated ? (main.outerAppBundlePath ?? main.revealPath) : main.revealPath
+        isAppGroup ? (main.outerAppBundlePath ?? main.revealPath) : main.revealPath
     }
 
     var iconAppBundlePath: String? { main.outerAppBundlePath }
@@ -58,17 +58,17 @@ struct ProcessEntry: Hashable, Sendable {
 /// Pure grouping, sorting, and target resolution for process snapshots.
 enum ProcessGrouping {
     struct ParsedItemID: Equatable, Sendable {
-        let isAggregated: Bool
+        let isAppGroup: Bool
         let identity: ProcessIdentity
 
         init?(rawValue: String) {
             if rawValue.hasPrefix("app:") {
                 guard let identity = ProcessIdentity(key: String(rawValue.dropFirst(4))) else { return nil }
-                self.isAggregated = true
+                self.isAppGroup = true
                 self.identity = identity
             } else if rawValue.hasPrefix("pid:") {
                 guard let identity = ProcessIdentity(key: String(rawValue.dropFirst(4))) else { return nil }
-                self.isAggregated = false
+                self.isAppGroup = false
                 self.identity = identity
             } else {
                 return nil
@@ -96,11 +96,9 @@ enum ProcessGrouping {
             }
             for bundlePath in order {
                 guard let group = groups[bundlePath], !group.isEmpty else { continue }
-                if group.count == 1 {
-                    built.append(singleEntry(for: group[0]))
-                } else {
-                    built.append(aggregatedEntry(for: group, bundlePath: bundlePath, sort: sort))
-                }
+                // Keep a stable `app:` ID for every grouped app bundle even when it
+                // currently has one process, so helper churn preserves row identity.
+                built.append(aggregatedEntry(for: group, bundlePath: bundlePath, sort: sort))
             }
         } else {
             built = records.map(singleEntry(for:))
@@ -119,7 +117,7 @@ enum ProcessGrouping {
               main.pid > 1, main.pid != excludingPID else {
             return nil
         }
-        guard parsed.isAggregated else {
+        guard parsed.isAppGroup else {
             return (main, [main])
         }
 
@@ -154,6 +152,7 @@ enum ProcessGrouping {
             id: "pid:\(record.identity.key)",
             main: record,
             members: [record],
+            isAppGroup: false,
             cpu: record.cpu,
             memoryBytes: record.memoryBytes
         )
@@ -184,6 +183,7 @@ enum ProcessGrouping {
             id: "app:\(main.identity.key)",
             main: main,
             members: sortedMembers,
+            isAppGroup: true,
             cpu: totalCPU,
             memoryBytes: totalMemory
         )
