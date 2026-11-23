@@ -1,0 +1,123 @@
+{
+  "protocol": 1,
+  "id": "prism.shottr",
+  "name": "Shottr",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Take screenshots, scrolling captures, and OCR text captures with Shottr, right from Prism or Shottr’s own row.",
+  "minPrism": "0.3.0",
+  "icon": { "symbol": "camera.viewfinder", "tint": "orange", "app": "cc.ffitch.shottr" },
+  "executable": ".build/release/Shottr",
+  "commands": [
+    {
+      "id": "actions",
+      "title": "Shottr Actions",
+      "subtitle": "Shottr",
+      "mode": "list",
+      "keywords": ["shottr", "screenshot", "capture", "screen", "ocr", "scrolling", "delayed", "uploads", "截图", "jietu"],
+      "searchesApp": "cc.ffitch.shottr"
+    },
+    {
+      "id": "capture-area",
+      "title": "Capture Area",
+      "subtitle": "Shottr",
+      "mode": "no-view",
+      "keywords": ["shottr", "screenshot", "area", "region", "selection", "crop", "grab"],
+      "interactive": true
+    },
+    {
+      "id": "capture-fullscreen",
+      "title": "Capture Fullscreen",
+      "subtitle": "Shottr",
+      "mode": "no-view",
+      "keywords": ["shottr", "screenshot", "fullscreen", "full screen", "desktop", "display", "grab"],
+      "interactive": true
+    },
+    {
+      "id": "capture-window",
+      "title": "Capture Window",
+      "subtitle": "Shottr",
+      "mode": "no-view",
+      "keywords": ["shottr", "screenshot", "window", "app", "grab"],
+      "interactive": true
+    },
+    {
+      "id": "capture-scrolling",
+      "title": "Capture Scrolling",
+      "subtitle": "Shottr",
+      "mode": "no-view",
+      "keywords": ["shottr", "screenshot", "scrolling", "scroll", "long", "page", "grab"],
+      "interactive": true
+    },
+    {
+      "id": "capture-ocr",
+      "title": "Capture Text (OCR)",
+      "subtitle": "Shottr",
+      "mode": "no-view",
+      "keywords": ["shottr", "ocr", "text", "recognize", "scan", "extract", "copy text"],
+      "interactive": true
+    }
+  ],
+  "preferences": [
+    {
+      "id": "closeBeforeCapture",
+      "type": "bool",
+      "title": "Close Prism Before Capturing",
+      "caption": "Closes Prism before starting a capture from Shottr Actions so the launcher doesn’t appear in the screenshot.",
+      "default": true
+    },
+    {
+      "id": "delaySeconds",
+      "type": "text",
+      "title": "Delayed Capture (Seconds)",
+      "caption": "Wait time used by Capture Delayed. Leave blank for Shottr’s default of 3 seconds.",
+      "default": "3"
+    }
+  ],
+  "localizations": {
+    "zh-Hans": {
+      "name": "Shottr",
+      "description": "通过 Shottr 截屏、滚动长截图和 OCR 识别文字，可直接从 Prism 或 Shottr 所在行打开。",
+      "commands": {
+        "actions": { "title": "Shottr 操作", "subtitle": "Shottr", "keywords": ["截图", "截屏", "长截图", "文字识别", "shottrcaozuo", "stcz", "jietu", "jt"] },
+        "capture-area": { "title": "区域截图", "subtitle": "Shottr", "keywords": ["截图", "选区截图", "框选", "quyujietu", "qyjt"] },
+        "capture-fullscreen": { "title": "全屏截图", "subtitle": "Shottr", "keywords": ["截图", "整个屏幕", "全屏", "quanpingjietu", "qpjt"] },
+        "capture-window": { "title": "窗口截图", "subtitle": "Shottr", "keywords": ["截图", "应用窗口", "窗口", "chuangkoujietu", "ckjt"] },
+        "capture-scrolling": { "title": "滚动截图", "subtitle": "Shottr", "keywords": ["长截图", "滚动截屏", "网页长图", "gundongjietu", "gdjt", "changjietu", "cjt"] },
+        "capture-ocr": { "title": "识别文字 (OCR)", "subtitle": "Shottr", "keywords": ["文字识别", "提取文字", "扫描文字", "shibiewenzi", "sbwz", "ocr"] }
+      },
+      "preferences": {
+        "closeBeforeCapture": {
+          "title": "截图前关闭 Prism",
+          "caption": "从 Shottr 操作发起截图前先关闭 Prism，避免启动器出现在截图中。"
+        },
+        "delaySeconds": {
+          "title": "延时截图秒数",
+          "caption": "“延时截图”使用的等待时间。留空则使用 Shottr 默认的 3 秒。"
+        }
+      }
+    },
+    "zh-Hant": {
+      "name": "Shottr",
+      "description": "透過 Shottr 截圖、捲動長截圖與 OCR 辨識文字，可直接從 Prism 或 Shottr 所在列開啟。",
+      "commands": {
+        "actions": { "title": "Shottr 動作", "subtitle": "Shottr", "keywords": ["截圖", "螢幕擷取", "長截圖", "文字辨識", "shottrdongzuo", "stdz", "jietu", "jt"] },
+        "capture-area": { "title": "區域截圖", "subtitle": "Shottr", "keywords": ["截圖", "選取區域", "擷取區域", "quyujietu", "qyjt"] },
+        "capture-fullscreen": { "title": "全螢幕截圖", "subtitle": "Shottr", "keywords": ["截圖", "整個螢幕", "全螢幕", "quanyingmujietu", "qymjt"] },
+        "capture-window": { "title": "視窗截圖", "subtitle": "Shottr", "keywords": ["截圖", "應用程式視窗", "視窗", "shichuangjietu", "scjt"] },
+        "capture-scrolling": { "title": "捲動截圖", "subtitle": "Shottr", "keywords": ["長截圖", "捲動擷取", "網頁長圖", "juandongjietu", "jdjt", "changjietu", "cjt"] },
+        "capture-ocr": { "title": "辨識文字 (OCR)", "subtitle": "Shottr", "keywords": ["文字辨識", "擷取文字", "掃描文字", "bianshiwenzi", "bswz", "ocr"] }
+      },
+      "preferences": {
+        "closeBeforeCapture": {
+          "title": "截圖前關閉 Prism",
+          "caption": "從 Shottr 動作開始截圖前先關閉 Prism，避免啟動器出現在截圖中。"
+        },
+        "delaySeconds": {
+          "title": "延遲截圖秒數",
+          "caption": "「延遲截圖」使用的等待時間。留空則使用 Shottr 預設的 3 秒。"
+        }
+      }
+    }
+  }
+}
