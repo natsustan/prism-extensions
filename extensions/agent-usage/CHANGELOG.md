@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.2
+
+- Fixed Antigravity quota fetching for current `agy` and Antigravity builds:
+  reads the Google sign-in from the macOS Keychain, refreshes expired sessions
+  automatically, and shows the Gemini quota alongside Claude.
+
 ## 1.3.1
 
 - Widgets show fresh quotas as soon as they arrive, instead of a few

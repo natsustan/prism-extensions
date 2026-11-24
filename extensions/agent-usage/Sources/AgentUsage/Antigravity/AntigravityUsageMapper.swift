@@ -9,6 +9,9 @@ struct AntigravityModelQuota: Equatable, Sendable {
     var modelID: String?
     var remainingFraction: Double
     var resetTime: Date?
+    /// False when the LS endpoint omitted `remainingFraction` and the mapper
+    /// substituted 0 — such entries must never supplement a partial summary.
+    var hasExplicitFraction: Bool = true
 }
 
 /// Turns Antigravity's quota responses into metrics. The authoritative source
@@ -142,6 +145,57 @@ enum AntigravityUsageMapper {
         AgentUsageParse.string(AgentUsageParse.jsonObject(data)?["email"])
     }
 
+    /// Cloud Code `fetchAvailableModels` → per-model quotas that carry an
+    /// explicit finite `remainingFraction`. Internal autocomplete models
+    /// (`tab_*`) and unnamed non-chat models are ignored so they never pollute
+    /// either pool.
+    static func availableModels(_ data: Data) -> [AntigravityModelQuota]? {
+        guard let root = AgentUsageParse.jsonObject(data),
+              let models = root["models"] as? [String: Any]
+        else { return nil }
+        var quotas: [AntigravityModelQuota] = []
+        for modelID in models.keys.sorted() {
+            let lowerID = modelID.lowercased()
+            if lowerID.hasPrefix("tab_") || modelBlacklist.contains(modelID) { continue }
+            guard let model = models[modelID] as? [String: Any],
+                  let quota = model["quotaInfo"] as? [String: Any],
+                  let fraction = AgentUsageParse.number(quota["remainingFraction"]),
+                  fraction.isFinite
+            else { continue }
+            let displayName = AgentUsageParse.string(model["displayName"])
+            let label: String
+            if let displayName {
+                label = displayName
+            } else if lowerID.contains("gemini") || lowerID.contains("claude") || lowerID.contains("gpt") {
+                label = modelID
+            } else {
+                continue
+            }
+            quotas.append(AntigravityModelQuota(
+                label: label,
+                modelID: modelID,
+                remainingFraction: fraction,
+                resetTime: AgentUsageISO8601.date(fromAny: quota["resetTime"]),
+                hasExplicitFraction: true))
+        }
+        return quotas
+    }
+
+    /// Combines authoritative `retrieveUserQuotaSummary` metrics with 5-hour
+    /// pool metrics from `fetchAvailableModels` / `GetUserStatus` when the
+    /// summary omits a pool (e.g. Cloud Code returning only `3p-*` buckets and
+    /// omitting `gemini-5h`), preserving the canonical pool order.
+    static func mergeSummaryMetrics(
+        _ summary: [AgentUsageMetric],
+        fallback: [AgentUsageMetric]
+    ) -> [AgentUsageMetric] {
+        guard !fallback.isEmpty else { return summary }
+        var byID: [String: AgentUsageMetric] = [:]
+        for metric in summary { byID[metric.id] = metric }
+        for metric in fallback where byID[metric.id] == nil { byID[metric.id] = metric }
+        return summaryBuckets.compactMap { byID[$0.pool.id] }
+    }
+
     /// LS `GetCommandModelConfigs` fallback → model quotas only (no plan).
     static func commandModelConfigs(_ data: Data) -> [AntigravityModelQuota]? {
         guard let root = AgentUsageParse.jsonObject(data),
@@ -153,11 +207,14 @@ enum AntigravityUsageMapper {
     private static func quota(fromLS model: [String: Any]) -> AntigravityModelQuota? {
         guard let label = AgentUsageParse.string(model["label"]) else { return nil }
         let quota = model["quotaInfo"] as? [String: Any]
+        let explicitFraction = AgentUsageParse.number(quota?["remainingFraction"])
+            .flatMap { $0.isFinite ? $0 : nil }
         return AntigravityModelQuota(
             label: label,
             modelID: AgentUsageParse.string((model["modelOrAlias"] as? [String: Any])?["model"]),
-            remainingFraction: AgentUsageParse.number(quota?["remainingFraction"]) ?? 0,
-            resetTime: AgentUsageISO8601.date(fromAny: quota?["resetTime"]))
+            remainingFraction: explicitFraction ?? 0,
+            resetTime: AgentUsageISO8601.date(fromAny: quota?["resetTime"]),
+            hasExplicitFraction: explicitFraction != nil)
     }
 
     // MARK: - Pooling

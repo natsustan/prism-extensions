@@ -9,10 +9,12 @@ import Foundation
 /// 1. Antigravity language server (running desktop app / IDE extension).
 /// 2. `agy` language server (running CLI: the bare `agy` binary or the
 ///    `language_server` it installs under `antigravity-cli`).
-/// 3. The `agy` CLI's own OAuth credential file, exchanged for the Cloud Code
-///    quota endpoints it calls itself. `agy` builds that gate the loopback API
-///    behind a runtime-generated CSRF token make the local path unusable from
-///    outside the process, so this fallback is what keeps usage visible then.
+/// 3. Antigravity's saved Google OAuth credential (Keychain item `gemini` /
+///    `antigravity`, or legacy `~/.gemini/antigravity-cli/antigravity-oauth-token`),
+///    exchanged for the Cloud Code quota endpoints it calls itself. `agy` builds
+///    that gate the loopback API behind a runtime-generated CSRF token make the
+///    local path unusable from outside the process, so this fallback is what
+///    keeps usage visible then.
 ///
 /// On the language-server sources `RetrieveUserQuotaSummary` is tried first —
 /// the only endpoint reporting the merged pools and the weekly windows;
@@ -30,8 +32,8 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
     /// on what the host actually has installed.
     var installPresence: @Sendable () -> Bool = { AntigravityPresence.isInstalled() }
 
-    /// A matching install or the `agy` credential file — file checks only, no
-    /// subprocess, no network, no Keychain.
+    /// A matching install, Keychain item (attribute-only probe, never prompts),
+    /// or legacy credential file — no subprocess, no network.
     func hasLocalCredentials() -> Bool {
         installPresence() || authStore.hasCredentials()
     }
@@ -55,11 +57,14 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
             break
         }
         // The local API produced nothing — an unsigned-in or CSRF-gated `agy`
-        // is indistinguishable from a dead port, so the saved `agy` credential
-        // is the fallback that still reaches the same quota service.
+        // is indistinguishable from a dead port, so the saved Keychain / file
+        // credential is the fallback that still reaches the same quota service.
         switch await authStore.accessToken() {
-        case .token(let accessToken):
-            return await cloudUsage(accessToken: accessToken, optionalDeadline: optionalDeadline)
+        case .token(let accessToken, let accountEmail):
+            return await cloudUsage(
+                accessToken: accessToken,
+                accountEmail: accountEmail,
+                optionalDeadline: optionalDeadline)
         case .failed(let failure):
             return .failure(failure)
         case .absent:
@@ -69,12 +74,14 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
 
     // MARK: - Cloud Code fallback
 
-    /// The `agy` OAuth token's own quota service: `retrieveUserQuotaSummary`
-    /// is required (it carries the four pool meters), while `loadCodeAssist`
-    /// and `userinfo` only enrich plan/email and may fail without failing the
-    /// report.
+    /// The saved OAuth token's own quota service: `retrieveUserQuotaSummary`
+    /// is required (it carries the merged pool meters), while
+    /// `fetchAvailableModels` (only when `gemini-5h` is absent from the
+    /// summary), `loadCodeAssist`, and `userinfo` enrich the report within the
+    /// optional budget without failing it.
     private func cloudUsage(
         accessToken: String,
+        accountEmail: String?,
         optionalDeadline: ContinuousClock.Instant
     ) async -> Result<AgentUsageReport, AgentUsageFailure> {
         let quota: AgentUsageHTTPResponse
@@ -92,30 +99,57 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
         guard quota.isSuccess else {
             return .failure(.network(localized("Antigravity Cloud Code API error: HTTP \(quota.statusCode).")))
         }
-        guard let metrics = AntigravityUsageMapper.quotaSummaryMetrics(quota.body) else {
+        guard var metrics = AntigravityUsageMapper.quotaSummaryMetrics(quota.body) else {
             return .failure(.invalidResponse(
                 localized("Antigravity's quota service answered with data Prism couldn't read.")))
         }
         guard !Task.isCancelled else { return .failure(.network(localized("Cancelled."))) }
-        let planBody = await AgentUsageRequestBudget.optionalData(before: optionalDeadline) {
-            let response = try await usageClient.cloudPost(
-                AntigravityUsageClient.loadCodeAssistURL, accessToken: accessToken)
-            guard response.isSuccess else { throw AgentUsageClientError.http(response.statusCode) }
-            return response.body
+        // Current Cloud Code tiers can omit the `gemini-5h` bucket from the
+        // summary while still reporting the Gemini pool on
+        // `fetchAvailableModels`; supplement only when the Gemini pool is
+        // absent so complete summaries pay no extra round-trip.
+        if !metrics.contains(where: { $0.id == AntigravityUsageMapper.Pool.session.id }),
+           let modelsBody = await optionalCloudPost(
+               AntigravityUsageClient.availableModelsURL,
+               accessToken: accessToken, before: optionalDeadline),
+           let models = AntigravityUsageMapper.availableModels(modelsBody)
+        {
+            metrics = AntigravityUsageMapper.mergeSummaryMetrics(
+                metrics, fallback: AntigravityUsageMapper.pooledMetrics(models))
         }
-        let infoBody = await AgentUsageRequestBudget.optionalData(before: optionalDeadline) {
-            let response = try await usageClient.cloudGet(
-                AntigravityUsageClient.userInfoURL, accessToken: accessToken)
-            guard response.isSuccess else { throw AgentUsageClientError.http(response.statusCode) }
-            return response.body
+        guard !Task.isCancelled else { return .failure(.network(localized("Cancelled."))) }
+        let planBody = await optionalCloudPost(
+            AntigravityUsageClient.loadCodeAssistURL,
+            accessToken: accessToken, before: optionalDeadline)
+        let email: String?
+        if let accountEmail {
+            email = accountEmail
+        } else {
+            let infoBody = await AgentUsageRequestBudget.optionalData(before: optionalDeadline) {
+                let response = try await usageClient.cloudGet(
+                    AntigravityUsageClient.userInfoURL, accessToken: accessToken)
+                guard response.isSuccess else { throw AgentUsageClientError.http(response.statusCode) }
+                return response.body
+            }
+            email = infoBody.flatMap(AntigravityUsageMapper.userInfoEmail)
         }
         return .success(AgentUsageReport(
             providerID: id,
             providerName: displayName,
             plan: planBody.flatMap(AntigravityUsageMapper.cloudPlan),
-            accountLabel: infoBody.flatMap(AntigravityUsageMapper.userInfoEmail),
+            accountLabel: email,
             metrics: metrics,
             fetchedAt: Date()))
+    }
+
+    private func optionalCloudPost(
+        _ url: URL, accessToken: String, before deadline: ContinuousClock.Instant
+    ) async -> Data? {
+        await AgentUsageRequestBudget.optionalData(before: deadline) {
+            let response = try await usageClient.cloudPost(url, accessToken: accessToken)
+            guard response.isSuccess else { throw AgentUsageClientError.http(response.statusCode) }
+            return response.body
+        }
     }
 
     /// The failure a language-server-only provider would have reported — kept
@@ -288,14 +322,18 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
             else { continue }
 
             // GetUserStatus is the primary source: plan, account, per-model
-            // quotas.
+            // quotas. Builds without GetUnleashData return 404 on the probe
+            // above and only reveal a CSRF rejection (401/403) here — skip
+            // those endpoints instead of treating a rejected token as an
+            // unparseable response.
             guard !Task.isCancelled else { return .cancelled }
             var parsed: (plan: String?, email: String?, quotas: [AntigravityModelQuota])?
             if let response = await usageClient.callLS(
                 scheme: endpoint.scheme, port: endpoint.port,
                 csrf: endpoint.csrf, method: "GetUserStatus")
             {
-                answered = true
+                if response.statusCode == 401 || response.statusCode == 403 { continue }
+                if response.statusCode != 404 { answered = true }
                 if response.isSuccess {
                     parsed = AntigravityUsageMapper.userStatus(response.body)
                 }
@@ -304,16 +342,33 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
             // The quota summary is authoritative for the merged pools whenever
             // the server produces one — even an empty one: the legacy pooling
             // below fabricates "fully used" from missing quota info, so a
-            // parsed summary never falls through to it.
+            // parsed summary never falls through to it. Explicit per-model
+            // fractions from GetUserStatus can still supplement a partial
+            // summary that omits the Gemini pool.
             guard !Task.isCancelled else { return .cancelled }
             let summary = await usageClient.callLS(
                 scheme: endpoint.scheme, port: endpoint.port,
                 csrf: endpoint.csrf, method: "RetrieveUserQuotaSummary")
-            if summary != nil { answered = true }
+            if let summary {
+                if (summary.statusCode == 401 || summary.statusCode == 403), !answered, parsed == nil {
+                    continue
+                }
+                if summary.statusCode != 401 && summary.statusCode != 403 && summary.statusCode != 404 {
+                    answered = true
+                }
+            }
             if let summary,
                summary.isSuccess,
-               let metrics = AntigravityUsageMapper.quotaSummaryMetrics(summary.body)
+               var metrics = AntigravityUsageMapper.quotaSummaryMetrics(summary.body)
             {
+                if !metrics.isEmpty,
+                   !metrics.contains(where: { $0.id == AntigravityUsageMapper.Pool.session.id }),
+                   let explicitQuotas = parsed?.quotas.filter(\.hasExplicitFraction),
+                   !explicitQuotas.isEmpty
+                {
+                    metrics = AntigravityUsageMapper.mergeSummaryMetrics(
+                        metrics, fallback: AntigravityUsageMapper.pooledMetrics(explicitQuotas))
+                }
                 return .result(ProbeResult(
                     plan: parsed?.plan, account: parsed?.email, metrics: metrics))
             }
@@ -334,7 +389,8 @@ struct AntigravityAgentUsageProvider: AgentUsageProvider {
                 scheme: endpoint.scheme, port: endpoint.port,
                 csrf: endpoint.csrf, method: "GetCommandModelConfigs")
             {
-                answered = true
+                if fallback.statusCode == 401 || fallback.statusCode == 403 { continue }
+                if fallback.statusCode != 404 { answered = true }
                 if fallback.isSuccess,
                    let quotas = AntigravityUsageMapper.commandModelConfigs(fallback.body)
                 {

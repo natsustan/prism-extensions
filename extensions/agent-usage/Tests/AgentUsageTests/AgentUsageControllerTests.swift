@@ -523,6 +523,8 @@ struct AgentUsageProviderCancellationTests {
             var provider = AntigravityAgentUsageProvider()
             provider.installPresence = { true }
             provider.usageClient.loopbackClient = client
+            provider.authStore.readKeychainSecret = { _, _ in nil }
+            provider.authStore.keychainItemExists = { _, _ in false }
             provider.discovery = AntigravityLanguageServerDiscovery(
                 processRunner: StubAntigravityRunner(psOutput: " 42 /Users/x/.local/bin/agy\n"))
             return (provider, client, file, contents)
