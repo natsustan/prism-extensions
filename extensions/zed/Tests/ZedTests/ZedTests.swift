@@ -315,14 +315,14 @@ struct ZedTests {
             FakeZedLauncher.LocalOpen(paths: ["/Users/alice/projects/older"], zedAppPath: "/Applications/Zed Preview.app"),
         ])
 
-        // Open multi-folder SSH workspace: uses zed://ssh for all channels and preserves every folder
+        // Open multi-folder SSH workspace: uses ssh:// for all channels and preserves every folder
         let openRemote = try await host.perform("open", on: before.items[1].id, in: "recent-projects")
         #expect(openRemote == .done)
         let remoteOpens = await launcher.openedRemote
         #expect(remoteOpens.count == 1)
         #expect(remoteOpens[0].urls.map(\.absoluteString) == [
-            "zed://ssh/deploy@prod.example.com:2200/var/www/site",
-            "zed://ssh/deploy@prod.example.com:2200/var/www/api",
+            "ssh://deploy@prod.example.com:2200/var/www/site",
+            "ssh://deploy@prod.example.com:2200/var/www/api",
         ])
         #expect(remoteOpens[0].zedAppPath == "/Applications/Zed Preview.app")
 
@@ -430,6 +430,24 @@ struct ZedTests {
         let remoteA = ZedWorkspace.makeID(paths: ["/srv/two", "/srv/one"], remote: ssh)
         let remoteB = ZedWorkspace.makeID(paths: ["/srv/one", "/srv/two"], remote: ssh)
         #expect(remoteA == remoteB)
+    }
+
+    @Test("Brackets IPv6 SSH hosts and preserves path whitespace")
+    func bracketsIPv6AndPreservesPathWhitespace() {
+        let ipv6 = ZedRemoteConnection(kind: "ssh", host: "2001:db8::1", port: 2222, user: "alice")
+        let workspace = ZedWorkspace(
+            id: "remote",
+            paths: ["/srv/my project "],
+            isDirectory: true,
+            remote: ipv6,
+            gitBranch: nil,
+            lastOpened: nil
+        )
+        #expect(ipv6.sshAuthority == "alice@[2001:db8::1]:2222")
+        #expect(workspace.sshURLs().map(\.absoluteString) == ["ssh://alice@[2001:db8::1]:2222/srv/my%20project%20"])
+
+        let parsed = ZedWorkspace.orderedPaths(rawPaths: "/Users/alice/project \n/Users/alice/ leading", pathsOrder: "1,0")
+        #expect(parsed == ["/Users/alice/ leading", "/Users/alice/project "])
     }
 
     @Test("Infers Zed channel from custom app path")

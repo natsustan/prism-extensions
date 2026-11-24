@@ -97,14 +97,17 @@ struct ZedRemoteConnection: Hashable, Sendable {
         kind == "ssh" && host != nil
     }
 
-    /// `[user@]host[:port]` for SSH connections.
+    /// `[user@]host[:port]` for SSH connections, bracketing IPv6 literals.
     var sshAuthority: String? {
         guard let host else { return nil }
+        let formattedHost = (host.contains(":") && !(host.hasPrefix("[") && host.hasSuffix("]")))
+            ? "[\(host)]"
+            : host
         var result = ""
         if let user {
             result += "\(user)@"
         }
-        result += host
+        result += formattedHost
         if let port {
             result += ":\(port)"
         }
@@ -247,19 +250,25 @@ struct ZedWorkspace: Hashable, Sendable {
         return Self.abbreviatingHome(parent, homeDirectory: homeDirectory)
     }
 
-    /// Builds `zed://ssh/[user@]host[:port]/path` deep links for every folder
-    /// in an SSH workspace. All Zed release channels parse `zed://ssh`, while
-    /// the target channel is chosen by the app URL passed to `NSWorkspace`.
+    /// Builds `ssh://[user@]host[:port]/path` URLs for every folder in an SSH
+    /// workspace. `WorkspaceZedLauncher` opens these URLs directly with the
+    /// resolved Zed app URL, which works across every Zed release channel and
+    /// preserves RFC 3986 IPv6 host bracketing and path encoding.
     func sshURLs() -> [URL] {
-        guard let remote, remote.isSSH, let authority = remote.sshAuthority else {
+        guard let remote, remote.isSSH, let host = remote.host else {
             return []
         }
-        var allowed = CharacterSet.urlPathAllowed
-        allowed.remove(charactersIn: "?#")
+        let formattedHost = (host.contains(":") && !(host.hasPrefix("[") && host.hasSuffix("]")))
+            ? "[\(host)]"
+            : host
         return paths.compactMap { path in
-            let normalizedPath = path.hasPrefix("/") ? path : "/\(path)"
-            let encodedPath = normalizedPath.addingPercentEncoding(withAllowedCharacters: allowed) ?? normalizedPath
-            return URL(string: "zed://ssh/\(authority)\(encodedPath)")
+            var components = URLComponents()
+            components.scheme = "ssh"
+            components.user = remote.user
+            components.percentEncodedHost = formattedHost
+            components.port = remote.port
+            components.path = path.hasPrefix("/") ? path : "/\(path)"
+            return components.url
         }
     }
 
@@ -274,12 +283,15 @@ struct ZedWorkspace: Hashable, Sendable {
     }
 
     /// Parses Zed's newline-separated `paths` column and optional comma-separated
-    /// `paths_order` column into an ordered array of non-empty paths.
+    /// `paths_order` column into an ordered array of non-empty paths, preserving
+    /// any leading or trailing spaces that belong to a filename or directory.
     static func orderedPaths(rawPaths: String?, pathsOrder: String?) -> [String] {
         guard let rawPaths else { return [] }
         let entries = rawPaths
-            .split(whereSeparator: \.isNewline)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .split(separator: "\n", omittingEmptySubsequences: true)
+            .map { line -> String in
+                line.hasSuffix("\r") ? String(line.dropLast()) : String(line)
+            }
             .filter { !$0.isEmpty }
         guard !entries.isEmpty else { return [] }
         guard entries.count > 1,
