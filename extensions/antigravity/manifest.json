@@ -1,0 +1,66 @@
+{
+  "protocol": 1,
+  "id": "prism.antigravity",
+  "name": "Antigravity",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Quickly browse and open your Antigravity projects and remote SSH hosts.",
+  "icon": { "symbol": "sparkles", "tint": "blue", "app": "com.google.antigravity" },
+  "executable": ".build/release/Antigravity",
+  "commands": [
+    {
+      "id": "recent-projects",
+      "title": "Recent Projects",
+      "subtitle": "Antigravity",
+      "mode": "list",
+      "keywords": ["antigravity", "agy", "recent", "projects", "workspaces", "folders", "ssh", "remote", "agent", "gemini"],
+      "searchesApp": "com.google.antigravity"
+    }
+  ],
+  "preferences": [
+    {
+      "id": "antigravityApp",
+      "type": "text",
+      "title": "Antigravity App Path",
+      "caption": "Leave blank to open projects with your default Antigravity (for example, /Applications/Antigravity Insiders.app).",
+      "default": ""
+    }
+  ],
+  "capabilities": ["readHomeFiles"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "Antigravity",
+      "description": "快速浏览并打开 Antigravity 项目和远程 SSH 主机。",
+      "commands": {
+        "recent-projects": {
+          "title": "最近的项目",
+          "subtitle": "Antigravity",
+          "keywords": ["项目", "工程", "最近", "打开项目", "工作区", "远程", "zuijindexiangmu", "zjdxm", "xiangmu", "xm", "gongcheng", "gc"]
+        }
+      },
+      "preferences": {
+        "antigravityApp": {
+          "title": "Antigravity 应用路径",
+          "caption": "留空则使用默认 Antigravity 打开项目（例如 /Applications/Antigravity Insiders.app）。"
+        }
+      }
+    },
+    "zh-Hant": {
+      "name": "Antigravity",
+      "description": "快速瀏覽並打開 Antigravity 專案與遠端 SSH 主機。",
+      "commands": {
+        "recent-projects": {
+          "title": "最近的專案",
+          "subtitle": "Antigravity",
+          "keywords": ["專案", "工程", "最近", "打開專案", "工作區", "遠端", "zuijindezhuanan", "zjdza", "zhuanan", "za", "gongcheng", "gc"]
+        }
+      },
+      "preferences": {
+        "antigravityApp": {
+          "title": "Antigravity 應用程式路徑",
+          "caption": "留空則使用預設 Antigravity 打開專案（例如 /Applications/Antigravity Insiders.app）。"
+        }
+      }
+    }
+  }
+}
