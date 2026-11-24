@@ -1,0 +1,66 @@
+{
+  "protocol": 1,
+  "id": "prism.zed",
+  "name": "Zed",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Quickly open your recently used Zed projects, multi-folder workspaces, and remote SSH workspaces.",
+  "icon": { "symbol": "chevron.left.forwardslash.chevron.right", "tint": "blue", "app": "dev.zed.Zed" },
+  "executable": ".build/release/Zed",
+  "commands": [
+    {
+      "id": "recent-projects",
+      "title": "Recent Projects",
+      "subtitle": "Zed",
+      "mode": "list",
+      "keywords": ["zed", "recent", "projects", "workspaces", "folders", "ssh", "remote", "editor", "code"],
+      "searchesApp": "dev.zed.Zed"
+    }
+  ],
+  "preferences": [
+    {
+      "id": "zedApp",
+      "type": "text",
+      "title": "Zed App Path",
+      "caption": "Leave blank to open projects with your default Zed (for example, /Applications/Zed Preview.app).",
+      "default": ""
+    }
+  ],
+  "capabilities": ["readHomeFiles"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "Zed",
+      "description": "快速打开最近使用过的 Zed 项目、多文件夹工作区和远程 SSH 工作区。",
+      "commands": {
+        "recent-projects": {
+          "title": "最近的项目",
+          "subtitle": "Zed",
+          "keywords": ["项目", "工程", "最近", "打开项目", "工作区", "远程", "zuijindexiangmu", "zjdxm", "xiangmu", "xm", "gongcheng", "gc"]
+        }
+      },
+      "preferences": {
+        "zedApp": {
+          "title": "Zed 应用路径",
+          "caption": "留空则使用默认 Zed 打开项目（例如 /Applications/Zed Preview.app）。"
+        }
+      }
+    },
+    "zh-Hant": {
+      "name": "Zed",
+      "description": "快速打開最近使用過的 Zed 專案、多檔案夾工作區與遠端 SSH 工作區。",
+      "commands": {
+        "recent-projects": {
+          "title": "最近的專案",
+          "subtitle": "Zed",
+          "keywords": ["專案", "工程", "最近", "打開專案", "工作區", "遠端", "zuijindezhuanan", "zjdza", "zhuanan", "za", "gongcheng", "gc"]
+        }
+      },
+      "preferences": {
+        "zedApp": {
+          "title": "Zed 應用程式路徑",
+          "caption": "留空則使用預設 Zed 打開專案（例如 /Applications/Zed Preview.app）。"
+        }
+      }
+    }
+  }
+}
