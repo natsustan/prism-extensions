@@ -643,4 +643,55 @@ struct AppleRemindersTests {
 
         #expect(EventKitReminderRepository.extractInlineTags(from: "Buy milk #groceries #urgent") == ["groceries", "urgent"])
     }
+
+    @Test("Cancelled list refresh does not overwrite cached lists")
+    func cancelledListsRefreshDoesNotOverwriteCache() async throws {
+        let initial = [Self.makeList(id: "list-current", title: "Current")]
+        let stale = [Self.makeList(id: "list-stale", title: "Stale")]
+        let repository = FakeReminderRepository(lists: initial)
+        let library = ReminderLibrary()
+
+        let seeded = try await library.lists(forceRefresh: true, from: repository)
+        #expect(seeded == initial)
+
+        final class CancellingRepository: ReminderRepository, Sendable {
+            let listsToReturn: [ReminderList]
+            let onFetch: @Sendable () -> Void
+            init(lists: [ReminderList], onFetch: @escaping @Sendable () -> Void) {
+                self.listsToReturn = lists
+                self.onFetch = onFetch
+            }
+            func authorizationStatus() -> ReminderAuthorizationStatus { .fullAccess }
+            func requestFullAccess() async throws -> Bool { true }
+            func fetchLists() async throws -> [ReminderList] {
+                onFetch()
+                return listsToReturn
+            }
+            func fetchSnapshot(completed: Bool) async throws -> ReminderSnapshot {
+                ReminderSnapshot(reminders: [], lists: listsToReturn)
+            }
+            func setCompleted(id: String, completed: Bool) async throws {}
+            func setPriority(id: String, priority: ReminderPriority) async throws {}
+            func setDueDate(id: String, dueDate: ReminderDueDate?, calendar: Calendar) async throws {}
+            func move(id: String, toListID: String) async throws {}
+            func delete(id: String) async throws {}
+            func create(_ draft: ReminderDraft, calendar: Calendar) async throws -> String? { nil }
+        }
+
+        let taskBox = Mutex<Task<[ReminderList], Error>?>(nil)
+        let cancellingRepo = CancellingRepository(lists: stale) {
+            taskBox.withLock { $0?.cancel() }
+        }
+        let task = Task {
+            try await library.lists(forceRefresh: true, from: cancellingRepo)
+        }
+        taskBox.withLock { $0 = task }
+
+        await #expect(throws: CancellationError.self) {
+            _ = try await task.value
+        }
+
+        let stillCached = try await library.lists(forceRefresh: false, from: repository)
+        #expect(stillCached == initial)
+    }
 }

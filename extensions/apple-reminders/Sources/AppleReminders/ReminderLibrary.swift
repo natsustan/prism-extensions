@@ -17,6 +17,7 @@ final class ReminderLibrary: Sendable {
     }
 
     private struct State {
+        var version: UInt64 = 0
         var incomplete: Snapshot?
         var completed: Snapshot?
         var lists: [ReminderList]?
@@ -31,6 +32,9 @@ final class ReminderLibrary: Sendable {
         pinyin: PinyinCache,
         directory: URL?
     ) async throws -> CachedData {
+        let startedVersion: UInt64 = state.withLock { state in
+            state.version
+        }
         if !forceRefresh,
            let cached = state.withLock({ completed ? $0.completed : $0.incomplete }),
            cached.directory == directory {
@@ -49,7 +53,9 @@ final class ReminderLibrary: Sendable {
         let searchable = raw.reminders.map { SearchableReminder($0, pinyin: keywords) }
         let data = CachedData(reminders: searchable, lists: raw.lists)
 
+        try Task.checkCancellation()
         state.withLock { state in
+            guard state.version == startedVersion else { return }
             let snapshot = Snapshot(directory: directory, data: data)
             if completed {
                 state.completed = snapshot
@@ -62,16 +68,23 @@ final class ReminderLibrary: Sendable {
     }
 
     func lists(forceRefresh: Bool, from repository: any ReminderRepository) async throws -> [ReminderList] {
-        if !forceRefresh, let cached = state.withLock(\.lists) {
+        let (startedVersion, cached) = state.withLock { ($0.version, $0.lists) }
+        if !forceRefresh, let cached {
             return cached
         }
+        try Task.checkCancellation()
         let fresh = try await repository.fetchLists()
-        state.withLock { $0.lists = fresh }
+        try Task.checkCancellation()
+        state.withLock { state in
+            guard state.version == startedVersion else { return }
+            state.lists = fresh
+        }
         return fresh
     }
 
     func invalidate() {
         state.withLock { state in
+            state.version &+= 1
             state.incomplete = nil
             state.completed = nil
             state.lists = nil

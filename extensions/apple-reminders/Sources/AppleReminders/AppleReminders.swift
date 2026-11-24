@@ -275,7 +275,7 @@ struct AppleReminders: PrismExtension {
         case .notDetermined:
             lists = []
         case .fullAccess:
-            lists = (try? await library.lists(forceRefresh: query.isEmpty, from: repository)) ?? []
+            lists = try await loadListsIgnoringErrors(forceRefresh: query.isEmpty)
         }
 
         let loadedAt = now()
@@ -341,7 +341,7 @@ struct AppleReminders: PrismExtension {
         }
 
         let (rawQuery, preferredListID) = Self.decodeCreateItemID(item)
-        let lists = (try? await library.lists(forceRefresh: false, from: repository)) ?? []
+        let lists = try await loadListsIgnoringErrors(forceRefresh: false)
 
         guard var draft = QuickAddParser.parse(
             rawQuery,
@@ -423,6 +423,16 @@ struct AppleReminders: PrismExtension {
         }
         library.invalidate()
         return .reload(message: message)
+    }
+
+    private func loadListsIgnoringErrors(forceRefresh: Bool) async throws -> [ReminderList] {
+        do {
+            return try await library.lists(forceRefresh: forceRefresh, from: repository)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            return []
+        }
     }
 
     private func makeDates(now: Date) -> ReminderDates {
