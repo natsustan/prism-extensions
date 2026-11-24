@@ -2178,10 +2178,142 @@
       "publishedAt" : 1795506473,
       "releaseNotes" : "- **Recent Projects**: browse and open recently used Xcode projects, workspaces, Swift packages, and playgrounds from Prism or by pressing Tab on Xcode’s row.\n- Filter by project type with ⌘P, reveal in Finder (⌘⇧F), or copy the project or folder path (⌘⇧C / ⌘⇧D).\n- Optional **Xcode App Path** setting to open projects with a specific Xcode installation (such as Xcode Beta).",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/xcode"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
+          "readHomeFiles"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "recent-projects",
+            "interactive" : false,
+            "keywords" : [
+              "zed",
+              "recent",
+              "projects",
+              "workspaces",
+              "folders",
+              "ssh",
+              "remote",
+              "editor",
+              "code"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "dev.zed.Zed",
+            "subtitle" : "Zed",
+            "title" : "Recent Projects"
+          }
+        ],
+        "description" : "Quickly open your recently used Zed projects, multi-folder workspaces, and remote SSH workspaces.",
+        "executable" : "bin/Zed",
+        "folders" : [
+
+        ],
+        "icon" : {
+          "app" : "dev.zed.Zed",
+          "symbol" : "chevron.left.forwardslash.chevron.right",
+          "tint" : "blue"
+        },
+        "id" : "prism.zed",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "recent-projects" : {
+                "keywords" : [
+                  "项目",
+                  "工程",
+                  "最近",
+                  "打开项目",
+                  "工作区",
+                  "远程",
+                  "zuijindexiangmu",
+                  "zjdxm",
+                  "xiangmu",
+                  "xm",
+                  "gongcheng",
+                  "gc"
+                ],
+                "subtitle" : "Zed",
+                "title" : "最近的项目"
+              }
+            },
+            "description" : "快速打开最近使用过的 Zed 项目、多文件夹工作区和远程 SSH 工作区。",
+            "name" : "Zed",
+            "preferences" : {
+              "zedApp" : {
+                "caption" : "留空则使用默认 Zed 打开项目（例如 /Applications/Zed Preview.app）。",
+                "title" : "Zed 应用路径"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "recent-projects" : {
+                "keywords" : [
+                  "專案",
+                  "工程",
+                  "最近",
+                  "打開專案",
+                  "工作區",
+                  "遠端",
+                  "zuijindezhuanan",
+                  "zjdza",
+                  "zhuanan",
+                  "za",
+                  "gongcheng",
+                  "gc"
+                ],
+                "subtitle" : "Zed",
+                "title" : "最近的專案"
+              }
+            },
+            "description" : "快速打開最近使用過的 Zed 專案、多檔案夾工作區與遠端 SSH 工作區。",
+            "name" : "Zed",
+            "preferences" : {
+              "zedApp" : {
+                "caption" : "留空則使用預設 Zed 打開專案（例如 /Applications/Zed Preview.app）。",
+                "title" : "Zed 應用程式路徑"
+              }
+            }
+          }
+        },
+        "name" : "Zed",
+        "preferences" : [
+          {
+            "caption" : "Leave blank to open projects with your default Zed (for example, /Applications/Zed Preview.app).",
+            "default" : "",
+            "id" : "zedApp",
+            "title" : "Zed App Path",
+            "type" : "text"
+          }
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "d09f89df190f4a1ac1e13669938dc8c652098b40b80b22b8de9b07a8b5550c59",
+        "size" : 1267791,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.zed%401.0.0/prism.zed-1.0.0.prismextension"
+      },
+      "publishedAt" : 1795510201,
+      "releaseNotes" : "- List recently used Zed folders, multi-folder workspaces, files, and remote SSH or container workspaces, sorted newest first, with the current Git branch shown for local repositories.\n- Filter between Local and Remote workspaces with ⌘P, and open Recent Projects directly from Zed’s row in root search with Tab.\n- Open local and SSH workspaces in Zed, show local items in Finder, copy paths, and optionally target Zed Preview, Nightly, or Dev via **Zed App Path**.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/zed"
     }
   ],
   "format" : 1,
-  "generatedAt" : 1795506473,
+  "generatedAt" : 1795510201,
   "revoked" : [
 
   ]
