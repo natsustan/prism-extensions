@@ -431,6 +431,139 @@
             "aliases" : [
 
             ],
+            "id" : "recent-projects",
+            "interactive" : false,
+            "keywords" : [
+              "antigravity",
+              "agy",
+              "recent",
+              "projects",
+              "workspaces",
+              "folders",
+              "ssh",
+              "remote",
+              "agent",
+              "gemini"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "com.google.antigravity",
+            "subtitle" : "Antigravity",
+            "title" : "Recent Projects"
+          }
+        ],
+        "description" : "Quickly browse and open your Antigravity projects and remote SSH hosts.",
+        "executable" : "bin/Antigravity",
+        "folders" : [
+
+        ],
+        "icon" : {
+          "app" : "com.google.antigravity",
+          "symbol" : "sparkles",
+          "tint" : "blue"
+        },
+        "id" : "prism.antigravity",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "recent-projects" : {
+                "keywords" : [
+                  "项目",
+                  "工程",
+                  "最近",
+                  "打开项目",
+                  "工作区",
+                  "远程",
+                  "zuijindexiangmu",
+                  "zjdxm",
+                  "xiangmu",
+                  "xm",
+                  "gongcheng",
+                  "gc"
+                ],
+                "subtitle" : "Antigravity",
+                "title" : "最近的项目"
+              }
+            },
+            "description" : "快速浏览并打开 Antigravity 项目和远程 SSH 主机。",
+            "name" : "Antigravity",
+            "preferences" : {
+              "antigravityApp" : {
+                "caption" : "留空则使用默认 Antigravity 打开项目（例如 /Applications/Antigravity Insiders.app）。",
+                "title" : "Antigravity 应用路径"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "recent-projects" : {
+                "keywords" : [
+                  "專案",
+                  "工程",
+                  "最近",
+                  "打開專案",
+                  "工作區",
+                  "遠端",
+                  "zuijindezhuanan",
+                  "zjdza",
+                  "zhuanan",
+                  "za",
+                  "gongcheng",
+                  "gc"
+                ],
+                "subtitle" : "Antigravity",
+                "title" : "最近的專案"
+              }
+            },
+            "description" : "快速瀏覽並打開 Antigravity 專案與遠端 SSH 主機。",
+            "name" : "Antigravity",
+            "preferences" : {
+              "antigravityApp" : {
+                "caption" : "留空則使用預設 Antigravity 打開專案（例如 /Applications/Antigravity Insiders.app）。",
+                "title" : "Antigravity 應用程式路徑"
+              }
+            }
+          }
+        },
+        "name" : "Antigravity",
+        "preferences" : [
+          {
+            "caption" : "Leave blank to open projects with your default Antigravity (for example, /Applications/Antigravity Insiders.app).",
+            "default" : "",
+            "id" : "antigravityApp",
+            "title" : "Antigravity App Path",
+            "type" : "text"
+          }
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "ae119dce98943105db8af21057494e177e58065599084db8ea97e5c7e80ee270",
+        "size" : 1293251,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.antigravity%401.0.0/prism.antigravity-1.0.0.prismextension"
+      },
+      "publishedAt" : 1795522545,
+      "releaseNotes" : "- List Antigravity projects and recently connected remote SSH hosts, sorted by recent conversation activity, with multi-folder badges and the current Git branch shown for local repositories.\n- Filter between Local projects and Remote SSH hosts with ⌘P, and open Recent Projects directly from Antigravity’s row in root search with Tab.\n- Open Antigravity for local projects, connect directly to remote SSH hosts with `--ssh-host=`, copy the `agy --project` CLI command, reveal project folders in Finder, copy paths, and optionally target Antigravity Insiders or Dev via **Antigravity App Path**.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/antigravity"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
+          "readHomeFiles"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
             "id" : "search-notes",
             "interactive" : false,
             "keywords" : [
@@ -2313,7 +2446,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1795517473,
+  "generatedAt" : 1795522545,
   "revoked" : [
 
   ]
