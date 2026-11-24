@@ -656,15 +656,13 @@ struct AppleRemindersTests {
 
         final class CancellingRepository: ReminderRepository, Sendable {
             let listsToReturn: [ReminderList]
-            let onFetch: @Sendable () -> Void
-            init(lists: [ReminderList], onFetch: @escaping @Sendable () -> Void) {
+            init(lists: [ReminderList]) {
                 self.listsToReturn = lists
-                self.onFetch = onFetch
             }
             func authorizationStatus() -> ReminderAuthorizationStatus { .fullAccess }
             func requestFullAccess() async throws -> Bool { true }
             func fetchLists() async throws -> [ReminderList] {
-                onFetch()
+                withUnsafeCurrentTask { $0?.cancel() }
                 return listsToReturn
             }
             func fetchSnapshot(completed: Bool) async throws -> ReminderSnapshot {
@@ -678,17 +676,11 @@ struct AppleRemindersTests {
             func create(_ draft: ReminderDraft, calendar: Calendar) async throws -> String? { nil }
         }
 
-        let taskBox = Mutex<Task<[ReminderList], Error>?>(nil)
-        let cancellingRepo = CancellingRepository(lists: stale) {
-            taskBox.withLock { $0?.cancel() }
-        }
-        let task = Task {
-            try await library.lists(forceRefresh: true, from: cancellingRepo)
-        }
-        taskBox.withLock { $0 = task }
-
+        let cancellingRepo = CancellingRepository(lists: stale)
         await #expect(throws: CancellationError.self) {
-            _ = try await task.value
+            _ = try await Task {
+                try await library.lists(forceRefresh: true, from: cancellingRepo)
+            }.value
         }
 
         let stillCached = try await library.lists(forceRefresh: false, from: repository)
