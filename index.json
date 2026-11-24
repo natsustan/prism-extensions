@@ -2050,6 +2050,200 @@
             "aliases" : [
 
             ],
+            "id" : "my-reminders",
+            "interactive" : false,
+            "keywords" : [
+              "reminders",
+              "apple reminders",
+              "todo",
+              "tasks",
+              "checklist",
+              "提醒",
+              "提醒事项",
+              "待办"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "com.apple.reminders",
+            "subtitle" : "Reminders",
+            "title" : "My Reminders"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "quick-add",
+            "interactive" : false,
+            "keywords" : [
+              "new reminder",
+              "create reminder",
+              "add reminder",
+              "todo",
+              "task",
+              "新建提醒",
+              "添加提醒",
+              "快速添加",
+              "待办"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "subtitle" : "Reminders",
+            "title" : "Quick Add Reminder"
+          }
+        ],
+        "description" : "Search, complete, organize, and quick-add Reminders from the launcher.",
+        "executable" : "bin/AppleReminders",
+        "folders" : [
+
+        ],
+        "icon" : {
+          "app" : "com.apple.reminders",
+          "symbol" : "checklist",
+          "tint" : "orange"
+        },
+        "id" : "prism.apple-reminders",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "my-reminders" : {
+                "keywords" : [
+                  "提醒事项",
+                  "提醒",
+                  "待办",
+                  "任务",
+                  "清单",
+                  "wodetixing",
+                  "wdtx",
+                  "tixingshixiang",
+                  "txsx",
+                  "daiban",
+                  "db"
+                ],
+                "subtitle" : "提醒事项",
+                "title" : "我的提醒"
+              },
+              "quick-add" : {
+                "keywords" : [
+                  "新建提醒",
+                  "添加提醒",
+                  "创建提醒",
+                  "快速待办",
+                  "kuaisutianjiatixing",
+                  "kstjtx",
+                  "xinjiantixing",
+                  "xjtx"
+                ],
+                "subtitle" : "提醒事项",
+                "title" : "快速添加提醒"
+              }
+            },
+            "description" : "在启动器中搜索、完成、整理和快速添加 Apple 提醒事项。",
+            "name" : "提醒事项",
+            "preferences" : {
+              "defaultList" : {
+                "caption" : "快速添加未指定 #列表 时使用的列表名称；留空则使用“提醒事项”的默认列表。",
+                "title" : "默认列表"
+              },
+              "showExactDueTime" : {
+                "caption" : "对带时间的提醒显示具体时刻（如 10:00），而不是相对时间。",
+                "title" : "显示具体到期时间"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "my-reminders" : {
+                "keywords" : [
+                  "提醒事項",
+                  "提醒",
+                  "待辦",
+                  "任務",
+                  "清單",
+                  "wodetixing",
+                  "wdtx",
+                  "tixingshixiang",
+                  "txsx",
+                  "daiban",
+                  "db"
+                ],
+                "subtitle" : "提醒事項",
+                "title" : "我的提醒"
+              },
+              "quick-add" : {
+                "keywords" : [
+                  "新增提醒",
+                  "建立提醒",
+                  "快速待辦",
+                  "kuaisuxinzengtixing",
+                  "ksxztx",
+                  "xinzengtixing",
+                  "xztx"
+                ],
+                "subtitle" : "提醒事項",
+                "title" : "快速新增提醒"
+              }
+            },
+            "description" : "在啟動器中搜尋、完成、整理並快速新增 Apple 提醒事項。",
+            "name" : "提醒事項",
+            "preferences" : {
+              "defaultList" : {
+                "caption" : "快速新增未指定 #列表 時使用的列表名稱；留空則使用「提醒事項」的預設列表。",
+                "title" : "預設列表"
+              },
+              "showExactDueTime" : {
+                "caption" : "對含時間的提醒顯示具體時刻（如 10:00），而非相對時間。",
+                "title" : "顯示具體到期時間"
+              }
+            }
+          }
+        },
+        "minPrism" : "0.12.1",
+        "name" : "Reminders",
+        "preferences" : [
+          {
+            "caption" : "Show the clock time (such as 10:00 AM) instead of relative time on timed reminders.",
+            "default" : false,
+            "id" : "showExactDueTime",
+            "title" : "Display Exact Due Time",
+            "type" : "bool"
+          },
+          {
+            "caption" : "Optional list name used by Quick Add when no #list is typed. Leave blank to use Reminders’ default list.",
+            "default" : "",
+            "id" : "defaultList",
+            "title" : "Default List",
+            "type" : "text"
+          }
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "20d4af30292f949ee45e027e1c7c66ef7b53537a89660bc45a0ef03f3c9c5a3c",
+        "size" : 1420361,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.apple-reminders%401.0.0/prism.apple-reminders-1.0.0.prismextension"
+      },
+      "publishedAt" : 1795545890,
+      "releaseNotes" : "- Added **My Reminders** powered by EventKit to browse, filter (All, Today, Overdue, Scheduled, Completed, and each reminder list), search (including Chinese pinyin), complete, reschedule, reprioritize, move, delete, and open reminders from the launcher or by pressing Tab on Reminders.app.\n- Added **Quick Add Reminder** with live natural-language parsing for English and Chinese dates, times, priorities, `#List` targets, `#tags`, and inline `// notes`.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/apple-reminders"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
+
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
             "id" : "actions",
             "interactive" : false,
             "keywords" : [
@@ -2660,7 +2854,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1795535146,
+  "generatedAt" : 1795545890,
   "revoked" : [
 
   ]
