@@ -1,0 +1,96 @@
+{
+  "protocol": 1,
+  "id": "prism.bear",
+  "name": "Bear",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Search your Bear notes and tags by title, content, tags, or pinyin, preview Markdown, and open them in Bear.",
+  "icon": { "symbol": "note.text", "tint": "red", "app": "net.shinyfrog.bear" },
+  "executable": ".build/release/Bear",
+  "commands": [
+    {
+      "id": "search-notes",
+      "title": "Search Bear Notes",
+      "subtitle": "Bear",
+      "mode": "list",
+      "keywords": ["bear", "bear notes", "notes", "markdown", "find note", "memo", "熊掌记", "笔记"],
+      "searchesApp": "net.shinyfrog.bear"
+    },
+    {
+      "id": "search-tags",
+      "title": "Search Bear Tags",
+      "subtitle": "Bear",
+      "mode": "list",
+      "keywords": ["bear", "bear tags", "tags", "tag", "hashtag", "熊掌记", "标签"]
+    },
+    {
+      "id": "new-note-from-clipboard",
+      "title": "New Note from Clipboard",
+      "subtitle": "Bear",
+      "mode": "no-view",
+      "keywords": ["bear", "new note", "create note", "clipboard", "paste", "clip", "熊掌记", "新建笔记"]
+    }
+  ],
+  "folders": [
+    {
+      "id": "bear",
+      "path": "~/Library/Group Containers/9K33E3U3T4.net.shinyfrog.bear",
+      "reason": "Bear searches your notes and tags in this folder and never changes them."
+    }
+  ],
+  "capabilities": ["readHomeFiles"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "Bear",
+      "description": "按标题、内容、标签或拼音搜索你的 Bear 笔记和标签，预览 Markdown，并在 Bear 中打开。",
+      "commands": {
+        "search-notes": {
+          "title": "搜索 Bear 笔记",
+          "subtitle": "Bear",
+          "keywords": ["熊掌记", "笔记", "查找笔记", "备忘录", "sousuobearbiji", "ssbbj", "xiongzhangji", "xzj"]
+        },
+        "search-tags": {
+          "title": "搜索 Bear 标签",
+          "subtitle": "Bear",
+          "keywords": ["熊掌记", "标签", "查找标签", "sousuobearbiaoqian", "ssbbq", "biaoqian", "bq"]
+        },
+        "new-note-from-clipboard": {
+          "title": "从剪贴板新建笔记",
+          "subtitle": "Bear",
+          "keywords": ["熊掌记", "新建笔记", "剪贴板", "创建笔记", "congjiantiebanxinjianbiji", "cjtbxjbj", "xinjianbiji", "xjbj"]
+        }
+      },
+      "folders": {
+        "bear": {
+          "reason": "此扩展在这个文件夹中搜索你的 Bear 笔记和标签，从不更改它们。"
+        }
+      }
+    },
+    "zh-Hant": {
+      "name": "Bear",
+      "description": "依標題、內容、標籤或拼音搜尋你的 Bear 筆記與標籤，預覽 Markdown，並在 Bear 中打開。",
+      "commands": {
+        "search-notes": {
+          "title": "搜尋 Bear 筆記",
+          "subtitle": "Bear",
+          "keywords": ["熊掌記", "筆記", "尋找筆記", "備忘錄", "souxunbearbiji", "sxbbj", "xiongzhangji", "xzj"]
+        },
+        "search-tags": {
+          "title": "搜尋 Bear 標籤",
+          "subtitle": "Bear",
+          "keywords": ["熊掌記", "標籤", "尋找標籤", "souxunbearbiaoqian", "sxbbq", "biaoqian", "bq"]
+        },
+        "new-note-from-clipboard": {
+          "title": "從剪貼簿新增筆記",
+          "subtitle": "Bear",
+          "keywords": ["熊掌記", "新增筆記", "剪貼簿", "建立筆記", "congjiantieboxinzengbiji", "cjtbxzbj", "xinzengbiji", "xzbj"]
+        }
+      },
+      "folders": {
+        "bear": {
+          "reason": "此延伸功能在這個檔案夾中搜尋你的 Bear 筆記與標籤，從不更改它們。"
+        }
+      }
+    }
+  }
+}
