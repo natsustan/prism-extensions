@@ -145,6 +145,59 @@ struct AntigravityUsageMapperTests {
         #expect(parsed?.email == "dev@example.com")
         #expect(parsed?.plan == "Pro")
     }
+
+    @Test("fetchAvailableModels maps explicit model quotas and ignores tab models")
+    func availableModelsMapping() {
+        let body = Data("""
+        {"models": {
+            "gemini-3-flash": {"displayName": "Gemini 3 Flash",
+                "quotaInfo": {"remainingFraction": 0.83, "resetTime": "2026-11-24T10:14:03Z"}},
+            "gemini-4-hydrogen-sonar": {"quotaInfo": {"remainingFraction": 0.80}},
+            "claude-opus-5-5-high": {"displayName": "Claude Opus 5.5 (High)",
+                "quotaInfo": {"remainingFraction": 1.0}},
+            "tab_flash_lite_preview": {"quotaInfo": {"remainingFraction": 0.1}},
+            "missing-quota": {"displayName": "Claude No Quota"}
+        }}
+        """.utf8)
+        let quotas = AntigravityUsageMapper.availableModels(body) ?? []
+        let metrics = AntigravityUsageMapper.pooledMetrics(quotas)
+        #expect(metrics.map(\.title) == ["Session", "Claude"])
+        guard case let .progress(sessionUsed, _, _, _, _) = metrics[0].value,
+              case let .progress(claudeUsed, _, _, _, _) = metrics[1].value
+        else {
+            Issue.record("expected progress metrics")
+            return
+        }
+        #expect(sessionUsed == 20)
+        #expect(claudeUsed == 0)
+    }
+
+    @Test("merging a partial summary preserves summary buckets and adds missing pools in order")
+    func mergePartialSummary() {
+        let summary = AntigravityUsageMapper.quotaSummaryMetrics(Data("""
+        {"groups": [{"buckets": [
+            {"bucketId": "3p-weekly", "remainingFraction": 0.9},
+            {"bucketId": "3p-5h", "remainingFraction": 1.0}
+        ]}]}
+        """.utf8)) ?? []
+        let fallback = AntigravityUsageMapper.pooledMetrics([
+            AntigravityModelQuota(label: "Gemini 3 Flash", modelID: "gemini-3-flash",
+                                  remainingFraction: 0.83, resetTime: nil),
+            AntigravityModelQuota(label: "Claude Opus", modelID: "claude-opus",
+                                  remainingFraction: 0.5, resetTime: nil),
+        ])
+        let merged = AntigravityUsageMapper.mergeSummaryMetrics(summary, fallback: fallback)
+        #expect(merged.map(\.title) == ["Session", "Claude", "Claude Weekly"])
+        guard case let .progress(sessionUsed, _, _, _, _) = merged[0].value,
+              case let .progress(claudeUsed, _, _, _, _) = merged[1].value
+        else {
+            Issue.record("expected progress metrics")
+            return
+        }
+        #expect(sessionUsed == 17)
+        // Authoritative summary wins for Claude even though fallback differed.
+        #expect(claudeUsed == 0)
+    }
 }
 
 @Suite("Antigravity language server discovery", .english)
@@ -275,7 +328,11 @@ struct AntigravityProviderTests {
         runner: any AntigravityProcessRunning = NoLanguageServerRunner(),
         ls: StubHTTPClient,
         credentialURL: URL = missingCredentialURL,
-        cloud: StubHTTPClient? = nil
+        keychainPayload: Data? = nil,
+        cloud: StubHTTPClient? = nil,
+        oauthClients: [AntigravityOAuthClient] = [
+            AntigravityOAuthClient(id: "test-client.apps.googleusercontent.com", secret: "test-secret")
+        ]
     ) -> AntigravityAgentUsageProvider {
         var provider = AntigravityAgentUsageProvider()
         provider.installPresence = { installPresent }
@@ -284,11 +341,25 @@ struct AntigravityProviderTests {
         provider.authStore = AntigravityAuthStore(
             credentialURL: credentialURL,
             httpClient: cloud ?? StubHTTPClient(status: 500))
-        provider.authStore.oauthClient = { _ in
-            AntigravityOAuthClient(id: "test-client.apps.googleusercontent.com", secret: "test-secret")
-        }
+        provider.authStore.readKeychainSecret = { _, _ in keychainPayload }
+        provider.authStore.keychainItemExists = { _, _ in keychainPayload != nil }
+        provider.authStore.oauthClients = { _ in oauthClients }
         provider.discovery = AntigravityLanguageServerDiscovery(processRunner: runner)
         return provider
+    }
+
+    static func makeGoKeyringPayload(
+        accessToken: String = "keychain-access",
+        refreshToken: String? = "keychain-refresh",
+        expiry: String = "2099-01-01T00:00:00Z",
+        email: String? = "dev@example.com"
+    ) -> Data {
+        let refresh = refreshToken.map { #""refresh_token": "\#($0)", "# } ?? ""
+        let emailField = email.map { #", "id_token_email": "\#($0)""# } ?? ""
+        let json = """
+        {"token": {"access_token": "\(accessToken)", \(refresh)"expiry": "\(expiry)"}, "auth_method": "consumer"\(emailField)}
+        """
+        return Data(("go-keyring-base64:" + Data(json.utf8).base64EncodedString()).utf8)
     }
 
     /// Writes an `agy`-shaped token file into a temp dir and returns its URL.
@@ -630,6 +701,129 @@ struct AntigravityProviderTests {
         }
         #expect(report.metrics.map(\.title) == ["Claude Weekly"])
     }
+
+    @Test("a CSRF rejection after GetUnleashData 404 still falls back to Keychain and supplements Gemini quota")
+    func keychainFallbackAndPartialSummary() async {
+        let recorder = RequestRecorder()
+        let provider = Self.makeProvider(
+            runner: Self.agyRunner,
+            ls: StubHTTPClient { request in
+                if request.url.absoluteString.hasSuffix("GetUnleashData") {
+                    return AgentUsageHTTPResponse(statusCode: 404, headers: [:], body: Data("404 page not found".utf8))
+                }
+                return AgentUsageHTTPResponse(
+                    statusCode: 401, headers: [:],
+                    body: Data(#"{"code":"unauthenticated","message":"invalid CSRF token"}"#.utf8))
+            },
+            keychainPayload: Self.makeGoKeyringPayload(),
+            cloud: StubHTTPClient { request in
+                recorder.record(request)
+                #expect(request.headers["Authorization"] == "Bearer keychain-access")
+                switch request.url.absoluteString {
+                case let url where url.contains("retrieveUserQuotaSummary"):
+                    return AgentUsageHTTPResponse(statusCode: 200, headers: [:], body: Data("""
+                    {"groups": [{"buckets": [
+                        {"bucketId": "3p-weekly", "remainingFraction": 1.0},
+                        {"bucketId": "3p-5h", "remainingFraction": 1.0}
+                    ]}]}
+                    """.utf8))
+                case let url where url.contains("fetchAvailableModels"):
+                    return AgentUsageHTTPResponse(statusCode: 200, headers: [:], body: Data("""
+                    {"models": {
+                        "gemini-3-flash": {"displayName": "Gemini 3 Flash", "quotaInfo": {"remainingFraction": 0.83}},
+                        "claude-opus-5-5-high": {"displayName": "Claude Opus 5.5 (High)", "quotaInfo": {"remainingFraction": 1.0}}
+                    }}
+                    """.utf8))
+                case let url where url.contains("loadCodeAssist"):
+                    return AgentUsageHTTPResponse(statusCode: 200, headers: [:], body: Data("""
+                    {"paidTier": {"name": "Google AI Ultra"}}
+                    """.utf8))
+                default:
+                    return AgentUsageHTTPResponse(statusCode: 404, headers: [:], body: Data())
+                }
+            })
+
+        let result = await provider.fetchUsage()
+        guard case let .success(report) = result else {
+            Issue.record("expected success, got \(result)")
+            return
+        }
+        #expect(report.plan == "Ultra")
+        #expect(report.accountLabel == "dev@example.com")
+        #expect(report.metrics.map(\.title) == ["Session", "Claude", "Claude Weekly"])
+        // Email came from `id_token_email`, so `userinfo` was skipped.
+        #expect(!recorder.requests.contains { $0.url == AntigravityUsageClient.userInfoURL })
+    }
+
+    @Test("a CSRF rejection after GetUnleashData 404 without credentials reports unreachable")
+    func csrfRejectedAfterUnleash404() async {
+        let provider = Self.makeProvider(
+            runner: Self.agyRunner,
+            ls: StubHTTPClient { request in
+                if request.url.absoluteString.hasSuffix("GetUnleashData") {
+                    return AgentUsageHTTPResponse(statusCode: 404, headers: [:], body: Data("404 page not found".utf8))
+                }
+                return AgentUsageHTTPResponse(
+                    statusCode: 401, headers: [:],
+                    body: Data(#"{"code":"unauthenticated","message":"invalid CSRF token"}"#.utf8))
+            })
+        let result = await provider.fetchUsage()
+        guard case let .failure(failure) = result else {
+            Issue.record("expected a failure")
+            return
+        }
+        if case .network = failure {} else {
+            Issue.record("expected network, got \(failure)")
+        }
+    }
+
+    @Test("refresh tries candidate OAuth clients until one matches and caches the winner")
+    func multiClientRefresh() async {
+        let recorder = RequestRecorder()
+        let wrongClient = AntigravityOAuthClient(id: "id-a.apps.googleusercontent.com", secret: "sec-wrong")
+        let wrongID = AntigravityOAuthClient(id: "id-a.apps.googleusercontent.com", secret: "sec-a")
+        let skipped = AntigravityOAuthClient(id: "id-a.apps.googleusercontent.com", secret: "sec-a-2")
+        let right = AntigravityOAuthClient(id: "id-b.apps.googleusercontent.com", secret: "sec-b")
+        let provider = Self.makeProvider(
+            runner: NoLanguageServerRunner(),
+            ls: StubHTTPClient { _ in throw AgentUsageClientError.transport },
+            keychainPayload: Self.makeGoKeyringPayload(accessToken: "stale", expiry: "2000-01-01T00:00:00Z"),
+            cloud: StubHTTPClient { request in
+                recorder.record(request)
+                if request.url.host() == "oauth2.googleapis.com" {
+                    let body = String(data: request.body ?? Data(), encoding: .utf8) ?? ""
+                    if body.contains("client_secret=sec-wrong") {
+                        return AgentUsageHTTPResponse(statusCode: 401, headers: [:], body: Data(#"{"error":"invalid_client"}"#.utf8))
+                    }
+                    if body.contains("client_secret=sec-a") {
+                        return AgentUsageHTTPResponse(statusCode: 400, headers: [:], body: Data(#"{"error":"unauthorized_client"}"#.utf8))
+                    }
+                    #expect(body.contains("client_id=id-b.apps.googleusercontent.com"))
+                    #expect(body.contains("client_secret=sec-b"))
+                    return AgentUsageHTTPResponse(statusCode: 200, headers: [:], body: Data("""
+                    {"access_token": "fresh-keychain-token", "expires_in": 3600}
+                    """.utf8))
+                }
+                #expect(request.headers["Authorization"] == "Bearer fresh-keychain-token")
+                if request.url.absoluteString.contains("retrieveUserQuotaSummary") {
+                    return AgentUsageHTTPResponse(statusCode: 200, headers: [:], body: Data("""
+                    {"groups": [{"buckets": [{"bucketId": "gemini-5h", "remainingFraction": 0.7}]}]}
+                    """.utf8))
+                }
+                return AgentUsageHTTPResponse(statusCode: 404, headers: [:], body: Data())
+            },
+            oauthClients: [wrongClient, wrongID, skipped, right])
+
+        let result = await provider.fetchUsage()
+        guard case let .success(report) = result else {
+            Issue.record("expected success, got \(result)")
+            return
+        }
+        #expect(report.metrics.map(\.title) == ["Session"])
+        // `skipped` was bypassed once `id-a` returned `unauthorized_client`.
+        let oauthRequests = recorder.requests.filter { $0.url.host() == "oauth2.googleapis.com" }
+        #expect(oauthRequests.count == 3)
+    }
 }
 
 @Suite("Antigravity credential file", .english)
@@ -641,6 +835,29 @@ struct AntigravityAuthStoreTests {
         #expect(credentials?.accessToken == "file-access")
         #expect(credentials?.refreshToken == "file-refresh")
         #expect(credentials?.expiry != nil)
+    }
+
+    @Test("go-keyring base64 and hex Keychain payloads parse including email")
+    func parsesKeychainPayloads() {
+        let payload = AntigravityProviderTests.makeGoKeyringPayload(
+            accessToken: "kc-tok", refreshToken: "kc-ref", email: "user@example.com")
+        let parsed = AntigravityCredentialFile.parse(payload)
+        #expect(parsed?.accessToken == "kc-tok")
+        #expect(parsed?.refreshToken == "kc-ref")
+        #expect(parsed?.email == "user@example.com")
+
+        let hexWrapped = Data(payload.map { String(format: "%02x", $0) }.joined().utf8)
+        #expect(AntigravityCredentialFile.parse(hexWrapped) == parsed)
+    }
+
+    @Test("a Keychain item alone makes the provider detected")
+    func detectedFromKeychain() {
+        let provider = AntigravityProviderTests.makeProvider(
+            installPresent: false,
+            runner: NoLanguageServerRunner(),
+            ls: StubHTTPClient(status: 200, body: "{}"),
+            keychainPayload: AntigravityProviderTests.makeGoKeyringPayload())
+        #expect(provider.hasLocalCredentials())
     }
 
     @Test("missing and malformed files mean absent")
@@ -854,12 +1071,34 @@ struct AntigravityOAuthClientTests {
         #expect(AntigravityOAuthClientLocator.locate(idToken: nil, executables: [agy]) == nil)
     }
 
+    @Test("Go binary string concatenation trims secrets to 35 chars and finds client IDs across chunk boundaries")
+    func goBinaryScan() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("agy-go-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let agy = folder.appendingPathComponent("agy")
+        let clientID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com"
+        // Place the secret across the 1 MiB streaming chunk boundary and simulate
+        // packed Go `.rodata` with no null terminators between string literals.
+        var binary = Data(repeating: 0, count: 1_048_566)
+        binary.append(Data(("authorize" + Self.fakeSecret + "https://cloudcode-pa.googleapis.com").utf8))
+        binary.append(Data(("label" + clientID + "GetHubOAuthAccessToken").utf8))
+        try binary.write(to: agy)
+
+        #expect(AntigravityOAuthClientLocator.secrets(in: agy) == [Self.fakeSecret])
+        #expect(AntigravityOAuthClientLocator.clientIDs(in: agy) == [clientID])
+        #expect(AntigravityOAuthClientLocator.locateAll(idToken: nil, executables: [agy])
+            == [AntigravityOAuthClient(id: clientID, secret: Self.fakeSecret)])
+    }
+
     @Test("an expired token without a findable client asks the user to refresh the sign-in")
     func missingClient() async throws {
         let credentialURL = try AntigravityProviderTests.makeCredentialFile(expiry: "2000-01-01T00:00:00Z")
         defer { try? FileManager.default.removeItem(at: credentialURL.deletingLastPathComponent()) }
         let store = AntigravityAuthStore(credentialURL: credentialURL, httpClient: StubHTTPClient(status: 500))
-        store.oauthClient = { _ in nil }
+        store.readKeychainSecret = { _, _ in nil }
+        store.keychainItemExists = { _, _ in false }
+        store.oauthClients = { _ in [] }
         guard case let .failed(failure) = await store.accessToken() else {
             Issue.record("A refresh without a client fails")
             return

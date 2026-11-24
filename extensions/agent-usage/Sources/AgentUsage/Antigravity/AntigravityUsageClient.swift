@@ -37,6 +37,8 @@ struct AntigravityUsageClient: Sendable {
     static let cloudUserAgent = "antigravity/1.11.3 darwin/arm64"
     static let quotaSummaryURL = URL(
         string: "https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary")!
+    static let availableModelsURL = URL(
+        string: "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels")!
     static let loadCodeAssistURL = URL(
         string: "https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist")!
     static let userInfoURL = URL(

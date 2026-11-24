@@ -22,13 +22,13 @@ Prism's data folder for this extension so they show at once next time.
 | Claude | Claude Code's login in the Keychain, or `~/.claude/.credentials.json` | api.anthropic.com |
 | Grok | `~/.grok/auth.json` | cli-chat-proxy.grok.com, auth.x.ai |
 | Amp | `~/.local/share/amp/secrets.json` | ampcode.com |
-| Antigravity | the running language server (`ps`, `lsof`), or its saved Google login under `~/.gemini` | localhost, Google (Cloud Code, OAuth) |
+| Antigravity | the running language server (`ps`, `lsof`), or its saved Google login in the Keychain (`gemini` / `antigravity`) or under `~/.gemini` | localhost, Google (Cloud Code, OAuth) |
 | Devin | `~/.local/share/devin/credentials.toml`, or the Devin app's saved login | server.codeium.com |
 | Z.ai | the key from settings, `ZAI_API_KEY`, `~/.config/zai/key.json`, or a Claude Code token pointed at z.ai | api.z.ai |
 
-Capabilities: `network`, `readHomeFiles`, `keychainRead` (Claude Code's
-login), `spawnProcesses` (`ps` and `lsof` to find Antigravity). The first
-Keychain read asks for permission.
+Capabilities: `network`, `readHomeFiles`, `keychainRead` (Claude Code's and
+Antigravity's logins), `spawnProcesses` (`ps` and `lsof` to find Antigravity).
+The first Keychain read asks for permission.
 
 ## Development
 
