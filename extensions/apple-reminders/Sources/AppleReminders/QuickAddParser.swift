@@ -111,14 +111,17 @@ enum QuickAddParser {
         now: Date,
         calendar: Calendar
     ) -> (ReminderDueDate?, String) {
+        let gregorian = ReminderDueDate.gregorianCalendar(for: calendar)
         var working = text
 
-        // A. Relative offsets: `in 30m`, `in 2 hours`, `in 3 days`, `30分钟后`, `2小时后`, `3天后`.
-        if let result = matchRelativeOffset(in: working, now: now, calendar: calendar) {
+        // A. Sub-day relative offsets (`in 30m`, `in 2 hours`, `30分钟后`, `2小时后`),
+        // which already specify an exact time.
+        if let result = matchRelativeTimeOffset(in: working, now: now) {
             return result
         }
 
-        // B. Calendar date phrase (optional).
+        // B. Calendar date phrase (optional); flows into clock parsing below so
+        // inputs like `in 3 days 9am` or `3天后 下午3点` become timed reminders.
         var dayComponents: (year: Int, month: Int, day: Int)?
 
         // Explicit ISO date: YYYY-MM-DD
@@ -126,7 +129,7 @@ enum QuickAddParser {
            let year = Int(match.groups[1]),
            let month = Int(match.groups[2]),
            let day = Int(match.groups[3]),
-           isValidDate(year: year, month: month, day: day, calendar: calendar) {
+           isValidDate(year: year, month: month, day: day, calendar: gregorian) {
             dayComponents = (year, month, day)
             working.replaceSubrange(match.fullRange, with: " ")
         }
@@ -134,17 +137,22 @@ enum QuickAddParser {
         else if let match = firstMatch(#"(?:^|\s)(\d{1,2})月(\d{1,2})[日号](?=$|\s|\d|上|下|晚|早|中)"#, in: working),
                 let month = Int(match.groups[1]),
                 let day = Int(match.groups[2]),
-                let resolved = resolveMonthDay(month: month, day: day, now: now, calendar: calendar) {
+                let resolved = resolveMonthDay(month: month, day: day, now: now, calendar: gregorian) {
             dayComponents = resolved
             working.replaceSubrange(match.fullRange, with: " ")
         }
+        // Relative day offsets (`in 3 days`, `3天后`).
+        else if let (resolved, range) = matchRelativeDayOffset(in: working, now: now, calendar: gregorian) {
+            dayComponents = resolved
+            working.replaceSubrange(range, with: " ")
+        }
         // Relative day words (Chinese and English).
-        else if let (resolved, range) = matchRelativeDay(in: working, now: now, calendar: calendar) {
+        else if let (resolved, range) = matchRelativeDay(in: working, now: now, calendar: gregorian) {
             dayComponents = resolved
             working.replaceSubrange(range, with: " ")
         }
         // Weekday names (`monday`, `next friday`, `周五`, `下周一`, `星期三`).
-        else if let (resolved, range) = matchWeekday(in: working, now: now, calendar: calendar) {
+        else if let (resolved, range) = matchWeekday(in: working, now: now, calendar: gregorian) {
             dayComponents = resolved
             working.replaceSubrange(range, with: " ")
         }
@@ -159,32 +167,32 @@ enum QuickAddParser {
         // Combine date + clock.
         if let day = dayComponents, let clock {
             var comps = DateComponents()
-            comps.calendar = calendar
-            comps.timeZone = calendar.timeZone
+            comps.calendar = gregorian
+            comps.timeZone = gregorian.timeZone
             comps.year = day.year
             comps.month = day.month
             comps.day = day.day
             comps.hour = clock.hour
             comps.minute = clock.minute
             comps.second = 0
-            if let date = calendar.date(from: comps) {
+            if let date = gregorian.date(from: comps) {
                 return (.timed(date), working)
             }
         } else if let day = dayComponents {
             return (.allDay(year: day.year, month: day.month, day: day.day), working)
         } else if let clock {
-            let todayParts = calendar.dateComponents([.year, .month, .day], from: now)
+            let todayParts = gregorian.dateComponents([.year, .month, .day], from: now)
             var comps = DateComponents()
-            comps.calendar = calendar
-            comps.timeZone = calendar.timeZone
+            comps.calendar = gregorian
+            comps.timeZone = gregorian.timeZone
             comps.year = todayParts.year
             comps.month = todayParts.month
             comps.day = todayParts.day
             comps.hour = clock.hour
             comps.minute = clock.minute
             comps.second = 0
-            if var date = calendar.date(from: comps) {
-                if date <= now, let nextDay = calendar.date(byAdding: .day, value: 1, to: date) {
+            if var date = gregorian.date(from: comps) {
+                if date <= now, let nextDay = gregorian.date(byAdding: .day, value: 1, to: date) {
                     date = nextDay
                 }
                 return (.timed(date), working)
@@ -194,13 +202,12 @@ enum QuickAddParser {
         return (nil, text)
     }
 
-    private static func matchRelativeOffset(
+    private static func matchRelativeTimeOffset(
         in text: String,
-        now: Date,
-        calendar: Calendar
+        now: Date
     ) -> (ReminderDueDate, String)? {
-        // English: `in 30m`, `in 2 hours`, `in 3 days`
-        let enPattern = #"(?:^|\s)in\s+(\d+)\s*(m|min|mins|minute|minutes|h|hr|hrs|hour|hours|d|day|days)(?=$|\s)"#
+        // English: `in 30m`, `in 2 hours`
+        let enPattern = #"(?:^|\s)in\s+(\d+)\s*(m|min|mins|minute|minutes|h|hr|hrs|hour|hours)(?=$|\s)"#
         if let match = firstMatch(enPattern, in: text, caseInsensitive: true),
            let amount = Int(match.groups[1]), amount > 0 {
             let unit = match.groups[2].lowercased()
@@ -212,17 +219,10 @@ enum QuickAddParser {
             if unit.hasPrefix("h") {
                 return (.timed(now.addingTimeInterval(Double(amount) * 3600)), stripped)
             }
-            if unit.hasPrefix("d"),
-               let date = calendar.date(byAdding: .day, value: amount, to: calendar.startOfDay(for: now)) {
-                let parts = calendar.dateComponents([.year, .month, .day], from: date)
-                if let y = parts.year, let m = parts.month, let d = parts.day {
-                    return (.allDay(year: y, month: m, day: d), stripped)
-                }
-            }
         }
 
-        // Chinese: `30分钟后`, `2小时后`, `3天后`
-        let zhPattern = #"(?:^|\s)(\d+)\s*(分钟|小时|天)[之以]?后(?=$|\s)"#
+        // Chinese: `30分钟后`, `2小时后`
+        let zhPattern = #"(?:^|\s)(\d+)\s*(分钟|小时)[之以]?后(?=$|\s)"#
         if let match = firstMatch(zhPattern, in: text),
            let amount = Int(match.groups[1]), amount > 0 {
             let unit = match.groups[2]
@@ -233,15 +233,36 @@ enum QuickAddParser {
                 return (.timed(now.addingTimeInterval(Double(amount) * 60)), stripped)
             case "小时":
                 return (.timed(now.addingTimeInterval(Double(amount) * 3600)), stripped)
-            case "天":
-                if let date = calendar.date(byAdding: .day, value: amount, to: calendar.startOfDay(for: now)) {
-                    let parts = calendar.dateComponents([.year, .month, .day], from: date)
-                    if let y = parts.year, let m = parts.month, let d = parts.day {
-                        return (.allDay(year: y, month: m, day: d), stripped)
-                    }
-                }
             default:
                 break
+            }
+        }
+        return nil
+    }
+
+    private static func matchRelativeDayOffset(
+        in text: String,
+        now: Date,
+        calendar: Calendar
+    ) -> ((Int, Int, Int), Range<String.Index>)? {
+        let start = calendar.startOfDay(for: now)
+        let enPattern = #"(?:^|\s)in\s+(\d+)\s*(d|day|days)(?=$|\s)"#
+        if let match = firstMatch(enPattern, in: text, caseInsensitive: true),
+           let amount = Int(match.groups[1]), amount > 0,
+           let date = calendar.date(byAdding: .day, value: amount, to: start) {
+            let parts = calendar.dateComponents([.year, .month, .day], from: date)
+            if let y = parts.year, let m = parts.month, let d = parts.day {
+                return ((y, m, d), match.fullRange)
+            }
+        }
+
+        let zhPattern = #"(?:^|\s)(\d+)\s*天[之以]?后(?=$|\s|\d|上|下|晚|早|中)"#
+        if let match = firstMatch(zhPattern, in: text),
+           let amount = Int(match.groups[1]), amount > 0,
+           let date = calendar.date(byAdding: .day, value: amount, to: start) {
+            let parts = calendar.dateComponents([.year, .month, .day], from: date)
+            if let y = parts.year, let m = parts.month, let d = parts.day {
+                return ((y, m, d), match.fullRange)
             }
         }
         return nil

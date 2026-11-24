@@ -448,10 +448,49 @@ struct AppleRemindersTests {
         #expect(zhOffset?.title == "喝水")
         #expect(zhOffset?.dueDate == .timed(Self.now.addingTimeInterval(2 * 3600)))
 
+        // Relative day offsets combine cleanly with explicit clock times.
+        let daysTimedEn = QuickAddParser.parse("Call mom in 3 days 9am", lists: lists, now: Self.now, calendar: Self.utc)
+        #expect(daysTimedEn?.title == "Call mom")
+        #expect(daysTimedEn?.dueDate == .timed(Self.utcDate(2026, 11, 28, 9, 0)))
+
+        let daysTimedZh = QuickAddParser.parse("3天后 下午3点 开会", lists: lists, now: Self.now, calendar: Self.utc)
+        #expect(daysTimedZh?.title == "开会")
+        #expect(daysTimedZh?.dueDate == .timed(Self.utcDate(2026, 11, 28, 15, 0)))
+
+        let daysAllDay = QuickAddParser.parse("Submit report in 2 days", lists: lists, now: Self.now, calendar: Self.utc)
+        #expect(daysAllDay?.title == "Submit report")
+        #expect(daysAllDay?.dueDate == .allDay(year: 2026, month: 11, day: 27))
+
         // Punctuation attached to words must not be stripped as low priority.
         let exclamation = QuickAddParser.parse("Happy Birthday!", lists: lists, now: Self.now, calendar: Self.utc)
         #expect(exclamation?.title == "Happy Birthday!")
         #expect(exclamation?.priority == ReminderPriority.none)
+    }
+
+    @Test("Normalizes EventKit due-date components to Gregorian even on non-Gregorian calendars")
+    func normalizesNonGregorianCalendarToGregorian() {
+        var buddhist = Calendar(identifier: .buddhist)
+        buddhist.timeZone = TimeZone(secondsFromGMT: 0)!
+
+        let timed = ReminderDueDate.timed(Self.utcDate(2026, 11, 25, 14, 30))
+        let timedComponents = timed.dateComponents(in: buddhist)
+        #expect(timedComponents.calendar?.identifier == .gregorian)
+        #expect(timedComponents.year == 2026)
+        #expect(timedComponents.month == 11)
+        #expect(timedComponents.day == 25)
+        #expect(timedComponents.hour == 14)
+        #expect(timedComponents.minute == 30)
+
+        let allDay = ReminderDueDate.allDay(year: 2026, month: 11, day: 25)
+        #expect(allDay.date(in: buddhist) == Self.utcDate(2026, 11, 25, 0, 0))
+        #expect(allDay.isToday(now: Self.now, calendar: buddhist))
+
+        let dates = ReminderDates(now: Self.now, calendar: buddhist, locale: Locale(identifier: "en_US"))
+        #expect(dates.tomorrowAllDay() == .allDay(year: 2026, month: 11, day: 26))
+
+        let parsed = QuickAddParser.parse("Pay rent tomorrow 9am", lists: [], now: Self.now, calendar: buddhist)
+        #expect(parsed?.title == "Pay rent")
+        #expect(parsed?.dueDate == .timed(Self.utcDate(2026, 11, 26, 9, 0)))
     }
 
     @Test("Quick Add command previews and creates reminders, honoring defaultList and override actions")

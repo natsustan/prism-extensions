@@ -244,9 +244,18 @@ final class EventKitReminderRepository: ReminderRepository, @unchecked Sendable 
         }
 
         let dueDate: ReminderDueDate? = item.dueDateComponents.flatMap { components in
+            var gregorian = Calendar(identifier: .gregorian)
+            gregorian.timeZone = components.timeZone ?? .autoupdatingCurrent
+            let sourceCalendar = components.calendar ?? gregorian
             if components.hour != nil, components.minute != nil,
-               let date = (components.calendar ?? Calendar.autoupdatingCurrent).date(from: components) {
+               let date = sourceCalendar.date(from: components) {
                 return .timed(date)
+            }
+            if sourceCalendar.identifier != .gregorian, let date = sourceCalendar.date(from: components) {
+                let normalized = gregorian.dateComponents([.year, .month, .day], from: date)
+                if let year = normalized.year, let month = normalized.month, let day = normalized.day {
+                    return .allDay(year: year, month: month, day: day)
+                }
             }
             if let year = components.year, let month = components.month, let day = components.day {
                 return .allDay(year: year, month: month, day: day)

@@ -152,7 +152,8 @@ struct ReminderDates {
     }
 
     private func allDay(from date: Date) -> ReminderDueDate {
-        let parts = calendar.dateComponents([.year, .month, .day], from: date)
+        let gregorian = ReminderDueDate.gregorianCalendar(for: calendar)
+        let parts = gregorian.dateComponents([.year, .month, .day], from: date)
         return .allDay(year: parts.year ?? 2001, month: parts.month ?? 1, day: parts.day ?? 1)
     }
 

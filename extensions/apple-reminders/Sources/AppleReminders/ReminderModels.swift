@@ -78,33 +78,47 @@ enum ReminderDueDate: Hashable, Sendable {
         return false
     }
 
-    /// Resolves this due date to a `Date` in `calendar`. All-day reminders land
-    /// at start of day in `calendar`.
+    /// EventKit requires Gregorian due-date components regardless of the user's
+    /// display calendar (e.g. Buddhist or Japanese), while keeping the time zone.
+    static func gregorianCalendar(for calendar: Calendar) -> Calendar {
+        var gregorian = Calendar(identifier: .gregorian)
+        gregorian.timeZone = calendar.timeZone
+        return gregorian
+    }
+
+    /// Resolves this due date to a `Date` in `calendar`'s time zone. All-day
+    /// reminders carry Gregorian `(year, month, day)` and land at local start of day.
     func date(in calendar: Calendar) -> Date {
         switch self {
         case let .allDay(year, month, day):
+            let gregorian = Self.gregorianCalendar(for: calendar)
             var components = DateComponents()
-            components.calendar = calendar
-            components.timeZone = calendar.timeZone
+            components.calendar = gregorian
+            components.timeZone = gregorian.timeZone
             components.year = year
             components.month = month
             components.day = day
-            return calendar.date(from: components) ?? Date(timeIntervalSinceReferenceDate: 0)
+            return gregorian.date(from: components) ?? Date(timeIntervalSinceReferenceDate: 0)
         case let .timed(date):
             return date
         }
     }
 
     func dateComponents(in calendar: Calendar) -> DateComponents {
+        let gregorian = Self.gregorianCalendar(for: calendar)
         switch self {
         case let .allDay(year, month, day):
             var components = DateComponents()
+            components.calendar = gregorian
             components.year = year
             components.month = month
             components.day = day
             return components
         case let .timed(date):
-            return calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
+            var components = gregorian.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
+            components.calendar = gregorian
+            components.timeZone = gregorian.timeZone
+            return components
         }
     }
 
