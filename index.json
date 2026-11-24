@@ -2046,10 +2046,142 @@
       "publishedAt" : 1795418355,
       "releaseNotes" : "- Added **Shottr Actions**, a searchable list of all 14 Shottr URL-scheme actions that also opens with Tab from Shottr’s own row in root search.\n- Added post-capture actions (`Copy`, `Save`, `Edit`, `Pin`, `Show Thumbnail`), delay presets (`3s`, `5s`, `10s`), and **Copy URL** in the ⌘K action panel.\n- Added direct commands for **Capture Area**, **Capture Fullscreen**, **Capture Window**, **Capture Scrolling**, and **Capture Text (OCR)** with automatic launcher dismissal before capture.\n- Added preferences to control closing Prism before capturing and the default delayed-capture wait time.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/shottr"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
+          "readHomeFiles"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "recent-projects",
+            "interactive" : false,
+            "keywords" : [
+              "xcode",
+              "recent",
+              "projects",
+              "workspaces",
+              "xcodeproj",
+              "xcworkspace",
+              "swift",
+              "package",
+              "playground",
+              "ios",
+              "macos"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "com.apple.dt.Xcode",
+            "subtitle" : "Xcode",
+            "title" : "Recent Projects"
+          }
+        ],
+        "description" : "Quickly open your recently used Xcode projects, workspaces, Swift packages, and playgrounds.",
+        "executable" : "bin/Xcode",
+        "folders" : [
+
+        ],
+        "icon" : {
+          "app" : "com.apple.dt.Xcode",
+          "symbol" : "hammer.fill",
+          "tint" : "blue"
+        },
+        "id" : "prism.xcode",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "recent-projects" : {
+                "keywords" : [
+                  "项目",
+                  "工程",
+                  "最近",
+                  "打开项目",
+                  "工作区",
+                  "zuijindexiangmu",
+                  "zjdxm",
+                  "xiangmu",
+                  "xm",
+                  "gongcheng",
+                  "gc"
+                ],
+                "subtitle" : "Xcode",
+                "title" : "最近的项目"
+              }
+            },
+            "description" : "快速打开最近使用过的 Xcode 项目、工作区、Swift Package 和 Playground。",
+            "name" : "Xcode",
+            "preferences" : {
+              "xcodeApp" : {
+                "caption" : "留空则使用默认 Xcode 打开项目（例如 /Applications/Xcode-beta.app）。",
+                "title" : "Xcode 应用路径"
+              }
+            }
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "recent-projects" : {
+                "keywords" : [
+                  "專案",
+                  "工程",
+                  "最近",
+                  "打開專案",
+                  "工作區",
+                  "zuijindezhuanan",
+                  "zjdza",
+                  "zhuanan",
+                  "za",
+                  "gongcheng",
+                  "gc"
+                ],
+                "subtitle" : "Xcode",
+                "title" : "最近的專案"
+              }
+            },
+            "description" : "快速打開最近使用過的 Xcode 專案、工作區、Swift Package 與 Playground。",
+            "name" : "Xcode",
+            "preferences" : {
+              "xcodeApp" : {
+                "caption" : "留空則使用預設 Xcode 打開專案（例如 /Applications/Xcode-beta.app）。",
+                "title" : "Xcode 應用程式路徑"
+              }
+            }
+          }
+        },
+        "name" : "Xcode",
+        "preferences" : [
+          {
+            "caption" : "Leave blank to open projects with your default Xcode (for example, /Applications/Xcode-beta.app).",
+            "default" : "",
+            "id" : "xcodeApp",
+            "title" : "Xcode App Path",
+            "type" : "text"
+          }
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "1f00cf865ce2b9334713053214039e98dd2b086dac94b7bd5794e3742359c00b",
+        "size" : 1258673,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.xcode%401.0.0/prism.xcode-1.0.0.prismextension"
+      },
+      "publishedAt" : 1795506473,
+      "releaseNotes" : "- **Recent Projects**: browse and open recently used Xcode projects, workspaces, Swift packages, and playgrounds from Prism or by pressing Tab on Xcode’s row.\n- Filter by project type with ⌘P, reveal in Finder (⌘⇧F), or copy the project or folder path (⌘⇧C / ⌘⇧D).\n- Optional **Xcode App Path** setting to open projects with a specific Xcode installation (such as Xcode Beta).",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/xcode"
     }
   ],
   "format" : 1,
-  "generatedAt" : 1795418355,
+  "generatedAt" : 1795506473,
   "revoked" : [
 
   ]
