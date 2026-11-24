@@ -668,6 +668,220 @@
       "manifest" : {
         "author" : "Prism",
         "capabilities" : [
+          "readHomeFiles"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "search-notes",
+            "interactive" : false,
+            "keywords" : [
+              "bear",
+              "bear notes",
+              "notes",
+              "markdown",
+              "find note",
+              "memo",
+              "熊掌记",
+              "笔记"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "net.shinyfrog.bear",
+            "subtitle" : "Bear",
+            "title" : "Search Bear Notes"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "search-tags",
+            "interactive" : false,
+            "keywords" : [
+              "bear",
+              "bear tags",
+              "tags",
+              "tag",
+              "hashtag",
+              "熊掌记",
+              "标签"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "subtitle" : "Bear",
+            "title" : "Search Bear Tags"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "new-note-from-clipboard",
+            "interactive" : false,
+            "keywords" : [
+              "bear",
+              "new note",
+              "create note",
+              "clipboard",
+              "paste",
+              "clip",
+              "熊掌记",
+              "新建笔记"
+            ],
+            "liveStatus" : false,
+            "mode" : "no-view",
+            "subtitle" : "Bear",
+            "title" : "New Note from Clipboard"
+          }
+        ],
+        "description" : "Search your Bear notes and tags by title, content, tags, or pinyin, preview Markdown, and open them in Bear.",
+        "executable" : "bin/Bear",
+        "folders" : [
+          {
+            "id" : "bear",
+            "path" : "~/Library/Group Containers/9K33E3U3T4.net.shinyfrog.bear",
+            "reason" : "Bear searches your notes and tags in this folder and never changes them."
+          }
+        ],
+        "icon" : {
+          "app" : "net.shinyfrog.bear",
+          "symbol" : "note.text",
+          "tint" : "red"
+        },
+        "id" : "prism.bear",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "new-note-from-clipboard" : {
+                "keywords" : [
+                  "熊掌记",
+                  "新建笔记",
+                  "剪贴板",
+                  "创建笔记",
+                  "congjiantiebanxinjianbiji",
+                  "cjtbxjbj",
+                  "xinjianbiji",
+                  "xjbj"
+                ],
+                "subtitle" : "Bear",
+                "title" : "从剪贴板新建笔记"
+              },
+              "search-notes" : {
+                "keywords" : [
+                  "熊掌记",
+                  "笔记",
+                  "查找笔记",
+                  "备忘录",
+                  "sousuobearbiji",
+                  "ssbbj",
+                  "xiongzhangji",
+                  "xzj"
+                ],
+                "subtitle" : "Bear",
+                "title" : "搜索 Bear 笔记"
+              },
+              "search-tags" : {
+                "keywords" : [
+                  "熊掌记",
+                  "标签",
+                  "查找标签",
+                  "sousuobearbiaoqian",
+                  "ssbbq",
+                  "biaoqian",
+                  "bq"
+                ],
+                "subtitle" : "Bear",
+                "title" : "搜索 Bear 标签"
+              }
+            },
+            "description" : "按标题、内容、标签或拼音搜索你的 Bear 笔记和标签，预览 Markdown，并在 Bear 中打开。",
+            "folders" : {
+              "bear" : {
+                "reason" : "此扩展在这个文件夹中搜索你的 Bear 笔记和标签，从不更改它们。"
+              }
+            },
+            "name" : "Bear"
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "new-note-from-clipboard" : {
+                "keywords" : [
+                  "熊掌記",
+                  "新增筆記",
+                  "剪貼簿",
+                  "建立筆記",
+                  "congjiantieboxinzengbiji",
+                  "cjtbxzbj",
+                  "xinzengbiji",
+                  "xzbj"
+                ],
+                "subtitle" : "Bear",
+                "title" : "從剪貼簿新增筆記"
+              },
+              "search-notes" : {
+                "keywords" : [
+                  "熊掌記",
+                  "筆記",
+                  "尋找筆記",
+                  "備忘錄",
+                  "souxunbearbiji",
+                  "sxbbj",
+                  "xiongzhangji",
+                  "xzj"
+                ],
+                "subtitle" : "Bear",
+                "title" : "搜尋 Bear 筆記"
+              },
+              "search-tags" : {
+                "keywords" : [
+                  "熊掌記",
+                  "標籤",
+                  "尋找標籤",
+                  "souxunbearbiaoqian",
+                  "sxbbq",
+                  "biaoqian",
+                  "bq"
+                ],
+                "subtitle" : "Bear",
+                "title" : "搜尋 Bear 標籤"
+              }
+            },
+            "description" : "依標題、內容、標籤或拼音搜尋你的 Bear 筆記與標籤，預覽 Markdown，並在 Bear 中打開。",
+            "folders" : {
+              "bear" : {
+                "reason" : "此延伸功能在這個檔案夾中搜尋你的 Bear 筆記與標籤，從不更改它們。"
+              }
+            },
+            "name" : "Bear"
+          }
+        },
+        "name" : "Bear",
+        "preferences" : [
+
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "16c29c6432e5bfb824f7e2ffa6e355e08219ef3d8e9f64def676776bcd64f51c",
+        "size" : 1325014,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.bear%401.0.0/prism.bear-1.0.0.prismextension"
+      },
+      "publishedAt" : 1795535146,
+      "releaseNotes" : "- **Search Bear Notes**: search notes by title, tags, content, or pinyin, filter by Pinned, Todo, Untagged, Locked, or Archived (⌘P), preview Markdown in the detail pane, create a note when nothing matches, and open, copy, archive, or trash notes in Bear.\n- **Search Bear Tags**: browse and search active Bear tags with note counts and pinyin, and open them in Bear.\n- **New Note from Clipboard**: create a new Bear note from clipboard text.\n- Tab on Bear’s own row in root search opens Search Bear Notes.\n- Localized in English, Simplified Chinese, and Traditional Chinese.",
+      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/bear"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
           "hostTasks",
           "inspectProcesses"
         ],
@@ -2446,7 +2660,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1795522545,
+  "generatedAt" : 1795535146,
   "revoked" : [
 
   ]
