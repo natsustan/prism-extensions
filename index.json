@@ -377,7 +377,7 @@
         "tasks" : [
 
         ],
-        "version" : "1.3.1",
+        "version" : "1.3.2",
         "widgets" : [
           {
             "id" : "numbers",
@@ -412,12 +412,12 @@
         ]
       },
       "package" : {
-        "sha256" : "c3c79b9a17f623d4823704fafe8b39a117d7f5f85c4d14dbad680cef4ab9644a",
-        "size" : 2090656,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.agent-usage%401.3.1/prism.agent-usage-1.3.1.prismextension"
+        "sha256" : "bea2b0a50978cfc08dbd32259094233e939d29ebf44c3f544f62124e571d5341",
+        "size" : 2149148,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.agent-usage%401.3.2/prism.agent-usage-1.3.2.prismextension"
       },
-      "publishedAt" : 1793801678,
-      "releaseNotes" : "- Widgets show fresh quotas as soon as they arrive, instead of a few\n  seconds later, and Prism checks on them less often while they wait.",
+      "publishedAt" : 1795517473,
+      "releaseNotes" : "- Fixed Antigravity quota fetching for current `agy` and Antigravity builds:\n  reads the Google sign-in from the macOS Keychain, refreshes expired sessions\n  automatically, and shows the Gemini quota alongside Claude.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/agent-usage"
     },
     {
@@ -2313,7 +2313,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1795510201,
+  "generatedAt" : 1795517473,
   "revoked" : [
 
   ]
