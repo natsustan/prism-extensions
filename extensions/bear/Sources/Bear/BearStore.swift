@@ -1,16 +1,15 @@
 import Foundation
 import SQLite3
 
-/// One Bear note as the list indexes it. Full Markdown is read on demand for
-/// the detail pane and Copy Markdown so memory stays bounded.
+/// One Bear note as the list indexes it. Body text is never kept in memory;
+/// full-text searches stream `ZTEXT` row by row from SQLite, and the detail
+/// pane / Copy Markdown load one note on demand.
 struct BearNote: Hashable, Sendable {
     /// `ZUNIQUEIDENTIFIER`, used by `bear://x-callback-url/open-note`.
     let id: String
     let title: String
     /// One-line preview text, nil for locked or empty notes.
     let snippet: String?
-    /// Bounded body text for full-text search, empty for locked notes.
-    let searchableBody: String
     let createdAt: Date?
     let modifiedAt: Date
     let isPinned: Bool
@@ -73,9 +72,6 @@ struct BearStore: Sendable {
     static let defaultURL = defaultContainerURL
         .appendingPathComponent("Application Data/database.sqlite")
 
-    /// Caps indexed body text per note so large pasted notes never push the
-    /// process toward Prism's 150 MB memory limit.
-    static let maxIndexedBodyLength = 16_384
     private static let maxSnippetLength = 240
 
     let url: URL
@@ -84,8 +80,9 @@ struct BearStore: Sendable {
         self.url = url
     }
 
-    /// Reads all active and archived notes (excluding trashed and permanently
-    /// deleted ones) along with active tag counts, newest modified first.
+    /// Reads all active and archived note metadata (excluding trashed and
+    /// permanently deleted ones) along with active tag counts, newest modified
+    /// first. Full `ZTEXT` bodies are not loaded into memory.
     func snapshot() throws -> BearSnapshot {
         try checkAccess()
         let database = try Database(url: url)
@@ -98,7 +95,7 @@ struct BearStore: Sendable {
             guard indexes[pk] == nil, let id = row.string(1), !id.isEmpty else { return }
             let rawTitle = row.string(2) ?? ""
             let rawSubtitle = row.string(3)
-            let rawText = row.string(4)
+            let rawTextPreview = row.string(4)
             let createdAt = row.optionalDouble(5).map { Date(timeIntervalSinceReferenceDate: $0) }
             guard let modifiedSeconds = row.optionalDouble(6) ?? row.optionalDouble(5) else { return }
             let isPinned = row.int(7) == 1
@@ -106,23 +103,15 @@ struct BearStore: Sendable {
             let isLocked = row.int(9) == 1
             let todoCompleted = max(0, Int(row.int(10)))
             let todoIncompleted = max(0, Int(row.int(11)))
-
-            let snippet: String?
-            let searchableBody: String
-            if isLocked {
-                snippet = nil
-                searchableBody = ""
-            } else {
-                snippet = Self.makeSnippet(subtitle: rawSubtitle, text: rawText, title: rawTitle)
-                searchableBody = rawText.map { String($0.prefix(Self.maxIndexedBodyLength)) } ?? ""
-            }
+            let snippet = isLocked
+                ? nil
+                : Self.makeSnippet(subtitle: rawSubtitle, text: rawTextPreview, title: rawTitle)
 
             indexes[pk] = notes.count
             notes.append(BearNote(
                 id: id,
                 title: rawTitle,
                 snippet: snippet,
-                searchableBody: searchableBody,
                 createdAt: createdAt,
                 modifiedAt: Date(timeIntervalSinceReferenceDate: modifiedSeconds),
                 isPinned: isPinned,
@@ -167,6 +156,40 @@ struct BearStore: Sendable {
         return BearSnapshot(notes: notes, tags: tags)
     }
 
+    /// Streams `ZTEXT` one row at a time from SQLite for `candidates` that did
+    /// not match in memory, returning up to `limit` matching note IDs without
+    /// retaining note bodies in memory.
+    func bodyMatchIDs(
+        words: [String],
+        filter: BearNoteFilter,
+        candidates: [String: SearchableNote],
+        limit: Int
+    ) throws -> Set<String> {
+        guard !words.isEmpty, !candidates.isEmpty, limit > 0, filter != .locked else {
+            return []
+        }
+        try checkAccess()
+        let database = try Database(url: url)
+        let schema = try Schema(database: database)
+        guard let bodyQuery = schema.bodySearchQuery(for: filter) else { return [] }
+
+        var matched = Set<String>()
+        try database.rows(bodyQuery) { row, stop in
+            try Task.checkCancellation()
+            guard let id = row.string(0), let entry = candidates[id], let body = row.string(1), !body.isEmpty else {
+                return
+            }
+            let foldedBody = BearNoteSearch.fold(body)
+            if words.allSatisfy({ entry.text.contains($0) || foldedBody.contains($0) }) {
+                matched.insert(id)
+                if matched.count >= limit {
+                    stop = true
+                }
+            }
+        }
+        return matched
+    }
+
     /// Reads one note's full Markdown body and metadata on demand.
     func noteDetail(id: String) throws -> BearNoteDetail? {
         try checkAccess()
@@ -195,8 +218,7 @@ struct BearStore: Sendable {
                 isArchived: row.int(8) == 1,
                 isLocked: isLocked,
                 todoCompleted: max(0, Int(row.int(9))),
-                todoIncompleted: max(0, Int(row.int(10))),
-                tags: []
+                todoIncompleted: max(0, Int(row.int(10)))
             )
         }
         guard var found = detail, let notePK = pk else { return nil }
@@ -283,12 +305,15 @@ private struct Schema {
     let tagsQuery: String?
     let noteTagsQuery: String?
     let singleNoteTagsQuery: String?
+    private let noteColumns: Set<String>
+    private let activeWhereSQL: String
 
     init(database: Database) throws {
         let noteColumns = try database.columns(of: "ZSFNOTE")
         guard noteColumns.contains("Z_PK"), noteColumns.contains("ZUNIQUEIDENTIFIER") else {
             throw BearStoreError.unreadable("Missing ZSFNOTE table.")
         }
+        self.noteColumns = noteColumns
 
         func col(_ name: String, fallback: String) -> String {
             noteColumns.contains(name) ? "note.\(name)" : fallback
@@ -302,6 +327,18 @@ private struct Schema {
             whereClauses.append("COALESCE(note.ZPERMANENTLYDELETED, 0) != 1")
         }
         let whereSQL = whereClauses.joined(separator: " AND ")
+        activeWhereSQL = whereSQL
+
+        // Read at most 512 chars of ZTEXT only when ZSUBTITLE is absent/empty,
+        // so large note bodies never enter the in-memory index.
+        let textPreviewSQL: String
+        if !noteColumns.contains("ZTEXT") {
+            textPreviewSQL = "NULL"
+        } else if noteColumns.contains("ZSUBTITLE") {
+            textPreviewSQL = "CASE WHEN note.ZSUBTITLE IS NOT NULL AND note.ZSUBTITLE != '' THEN NULL ELSE SUBSTR(note.ZTEXT, 1, 512) END"
+        } else {
+            textPreviewSQL = "SUBSTR(note.ZTEXT, 1, 512)"
+        }
 
         notesQuery = """
             SELECT
@@ -309,7 +346,7 @@ private struct Schema {
                 note.ZUNIQUEIDENTIFIER,
                 \(col("ZTITLE", fallback: "''")),
                 \(col("ZSUBTITLE", fallback: "NULL")),
-                \(col("ZTEXT", fallback: "NULL")),
+                \(textPreviewSQL),
                 \(col("ZCREATIONDATE", fallback: "NULL")),
                 \(col("ZMODIFICATIONDATE", fallback: "NULL")),
                 \(col("ZPINNED", fallback: "0")),
@@ -368,6 +405,36 @@ private struct Schema {
             noteTagsQuery = nil
             singleNoteTagsQuery = nil
         }
+    }
+
+    func bodySearchQuery(for filter: BearNoteFilter) -> String? {
+        guard noteColumns.contains("ZTEXT") else { return nil }
+        var clauses = [activeWhereSQL, "note.ZTEXT IS NOT NULL", "note.ZTEXT != ''"]
+        if noteColumns.contains("ZENCRYPTED") {
+            clauses.append("COALESCE(note.ZENCRYPTED, 0) != 1")
+        }
+        if noteColumns.contains("ZARCHIVED") {
+            clauses.append(filter == .archived ? "COALESCE(note.ZARCHIVED, 0) = 1" : "COALESCE(note.ZARCHIVED, 0) != 1")
+        } else if filter == .archived {
+            return nil
+        }
+        if filter == .pinned {
+            guard noteColumns.contains("ZPINNED") else { return nil }
+            clauses.append("COALESCE(note.ZPINNED, 0) = 1")
+        }
+        if filter == .todo {
+            guard noteColumns.contains("ZTODOINCOMPLETED") else { return nil }
+            clauses.append("COALESCE(note.ZTODOINCOMPLETED, 0) > 0")
+        }
+        let modifiedCol = noteColumns.contains("ZMODIFICATIONDATE") ? "note.ZMODIFICATIONDATE" : "NULL"
+        let createdCol = noteColumns.contains("ZCREATIONDATE") ? "note.ZCREATIONDATE" : "0"
+        let orderPrefix = (filter == .all && noteColumns.contains("ZPINNED")) ? "COALESCE(note.ZPINNED, 0) DESC, " : ""
+        return """
+            SELECT note.ZUNIQUEIDENTIFIER, note.ZTEXT
+            FROM ZSFNOTE AS note
+            WHERE \(clauses.joined(separator: " AND "))
+            ORDER BY \(orderPrefix)COALESCE(\(modifiedCol), \(createdCol)) DESC
+            """
     }
 
     private struct TagJoin {
@@ -448,6 +515,17 @@ private final class Database {
     }
 
     func rows(_ sql: String, bindings: [String] = [], intBindings: [Int64] = [], _ body: (Row) throws -> Void) throws {
+        try rows(sql, bindings: bindings, intBindings: intBindings) { row, _ in
+            try body(row)
+        }
+    }
+
+    func rows(
+        _ sql: String,
+        bindings: [String] = [],
+        intBindings: [Int64] = [],
+        _ body: (Row, inout Bool) throws -> Void
+    ) throws {
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK, let statement else {
             throw BearStoreError.unreadable(String(cString: sqlite3_errmsg(handle)))
@@ -461,9 +539,14 @@ private final class Database {
         }
         while true {
             switch sqlite3_step(statement) {
-            case SQLITE_ROW: try body(Row(statement: statement))
-            case SQLITE_DONE: return
-            default: throw BearStoreError.unreadable(String(cString: sqlite3_errmsg(handle)))
+            case SQLITE_ROW:
+                var stop = false
+                try body(Row(statement: statement), &stop)
+                if stop { return }
+            case SQLITE_DONE:
+                return
+            default:
+                throw BearStoreError.unreadable(String(cString: sqlite3_errmsg(handle)))
             }
         }
     }

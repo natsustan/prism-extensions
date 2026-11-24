@@ -323,6 +323,12 @@ struct BearTests {
         #expect(try await prism.list("search-notes", query: "zhuangxiu").items.map(\.title) == ["玄关改造"])
         #expect(try await prism.list("search-notes", query: "#装修/玄关").items.map(\.title) == ["玄关改造"])
         #expect(try await prism.list("search-notes", query: "米家").items.map(\.title) == ["玄关改造"])
+        // Cross-field search combines in-memory tag pinyin with streamed SQLite body text.
+        #expect(try await prism.list("search-notes", query: "zhuangxiu 米家").items.map(\.title) == ["玄关改造"])
+        // Body match works beyond 16 KiB because full text is streamed from SQLite.
+        let longBody = "# Long Note\n" + String(repeating: "filler ", count: 3_000) + "needle-at-end"
+        try fixture.note("Long Note", subtitle: "Short preview", text: longBody, modified: 5)
+        #expect(try await prism.list("search-notes", query: "needle-at-end").items.map(\.title) == ["Long Note"])
 
         let ranked = try await prism.list("search-notes", query: "budget").items
         #expect(ranked.map(\.title) == ["Pinned Notes", "Budget 2026", "Quarterly Plan", "Groceries"])

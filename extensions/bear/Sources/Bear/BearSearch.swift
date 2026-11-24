@@ -27,8 +27,8 @@ enum BearNoteFilter: String, CaseIterable, Sendable {
 
 /// Searches Bear notes by title, tags, snippet, body text, and Chinese pinyin.
 /// Every typed word must match. Pinned notes come first in the default scope;
-/// within each group, title matches rank ahead of tag matches, then body
-/// matches, newest first.
+/// within each group, title matches rank ahead of tag matches, then snippet or
+/// body matches, newest first.
 struct BearNoteSearch {
     let words: [String]
 
@@ -36,8 +36,7 @@ struct BearNoteSearch {
         words = query.split(whereSeparator: \.isWhitespace).map { Self.fold(String($0)) }
     }
 
-    /// Texts whose Chinese also matches as pinyin. Keeping full bodies out of
-    /// pinyin transliteration keeps `pinyin.json` small and loads fast.
+    /// Texts whose Chinese also matches as pinyin.
     static func pinyinSources(of note: BearNote) -> [String] {
         [note.title, note.snippet ?? ""] + note.tags
     }
@@ -47,11 +46,20 @@ struct BearNoteSearch {
     }
 
     /// Up to `limit` matching notes, best first. `notes` must be newest first.
-    func results(in notes: [SearchableNote], filter: BearNoteFilter, limit: Int) -> [BearNote] {
+    /// `bodyMatches` carries note IDs matched by streaming `ZTEXT` from SQLite.
+    func results(
+        in notes: [SearchableNote],
+        filter: BearNoteFilter,
+        bodyMatches: Set<String> = [],
+        limit: Int
+    ) -> [BearNote] {
         let pinFirst = filter == .all
         return notes.enumerated()
             .compactMap { offset, entry -> (BearNote, Int, Int)? in
-                guard filter.includes(entry.note), let rank = rank(of: entry) else { return nil }
+                guard filter.includes(entry.note) else { return nil }
+                guard let rank = rank(of: entry) ?? (bodyMatches.contains(entry.note.id) ? 2 : nil) else {
+                    return nil
+                }
                 return (entry.note, rank, offset)
             }
             .sorted { lhs, rhs in
@@ -63,8 +71,19 @@ struct BearNoteSearch {
             .map(\.0)
     }
 
-    /// 0 when the title matches, 1 when tags match, 2 when only other fields
-    /// match, `nil` when the note does not match.
+    /// Notes in `filter` that did not match in memory and therefore need a
+    /// streamed SQLite body check. Locked notes have no searchable body.
+    func bodySearchCandidates(in notes: [SearchableNote], filter: BearNoteFilter) -> [String: SearchableNote] {
+        guard !words.isEmpty, filter != .locked else { return [:] }
+        var candidates = [String: SearchableNote]()
+        for entry in notes where filter.includes(entry.note) && !entry.note.isLocked && rank(of: entry) == nil {
+            candidates[entry.note.id] = entry
+        }
+        return candidates
+    }
+
+    /// 0 when the title matches, 1 when tags match, 2 when snippet/mixed
+    /// metadata fields match, `nil` when the note does not match in memory.
     func rank(of entry: SearchableNote) -> Int? {
         guard !words.isEmpty else { return 0 }
         if words.allSatisfy(entry.title.contains) { return 0 }
@@ -73,8 +92,9 @@ struct BearNoteSearch {
     }
 }
 
-/// A note with its searchable text folded once so keystrokes only compare
-/// substrings. Fields are joined by newlines so words never match across them.
+/// A note with its metadata and snippet folded once so keystrokes only compare
+/// substrings. Full body text is streamed from SQLite on demand instead of
+/// being retained here, keeping memory far below Prism's 150 MB limit.
 struct SearchableNote: Sendable {
     let note: BearNote
     let title: String
@@ -88,7 +108,7 @@ struct SearchableNote: Sendable {
             ["#\(tag)"] + (pinyin[tag] ?? [])
         }
         let snippetPinyin = note.snippet.flatMap { pinyin[$0] } ?? []
-        let allFields = titleFields + tagFields + [note.snippet ?? "", note.searchableBody] + snippetPinyin
+        let allFields = titleFields + tagFields + [note.snippet ?? ""] + snippetPinyin
 
         title = BearNoteSearch.fold(titleFields.joined(separator: "\n"))
         tags = BearNoteSearch.fold(tagFields.joined(separator: "\n"))

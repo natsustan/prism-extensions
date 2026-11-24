@@ -214,7 +214,25 @@ struct Bear: PrismExtension {
         }
 
         let search = BearNoteSearch(query: query)
-        let results = search.results(in: notes, filter: noteFilter, limit: Self.resultLimit)
+        let bodyMatches: Set<String>
+        if !isMissing {
+            let candidates = search.bodySearchCandidates(in: notes, filter: noteFilter)
+            do {
+                bodyMatches = try store.bodyMatchIDs(
+                    words: search.words,
+                    filter: noteFilter,
+                    candidates: candidates,
+                    limit: Self.resultLimit
+                )
+            } catch BearStoreError.accessDenied, BearStoreError.missing {
+                bodyMatches = []
+            } catch let BearStoreError.unreadable(reason) {
+                throw PrismExtensionError(localized("Couldn’t read Bear: \(reason)"))
+            }
+        } else {
+            bodyMatches = []
+        }
+        let results = search.results(in: notes, filter: noteFilter, bodyMatches: bodyMatches, limit: Self.resultLimit)
         let loadedAt = now()
         let createTitle = BearStore.collapseWhitespace(query)
         if results.isEmpty, noteFilter == .all, !createTitle.isEmpty, !isMissing {
