@@ -4,7 +4,8 @@ import Synchronization
 /// Pinyin keywords by source text, held for the life of the process and kept
 /// in the extension's data directory between runs. Transliterating takes about
 /// half a millisecond per line of Chinese, too slow to repeat for every note
-/// on every keystroke; new texts are computed in parallel.
+/// on every keystroke; new texts are computed in parallel and stop promptly on
+/// task cancellation without mutating or persisting the cache.
 final class PinyinCache: Sendable {
     private struct State {
         var loadedFrom: URL??
@@ -15,7 +16,8 @@ final class PinyinCache: Sendable {
 
     /// Keywords for each of `texts`. Entries for texts no longer in use are
     /// dropped, and the file is rewritten when anything changed.
-    func keywords(for texts: Set<String>, directory: URL?) -> [String: [String]] {
+    func keywords(for texts: Set<String>, directory: URL?) async throws -> [String: [String]] {
+        try Task.checkCancellation()
         let file = directory?.appendingPathComponent("pinyin.json")
         let missing = state.withLock { state in
             if state.loadedFrom != .some(file) {
@@ -25,13 +27,30 @@ final class PinyinCache: Sendable {
             }
             return texts.filter { state.keywords[$0] == nil && PinyinKeywords.containsHan($0) }
         }
+        try Task.checkCancellation()
+
         let sources = Array(missing)
-        let computed = Mutex([String: [String]]())
-        DispatchQueue.concurrentPerform(iterations: sources.count) { index in
-            let keywords = PinyinKeywords.keywords(for: sources[index])
-            computed.withLock { $0[sources[index]] = keywords }
+        let fresh: [String: [String]]
+        if sources.isEmpty {
+            fresh = [:]
+        } else {
+            let cancelled = Mutex(Task.isCancelled)
+            let computed = Mutex([String: [String]]())
+            await withTaskCancellationHandler {
+                DispatchQueue.concurrentPerform(iterations: sources.count) { index in
+                    guard !cancelled.withLock({ $0 }) else { return }
+                    let keywords = PinyinKeywords.keywords(for: sources[index])
+                    guard !cancelled.withLock({ $0 }) else { return }
+                    computed.withLock { $0[sources[index]] = keywords }
+                }
+            } onCancel: {
+                cancelled.withLock { $0 = true }
+            }
+            try Task.checkCancellation()
+            fresh = computed.withLock { $0 }
         }
-        let fresh = computed.withLock { $0 }
+
+        try Task.checkCancellation()
         return state.withLock { state in
             let stale = state.keywords.keys.contains { !texts.contains($0) }
             if !fresh.isEmpty || stale {

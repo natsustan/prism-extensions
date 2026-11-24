@@ -462,18 +462,16 @@ struct BearTests {
         #expect(list.items.map(\.subtitle) == ["2 notes", "1 note"])
         #expect(list.items.map(\.section) == ["Pinned", "Tags"])
         #expect(list.showsDetail == false)
-        #expect(list.items[0].actions.map(\.id) == ["open-tag", "open-tag-new-window", "copy-tag", "copy-tag-link"])
-        #expect(list.items[0].actions[2].kind == .copy(text: "#work"))
+        #expect(list.items[0].actions.map(\.id) == ["open-tag", "copy-tag", "copy-tag-link"])
+        #expect(list.items[0].actions[1].kind == .copy(text: "#work"))
 
         #expect(try await prism.list("search-tags", query: "sheji").items.map(\.title) == ["#工作/设计"])
         #expect(try await prism.list("search-tags", query: "#work").items.map(\.title) == ["#work"])
         #expect(try await prism.list("search-tags", query: "missing").emptyMessage?.title == "No Matching Tags")
 
         #expect(try await prism.perform("open-tag", on: "tag:工作/设计", in: "search-tags") == .done)
-        #expect(try await prism.perform("open-tag-new-window", on: "tag:work", in: "search-tags") == .done)
         #expect(opened.all == [
             URL(string: "bear://x-callback-url/open-tag?name=%E5%B7%A5%E4%BD%9C/%E8%AE%BE%E8%AE%A1")!,
-            URL(string: "bear://x-callback-url/open-tag?name=work&new_window=yes")!,
         ])
     }
 
@@ -515,10 +513,21 @@ struct BearTests {
         let library = BearLibrary()
         let store = BearStore(url: fixture.url)
         let pinyin = PinyinCache()
-        #expect(try library.load(from: store, pinyin: pinyin, directory: nil).notes.map(\.note.title) == ["客厅"])
+        #expect(try await library.load(from: store, pinyin: pinyin, directory: nil).notes.map(\.note.title) == ["客厅"])
         try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: fixture.url.path)
         defer { try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: fixture.url.path) }
-        #expect(try library.load(from: store, pinyin: pinyin, directory: nil).notes.map(\.note.title) == ["客厅"])
+        #expect(try await library.load(from: store, pinyin: pinyin, directory: nil).notes.map(\.note.title) == ["客厅"])
+
+        // A cancelled load does not persist pinyin.json.
+        let cancelledDir = fixture.folder.appendingPathComponent("cancelled-data")
+        let cancelledTask = Task {
+            try await PinyinCache().keywords(for: ["玄关", "客厅"], directory: cancelledDir)
+        }
+        cancelledTask.cancel()
+        await #expect(throws: CancellationError.self) {
+            _ = try await cancelledTask.value
+        }
+        #expect(!FileManager.default.fileExists(atPath: cancelledDir.appendingPathComponent("pinyin.json").path))
     }
 
     @Test("Without access both lists ask Prism for the declared Bear folder; missing DB shows empty states")

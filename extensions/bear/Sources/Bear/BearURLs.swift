@@ -16,13 +16,11 @@ enum BearURLs {
         return makeURL(action: "open-note", queryItems: items)
     }
 
-    /// Opens a tag in Bear's sidebar (or a separate window).
-    static func openTag(name: String, newWindow: Bool = false) -> URL? {
+    /// Opens a tag in Bear's sidebar.
+    static func openTag(name: String) -> URL? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        var items = [("name", trimmed)]
-        if newWindow { items.append(("new_window", "yes")) }
-        return makeURL(action: "open-tag", queryItems: items)
+        return makeURL(action: "open-tag", queryItems: [("name", trimmed)])
     }
 
     /// Creates a new note with a title and focuses the editor.

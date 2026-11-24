@@ -24,7 +24,6 @@ struct Bear: PrismExtension {
         static let trashNote = "trash-note"
         static let createNote = "create-note"
         static let openTag = "open-tag"
-        static let openTagNewWindow = "open-tag-new-window"
         static let copyTag = "copy-tag"
         static let copyTagLink = "copy-tag-link"
         static let allowAccess = "allow-access"
@@ -87,9 +86,9 @@ struct Bear: PrismExtension {
     func list(command: String, query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
         switch command {
         case CommandID.searchNotes:
-            return try listNotes(query: query, filter: filter, context: context)
+            return try await listNotes(query: query, filter: filter, context: context)
         case CommandID.searchTags:
-            return try listTags(query: query, context: context)
+            return try await listTags(query: query, context: context)
         default:
             throw PrismExtensionError(localized("Bear has no list “\(command)”."))
         }
@@ -161,12 +160,6 @@ struct Bear: PrismExtension {
                 failure: localized("This tag can’t be opened.")
             )
 
-        case ActionID.openTagNewWindow:
-            return try await open(
-                BearURLs.openTag(name: Self.stripPrefix(Self.tagItemPrefix, from: item), newWindow: true),
-                failure: localized("This tag can’t be opened.")
-            )
-
         default:
             throw PrismExtensionError(localized("Bear has no action “\(action)”."))
         }
@@ -180,9 +173,9 @@ struct Bear: PrismExtension {
         case accessDenied
     }
 
-    private func loadLibrary(context: PrismContext) throws -> LibraryState {
+    private func loadLibrary(context: PrismContext) async throws -> LibraryState {
         do {
-            return .loaded(try library.load(from: store, pinyin: pinyinCache, directory: context.dataDirectory))
+            return .loaded(try await library.load(from: store, pinyin: pinyinCache, directory: context.dataDirectory))
         } catch BearStoreError.accessDenied {
             return .accessDenied
         } catch BearStoreError.missing {
@@ -192,11 +185,11 @@ struct Bear: PrismExtension {
         }
     }
 
-    private func listNotes(query: String, filter: String?, context: PrismContext) throws -> ExtensionList {
+    private func listNotes(query: String, filter: String?, context: PrismContext) async throws -> ExtensionList {
         let noteFilter = BearNoteFilter(filterID: filter)
         let notes: [SearchableNote]
         let isMissing: Bool
-        switch try loadLibrary(context: context) {
+        switch try await loadLibrary(context: context) {
         case let .loaded(cached):
             notes = cached.notes
             isMissing = false
@@ -259,9 +252,9 @@ struct Bear: PrismExtension {
         )
     }
 
-    private func listTags(query: String, context: PrismContext) throws -> ExtensionList {
+    private func listTags(query: String, context: PrismContext) async throws -> ExtensionList {
         let tags: [SearchableTag]
-        switch try loadLibrary(context: context) {
+        switch try await loadLibrary(context: context) {
         case let .loaded(cached):
             tags = cached.tags
         case .missing:

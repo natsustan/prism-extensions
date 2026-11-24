@@ -285,12 +285,6 @@ enum BearRows {
         var actions = [
             ExtensionAction(id: ActionID.openTag, title: localized("Open in Bear"), symbol: "number"),
             ExtensionAction(
-                id: ActionID.openTagNewWindow,
-                title: localized("Open in New Window"),
-                symbol: "macwindow.badge.plus",
-                shortcut: ExtensionShortcut("cmd+shift+o")
-            ),
-            ExtensionAction(
                 id: ActionID.copyTag,
                 title: localized("Copy Tag"),
                 symbol: "doc.on.doc",

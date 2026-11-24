@@ -5,7 +5,7 @@ Search your Bear notes and tags from Prism, preview Markdown, and create or open
 - **Search Bear Notes** searches active notes by title, tags, snippet, body text, or Chinese pinyin (`xuanguan` or `xg` finds “玄关”). Every typed word must match. Press ⌘P to switch between All Notes, Pinned, Todo, Untagged, Locked, and Archived. The detail pane previews the note’s Markdown and metadata. When nothing matches in All Notes, press Return to create a new note with that title in Bear.
   - Return opens the note in Bear. The action panel (⌘K) opens in a new window (⌘⇧O), copies the note link (⌘⇧C), Markdown (⌘⇧M), or title (⌘⇧T), archives the note (⌘⇧A), or moves it to Trash.
   - Bear’s own row in root search offers the search too: select Bear and press Tab to search inside it; Backspace in the empty search returns to Bear.
-- **Search Bear Tags** lists active Bear tags (pinned first), with note counts and pinyin search. Return opens the tag in Bear; ⌘K opens it in a new window (⌘⇧O) or copies `#tag` (⌘⇧C) or its Bear link (⌘⇧L).
+- **Search Bear Tags** lists active Bear tags (pinned first), with note counts and pinyin search. Return opens the tag in Bear; ⌘K copies `#tag` (⌘⇧C) or its Bear link (⌘⇧L).
 - **New Note from Clipboard** creates a new Bear note from the current clipboard text and opens it for editing.
 
 ## Setup

@@ -20,7 +20,7 @@ final class BearLibrary: Sendable {
 
     /// Searchable notes and tags, rebuilt when Bear's database or `directory`
     /// (where `pinyin` keeps its cache) changes.
-    func load(from store: BearStore, pinyin: PinyinCache, directory: URL?) throws -> CachedData {
+    func load(from store: BearStore, pinyin: PinyinCache, directory: URL?) async throws -> CachedData {
         try Task.checkCancellation()
         let signature = store.signature()
         if let signature, let cached = snapshot.withLock({ $0 }),
@@ -36,7 +36,7 @@ final class BearLibrary: Sendable {
         for tag in fresh.tags {
             sources.insert(tag.name)
         }
-        let keywords = pinyin.keywords(for: sources, directory: directory)
+        let keywords = try await pinyin.keywords(for: sources, directory: directory)
         try Task.checkCancellation()
         let data = CachedData(
             notes: fresh.notes.map { SearchableNote($0, pinyin: keywords) },
