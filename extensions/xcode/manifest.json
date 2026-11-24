@@ -1,0 +1,66 @@
+{
+  "protocol": 1,
+  "id": "prism.xcode",
+  "name": "Xcode",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Quickly open your recently used Xcode projects, workspaces, Swift packages, and playgrounds.",
+  "icon": { "symbol": "hammer.fill", "tint": "blue", "app": "com.apple.dt.Xcode" },
+  "executable": ".build/release/Xcode",
+  "commands": [
+    {
+      "id": "recent-projects",
+      "title": "Recent Projects",
+      "subtitle": "Xcode",
+      "mode": "list",
+      "keywords": ["xcode", "recent", "projects", "workspaces", "xcodeproj", "xcworkspace", "swift", "package", "playground", "ios", "macos"],
+      "searchesApp": "com.apple.dt.Xcode"
+    }
+  ],
+  "preferences": [
+    {
+      "id": "xcodeApp",
+      "type": "text",
+      "title": "Xcode App Path",
+      "caption": "Leave blank to open projects with your default Xcode (for example, /Applications/Xcode-beta.app).",
+      "default": ""
+    }
+  ],
+  "capabilities": ["readHomeFiles"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "Xcode",
+      "description": "快速打开最近使用过的 Xcode 项目、工作区、Swift Package 和 Playground。",
+      "commands": {
+        "recent-projects": {
+          "title": "最近的项目",
+          "subtitle": "Xcode",
+          "keywords": ["项目", "工程", "最近", "打开项目", "工作区", "zuijindexiangmu", "zjdxm", "xiangmu", "xm", "gongcheng", "gc"]
+        }
+      },
+      "preferences": {
+        "xcodeApp": {
+          "title": "Xcode 应用路径",
+          "caption": "留空则使用默认 Xcode 打开项目（例如 /Applications/Xcode-beta.app）。"
+        }
+      }
+    },
+    "zh-Hant": {
+      "name": "Xcode",
+      "description": "快速打開最近使用過的 Xcode 專案、工作區、Swift Package 與 Playground。",
+      "commands": {
+        "recent-projects": {
+          "title": "最近的專案",
+          "subtitle": "Xcode",
+          "keywords": ["專案", "工程", "最近", "打開專案", "工作區", "zuijindezhuanan", "zjdza", "zhuanan", "za", "gongcheng", "gc"]
+        }
+      },
+      "preferences": {
+        "xcodeApp": {
+          "title": "Xcode 應用程式路徑",
+          "caption": "留空則使用預設 Xcode 打開專案（例如 /Applications/Xcode-beta.app）。"
+        }
+      }
+    }
+  }
+}
