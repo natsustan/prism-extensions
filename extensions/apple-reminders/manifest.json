@@ -1,0 +1,99 @@
+{
+  "protocol": 1,
+  "id": "prism.apple-reminders",
+  "name": "Reminders",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Search, complete, organize, and quick-add Reminders from the launcher.",
+  "minPrism": "0.12.1",
+  "icon": { "symbol": "checklist", "tint": "orange", "app": "com.apple.reminders" },
+  "executable": ".build/release/AppleReminders",
+  "commands": [
+    {
+      "id": "my-reminders",
+      "title": "My Reminders",
+      "subtitle": "Reminders",
+      "mode": "list",
+      "keywords": ["reminders", "apple reminders", "todo", "tasks", "checklist", "提醒", "提醒事项", "待办"],
+      "searchesApp": "com.apple.reminders"
+    },
+    {
+      "id": "quick-add",
+      "title": "Quick Add Reminder",
+      "subtitle": "Reminders",
+      "mode": "list",
+      "keywords": ["new reminder", "create reminder", "add reminder", "todo", "task", "新建提醒", "添加提醒", "快速添加", "待办"]
+    }
+  ],
+  "preferences": [
+    {
+      "id": "showExactDueTime",
+      "type": "bool",
+      "title": "Display Exact Due Time",
+      "caption": "Show the clock time (such as 10:00 AM) instead of relative time on timed reminders.",
+      "default": false
+    },
+    {
+      "id": "defaultList",
+      "type": "text",
+      "title": "Default List",
+      "caption": "Optional list name used by Quick Add when no #list is typed. Leave blank to use Reminders’ default list.",
+      "default": ""
+    }
+  ],
+  "capabilities": [],
+  "localizations": {
+    "zh-Hans": {
+      "name": "提醒事项",
+      "description": "在启动器中搜索、完成、整理和快速添加 Apple 提醒事项。",
+      "commands": {
+        "my-reminders": {
+          "title": "我的提醒",
+          "subtitle": "提醒事项",
+          "keywords": ["提醒事项", "提醒", "待办", "任务", "清单", "wodetixing", "wdtx", "tixingshixiang", "txsx", "daiban", "db"]
+        },
+        "quick-add": {
+          "title": "快速添加提醒",
+          "subtitle": "提醒事项",
+          "keywords": ["新建提醒", "添加提醒", "创建提醒", "快速待办", "kuaisutianjiatixing", "kstjtx", "xinjiantixing", "xjtx"]
+        }
+      },
+      "preferences": {
+        "showExactDueTime": {
+          "title": "显示具体到期时间",
+          "caption": "对带时间的提醒显示具体时刻（如 10:00），而不是相对时间。"
+        },
+        "defaultList": {
+          "title": "默认列表",
+          "caption": "快速添加未指定 #列表 时使用的列表名称；留空则使用“提醒事项”的默认列表。"
+        }
+      }
+    },
+    "zh-Hant": {
+      "name": "提醒事項",
+      "description": "在啟動器中搜尋、完成、整理並快速新增 Apple 提醒事項。",
+      "commands": {
+        "my-reminders": {
+          "title": "我的提醒",
+          "subtitle": "提醒事項",
+          "keywords": ["提醒事項", "提醒", "待辦", "任務", "清單", "wodetixing", "wdtx", "tixingshixiang", "txsx", "daiban", "db"]
+        },
+        "quick-add": {
+          "title": "快速新增提醒",
+          "subtitle": "提醒事項",
+          "keywords": ["新增提醒", "建立提醒", "快速待辦", "kuaisuxinzengtixing", "ksxztx", "xinzengtixing", "xztx"]
+        }
+      },
+      "preferences": {
+        "showExactDueTime": {
+          "title": "顯示具體到期時間",
+          "caption": "對含時間的提醒顯示具體時刻（如 10:00），而非相對時間。"
+        },
+        "defaultList": {
+          "title": "預設列表",
+          "caption": "快速新增未指定 #列表 時使用的列表名稱；留空則使用「提醒事項」的預設列表。"
+        }
+      }
+    }
+  }
+}
