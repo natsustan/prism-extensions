@@ -118,12 +118,13 @@ struct Zed: PrismExtension {
 
         do {
             if let remote = workspace.remote {
-                guard let url = workspace.sshURL(scheme: channel.urlScheme) else {
+                let urls = workspace.sshURLs()
+                guard !urls.isEmpty else {
                     return ExtensionActionResult(.failed(
                         message: localized("Opening \(remote.badge) remote workspaces directly isn’t supported yet. Open it from Zed’s Remote Projects dialog.")
                     ))
                 }
-                try await launcher.openRemoteWorkspace(url: url, zedAppPath: preferredZed)
+                try await launcher.openRemoteWorkspace(urls: urls, zedAppPath: preferredZed)
             } else {
                 try await launcher.openLocalWorkspace(paths: workspace.paths, zedAppPath: preferredZed)
             }

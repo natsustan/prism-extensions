@@ -30,15 +30,6 @@ enum ZedChannel: String, CaseIterable, Hashable, Sendable {
         }
     }
 
-    var urlScheme: String {
-        switch self {
-        case .stable: "zed"
-        case .preview: "zed-preview"
-        case .nightly: "zed-nightly"
-        case .dev: "zed-dev"
-        }
-    }
-
     /// Infers the release channel from a custom app path by checking its
     /// `Info.plist` bundle identifier first, then falling back to the app name.
     static func infer(fromAppPath rawPath: String?) -> ZedChannel {
@@ -256,25 +247,30 @@ struct ZedWorkspace: Hashable, Sendable {
         return Self.abbreviatingHome(parent, homeDirectory: homeDirectory)
     }
 
-    /// Builds a `zed://ssh/[user@]host[:port]/path` deep link for SSH
-    /// workspaces so Zed opens the remote folder directly.
-    func sshURL(scheme: String = "zed") -> URL? {
+    /// Builds `zed://ssh/[user@]host[:port]/path` deep links for every folder
+    /// in an SSH workspace. All Zed release channels parse `zed://ssh`, while
+    /// the target channel is chosen by the app URL passed to `NSWorkspace`.
+    func sshURLs() -> [URL] {
         guard let remote, remote.isSSH, let authority = remote.sshAuthority else {
-            return nil
+            return []
         }
         var allowed = CharacterSet.urlPathAllowed
         allowed.remove(charactersIn: "?#")
-        let normalizedPath = primaryPath.hasPrefix("/") ? primaryPath : "/\(primaryPath)"
-        let encodedPath = normalizedPath.addingPercentEncoding(withAllowedCharacters: allowed) ?? normalizedPath
-        return URL(string: "\(scheme)://ssh/\(authority)\(encodedPath)")
+        return paths.compactMap { path in
+            let normalizedPath = path.hasPrefix("/") ? path : "/\(path)"
+            let encodedPath = normalizedPath.addingPercentEncoding(withAllowedCharacters: allowed) ?? normalizedPath
+            return URL(string: "zed://ssh/\(authority)\(encodedPath)")
+        }
     }
 
+    /// Builds a stable workspace identifier independent of `paths_order` so
+    /// favorites, hotkeys, and recorded opens survive display-order changes.
     static func makeID(paths: [String], remote: ZedRemoteConnection?) -> String {
-        let joined = paths.joined(separator: "\n")
+        let canonical = Array(Set(paths)).sorted().joined(separator: "\n")
         if let remote {
-            return "remote:\(remote.kind):\(remote.displayTarget):\(joined)"
+            return "remote:\(remote.kind):\(remote.displayTarget):\(canonical)"
         }
-        return joined
+        return canonical
     }
 
     /// Parses Zed's newline-separated `paths` column and optional comma-separated

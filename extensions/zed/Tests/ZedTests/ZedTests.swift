@@ -14,7 +14,7 @@ private actor FakeZedLauncher: ZedLaunching {
     }
 
     struct RemoteOpen: Equatable, Sendable {
-        let url: URL
+        let urls: [URL]
         let zedAppPath: String?
     }
 
@@ -35,12 +35,12 @@ private actor FakeZedLauncher: ZedLaunching {
         openedLocal.append(LocalOpen(paths: paths, zedAppPath: zedAppPath))
     }
 
-    func openRemoteWorkspace(url: URL, zedAppPath: String?) async throws {
+    func openRemoteWorkspace(urls: [URL], zedAppPath: String?) async throws {
         if let error = nextError {
             nextError = nil
             throw error
         }
-        openedRemote.append(RemoteOpen(url: url, zedAppPath: zedAppPath))
+        openedRemote.append(RemoteOpen(urls: urls, zedAppPath: zedAppPath))
     }
 
     func revealInFinder(path: String) async throws {
@@ -286,7 +286,7 @@ struct ZedTests {
             INSERT INTO workspaces (workspace_id, paths, paths_order, remote_connection_id, timestamp) VALUES
                 (1, '/Users/alice/projects/newer', '0', NULL, '2026-11-24 10:00:00'),
                 (2, '/Users/alice/projects/older', '0', NULL, '2026-11-20 10:00:00'),
-                (3, '/var/www/site', '0', 1, '2026-11-21 10:00:00');
+                (3, '/var/www/api\n/var/www/site', '1,0', 1, '2026-11-21 10:00:00');
             """)
         defer { try? FileManager.default.removeItem(at: dbURL.deletingLastPathComponent()) }
 
@@ -305,7 +305,7 @@ struct ZedTests {
         )
 
         let before = try await host.list("recent-projects")
-        #expect(before.items.map(\.title) == ["newer", "site", "older"])
+        #expect(before.items.map(\.title) == ["newer", "site, api", "older"])
 
         // Open older local project
         let openLocal = try await host.perform("open", on: before.items[2].id, in: "recent-projects")
@@ -315,12 +315,16 @@ struct ZedTests {
             FakeZedLauncher.LocalOpen(paths: ["/Users/alice/projects/older"], zedAppPath: "/Applications/Zed Preview.app"),
         ])
 
-        // Open SSH workspace using preview URL scheme
+        // Open multi-folder SSH workspace: uses zed://ssh for all channels and preserves every folder
         let openRemote = try await host.perform("open", on: before.items[1].id, in: "recent-projects")
         #expect(openRemote == .done)
         let remoteOpens = await launcher.openedRemote
         #expect(remoteOpens.count == 1)
-        #expect(remoteOpens[0].url.absoluteString == "zed-preview://ssh/deploy@prod.example.com:2200/var/www/site")
+        #expect(remoteOpens[0].urls.map(\.absoluteString) == [
+            "zed://ssh/deploy@prod.example.com:2200/var/www/site",
+            "zed://ssh/deploy@prod.example.com:2200/var/www/api",
+        ])
+        #expect(remoteOpens[0].zedAppPath == "/Applications/Zed Preview.app")
 
         // Reveal in Finder
         let reveal = try await host.perform("show-in-finder", on: before.items[0].id, in: "recent-projects")
@@ -330,7 +334,7 @@ struct ZedTests {
         // Restart host to prove recentOpens state survives process exit
         try await host.restart()
         let after = try await host.list("recent-projects")
-        #expect(after.items.first?.title == "older" || after.items.first?.title == "site")
+        #expect(after.items.first?.title == "older" || after.items.first?.title == "site, api")
         #expect(after.items.last?.title == "newer")
     }
 
@@ -414,6 +418,18 @@ struct ZedTests {
         #expect(GitBranchReader.parseHead("a1b2c3d4e5f60718293a4b5c6d7e8f9012345678\n") == "a1b2c3d")
         #expect(GitBranchReader.parseHead("ref: refs/tags/v1.0.0\n") == "v1.0.0")
         #expect(GitBranchReader.parseHead("   ") == nil)
+    }
+
+    @Test("Keeps workspace ID stable when multi-folder display order changes")
+    func workspaceIDIsIndependentOfDisplayOrder() {
+        let localA = ZedWorkspace.makeID(paths: ["/Users/alice/b", "/Users/alice/a"], remote: nil)
+        let localB = ZedWorkspace.makeID(paths: ["/Users/alice/a", "/Users/alice/b"], remote: nil)
+        #expect(localA == localB)
+
+        let ssh = ZedRemoteConnection(kind: "ssh", host: "dev.example.com", user: "alice")
+        let remoteA = ZedWorkspace.makeID(paths: ["/srv/two", "/srv/one"], remote: ssh)
+        let remoteB = ZedWorkspace.makeID(paths: ["/srv/one", "/srv/two"], remote: ssh)
+        #expect(remoteA == remoteB)
     }
 
     @Test("Infers Zed channel from custom app path")

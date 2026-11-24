@@ -4,7 +4,7 @@ import Foundation
 /// Opens local or remote workspaces in Zed and reveals local items in Finder.
 protocol ZedLaunching: Sendable {
     func openLocalWorkspace(paths: [String], zedAppPath: String?) async throws
-    func openRemoteWorkspace(url: URL, zedAppPath: String?) async throws
+    func openRemoteWorkspace(urls: [URL], zedAppPath: String?) async throws
     func revealInFinder(path: String) async throws
 }
 
@@ -34,12 +34,15 @@ struct WorkspaceZedLauncher: ZedLaunching {
         }
     }
 
-    func openRemoteWorkspace(url: URL, zedAppPath: String?) async throws {
+    func openRemoteWorkspace(urls: [URL], zedAppPath: String?) async throws {
+        guard !urls.isEmpty else {
+            throw ZedLaunchError.projectNotFound("")
+        }
         let appURL = try resolveZedURL(preferredPath: zedAppPath)
         let config = NSWorkspace.OpenConfiguration()
         config.activates = true
         do {
-            _ = try await NSWorkspace.shared.open([url], withApplicationAt: appURL, configuration: config)
+            _ = try await NSWorkspace.shared.open(urls, withApplicationAt: appURL, configuration: config)
         } catch {
             throw ZedLaunchError.openFailed(error.localizedDescription)
         }
