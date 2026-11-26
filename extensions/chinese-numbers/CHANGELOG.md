@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Amounts ending in 角 no longer append 整 (for example, `12.3` becomes 壹拾贰元叁角); whole-yuan amounts still end in 整.
+
 ## 1.2.0
 
 - In Simplified or Traditional Chinese, prompts, messages, and actions are in

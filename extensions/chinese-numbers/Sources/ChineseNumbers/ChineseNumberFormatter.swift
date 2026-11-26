@@ -23,8 +23,8 @@ enum ChineseNumberFormatter {
         signed(number, words(number.integer, in: uppercase) + decimals(number.fraction, in: uppercase))
     }
 
-    /// 壹佰贰拾叁元肆角伍分, rounded to the fen. Amounts that stop at 元 or
-    /// 角 end in 整, as 《会计基础工作规范》 asks; those with 分 don't.
+    /// 壹佰贰拾叁元肆角伍分, rounded to the fen. Only whole-yuan amounts end
+    /// in 整; amounts with 角 or 分 don't.
     static func amount(_ number: ArabicNumber) -> String {
         let fen = number.fen
         let yuan = fen / 100, jiao = Int(fen / 10 % 10), cents = Int(fen % 10)
@@ -38,7 +38,7 @@ enum ChineseNumberFormatter {
             } else if yuan > 0 {
                 text += "零"
             }
-            text += cents > 0 ? "\(digits[cents])分" : "整"
+            if cents > 0 { text += "\(digits[cents])分" }
         }
         return fen > 0 && number.isNegative ? "负" + text : text
     }
