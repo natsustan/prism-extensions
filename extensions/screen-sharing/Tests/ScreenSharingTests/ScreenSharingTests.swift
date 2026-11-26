@@ -118,6 +118,10 @@ struct HostAddressParserTests {
         let ipv6URL = HostAddressParser.parseAddress("vnc://[::1]:5901")
         #expect(ipv6URL == HostAddress(host: "::1", port: 5901))
         #expect(ipv6URL?.vncURL?.absoluteString == "vnc://[::1]:5901")
+
+        let ipv6Zone = HostAddressParser.parseAddress("fe80::1%en0")
+        #expect(ipv6Zone == HostAddress(host: "fe80::1%en0", port: 5900))
+        #expect(ipv6Zone?.vncURL?.absoluteString == "vnc://[fe80::1%25en0]")
     }
 
     @Test("Rejects ordinary search words and non-vnc schemes")
@@ -128,6 +132,10 @@ struct HostAddressParserTests {
         #expect(HostAddressParser.parseAddress("http://example.com") == nil)
         #expect(HostAddressParser.parseAddress("999.999.1.1") == nil)
         #expect(HostAddressParser.parseAddress("192.168.1.1:99999") == nil)
+        #expect(HostAddressParser.parseAddress("fe80::1%en0]") == nil)
+        #expect(HostAddressParser.parseAddress("fe80::1%") == nil)
+        #expect(HostAddressParser.parseAddress("fe80::1%en0%bad") == nil)
+        #expect(HostAddress(host: "fe80::1%en0]").vncURL == nil)
     }
 
     @Test("Parses Saved Hosts entries with optional labels and deduplicates them")

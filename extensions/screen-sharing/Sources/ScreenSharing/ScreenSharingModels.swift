@@ -39,6 +39,7 @@ struct HostAddress: Codable, Hashable, Sendable {
         components.scheme = "vnc"
         components.user = username
         if isIPv6 {
+            guard HostAddressParser.isValidIPv6(host) else { return nil }
             let escaped = host.replacingOccurrences(of: "%", with: "%25")
             components.percentEncodedHost = "[\(escaped)]"
         } else {
@@ -239,10 +240,21 @@ enum HostAddressParser {
         }
     }
 
-    private static func isValidIPv6(_ text: String) -> Bool {
+    static func isValidIPv6(_ text: String) -> Bool {
         guard text.contains(":"), !text.isEmpty else { return false }
-        // Strip optional zone ID (e.g. `fe80::1%en0`).
-        let core = text.split(separator: "%", maxSplits: 1).first.map(String.init) ?? text
+        let core: String
+        if let percentIndex = text.firstIndex(of: "%") {
+            core = String(text[..<percentIndex])
+            let zone = text[text.index(after: percentIndex)...]
+            // RFC 6874: ZoneID consists of non-empty unreserved ASCII characters.
+            guard !zone.isEmpty, zone.allSatisfy({ ch in
+                ch.isASCII && (ch.isLetter || ch.isNumber || ch == "-" || ch == "." || ch == "_" || ch == "~")
+            }) else {
+                return false
+            }
+        } else {
+            core = text
+        }
         var addr = in6_addr()
         return core.withCString { inet_pton(AF_INET6, $0, &addr) == 1 }
     }
