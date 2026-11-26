@@ -1221,18 +1221,18 @@
         "tasks" : [
 
         ],
-        "version" : "1.2.0",
+        "version" : "1.2.1",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "a8b7bab36bebbb63d24a670149e83a12f8315feeec3826757e1198f160a0b81c",
-        "size" : 1123912,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.chinese-numbers%401.2.0/prism.chinese-numbers-1.2.0.prismextension"
+        "sha256" : "52e382afd2320d9cadc492d8a1db98f82b8658c958120dd24377798f9259e14b",
+        "size" : 1132257,
+        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.chinese-numbers%401.2.1/prism.chinese-numbers-1.2.1.prismextension"
       },
-      "publishedAt" : 1793691368,
-      "releaseNotes" : "- In Simplified or Traditional Chinese, prompts, messages, and actions are in\n  Chinese too, and Traditional Chinese row captions use Traditional\n  characters (小寫, 金額大寫).",
+      "publishedAt" : 1795663765,
+      "releaseNotes" : "- Amounts ending in 角 no longer append 整 (for example, `12.3` becomes 壹拾贰元叁角); whole-yuan amounts still end in 整.",
       "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/chinese-numbers"
     },
     {
@@ -2986,7 +2986,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1795660389,
+  "generatedAt" : 1795663765,
   "revoked" : [
 
   ]
