@@ -60,7 +60,7 @@ Then edit by hand:
   API added later; then raise it to the first version that has that API
   (`from:` is the oldest Kit the extension works with). Published versions,
   newest first:
-  `git ls-remote --tags --refs --sort=-v:refname https://github.com/natsustan/prism-extension-kit.git`.
+  `git ls-remote --tags --refs --sort=-v:refname https://github.com/prismformac/prism-extension-kit.git`.
   Keep the `PRISM_KIT_PATH` switch as it is.
 - `manifest.json`: `id`, `name`, `version` (`1.0.0` for the first Gallery
   release), `author`, a one-sentence `description` (the Gallery requires it),
