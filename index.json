@@ -2043,7 +2043,7 @@
       "manifest" : {
         "author" : "Prism",
         "capabilities" : [
-
+          "reminders"
         ],
         "commands" : [
           {
@@ -2219,18 +2219,18 @@
         "tasks" : [
 
         ],
-        "version" : "1.0.0",
+        "version" : "1.0.1",
         "widgets" : [
 
         ]
       },
       "package" : {
-        "sha256" : "20d4af30292f949ee45e027e1c7c66ef7b53537a89660bc45a0ef03f3c9c5a3c",
-        "size" : 1420361,
-        "url" : "https://github.com/natsustan/prism-extensions/releases/download/prism.apple-reminders%401.0.0/prism.apple-reminders-1.0.0.prismextension"
+        "sha256" : "1875bcaaca6805b5a615b490cdad38b351a004084842475ca685fdbd03e17070",
+        "size" : 1421431,
+        "url" : "https://github.com/prismformac/prism-extensions/releases/download/prism.apple-reminders%401.0.1/prism.apple-reminders-1.0.1.prismextension"
       },
-      "publishedAt" : 1795545890,
-      "releaseNotes" : "- Added **My Reminders** powered by EventKit to browse, filter (All, Today, Overdue, Scheduled, Completed, and each reminder list), search (including Chinese pinyin), complete, reschedule, reprioritize, move, delete, and open reminders from the launcher or by pressing Tab on Reminders.app.\n- Added **Quick Add Reminder** with live natural-language parsing for English and Chinese dates, times, priorities, `#List` targets, `#tags`, and inline `// notes`.",
+      "publishedAt" : 1795709376,
+      "releaseNotes" : "- Declares the Reminders access it uses through Prism, so the Gallery and the install sheet show it.",
       "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/apple-reminders"
     },
     {
@@ -2986,7 +2986,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1795700579,
+  "generatedAt" : 1795709376,
   "revoked" : [
 
   ]
