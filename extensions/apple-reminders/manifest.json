@@ -2,7 +2,7 @@
   "protocol": 1,
   "id": "prism.apple-reminders",
   "name": "Reminders",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Prism",
   "description": "Search, complete, organize, and quick-add Reminders from the launcher.",
   "minPrism": "0.12.1",
@@ -41,7 +41,7 @@
       "default": ""
     }
   ],
-  "capabilities": [],
+  "capabilities": ["reminders"],
   "localizations": {
     "zh-Hans": {
       "name": "提醒事项",
