@@ -59,7 +59,7 @@ bash tools/release.sh --site "$(mktemp -d)" --dry-run
   and their results; screenshots for UI).
 - Wait for the `Check` workflow (`gh pr checks <n> --watch`).
 - A Codex bot reviews every PR. Read its comments
-  (`gh api repos/natsustan/prism-extensions/pulls/<n>/comments` and
+  (`gh api repos/prismformac/prism-extensions/pulls/<n>/comments` and
   `gh pr view <n> --comments`), fix real issues with new commits, and explain
   in a reply why the rest don't apply.
 - Merge only when the maintainer says to.
@@ -70,9 +70,9 @@ The release job runs in the `gallery` environment, which may wait for the
 maintainer's approval.
 
 ```sh
-gh run list --repo natsustan/prism-extensions --workflow release.yml --limit 3
-gh release view '<id>@<version>' --repo natsustan/prism-extensions
-curl -s https://natsustan.github.io/prism-extensions/index.json \
+gh run list --repo prismformac/prism-extensions --workflow release.yml --limit 3
+gh release view '<id>@<version>' --repo prismformac/prism-extensions
+curl -s https://gallery.prismformac.com/index.json \
   | jq '.extensions[] | select(.manifest.id == "<id>") | .manifest.version'
 ```
 

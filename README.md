@@ -1,13 +1,13 @@
 # Prism Extensions
 
-Extensions for [Prism](https://github.com/natsustan/prism), the macOS
+Extensions for [Prism](https://prismformac.com), the macOS
 launcher. Everything in the Extension Gallery is built from this repository,
 Prism's own extensions included.
 
 An extension runs outside Prism and answers its requests over stdio; Prism
 draws every view from the data it returns. Write one as a script with no build
 step, or in Swift with
-[PrismExtensionKit](https://github.com/natsustan/prism-extension-kit), whose
+[PrismExtensionKit](https://github.com/prismformac/prism-extension-kit), whose
 README documents the protocol.
 
 ## Layout

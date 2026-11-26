@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 [[ -n "$site" ]] || { echo "Usage: bash tools/release.sh --site <folder> [--dry-run]" >&2; exit 2; }
-repository="${GITHUB_REPOSITORY:-natsustan/prism-extensions}"
+repository="${GITHUB_REPOSITORY:-prismformac/prism-extensions}"
 mkdir -p "$site"
 # Nothing is released unless the index that lists it can be signed.
 if ! $dry_run && [[ -z "${PRISM_GALLERY_SIGNING_KEY:-}" || -z "${PRISM_GALLERY_KEY_ID:-}" ]]; then

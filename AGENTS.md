@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-Extensions for [Prism](https://github.com/natsustan/prism), the macOS launcher.
+Extensions for [Prism](https://prismformac.com), the macOS launcher.
 Everything in the Extension Gallery is built from this repository, Prism's own
 extensions included. `README.md` explains the layout, checks, and release
 pipeline for people; this file adds what an agent working here needs.
@@ -22,7 +22,7 @@ pipeline for people; this file adds what an agent working here needs.
 
 The protocol and the Swift runtime are not here. They live in the Prism
 repository under `Packages/PrismExtensionKit` and are published read-only to
-`natsustan/prism-extension-kit`. Its README is the protocol reference; read it
+`prismformac/prism-extension-kit`. Its README is the protocol reference; read it
 before designing commands, lists, widgets, or preferences.
 
 ## Build and check
