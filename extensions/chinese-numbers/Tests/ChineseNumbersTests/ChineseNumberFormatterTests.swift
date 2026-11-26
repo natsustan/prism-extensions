@@ -35,11 +35,11 @@ struct ChineseNumberFormatterTests {
         #expect(ChineseNumberFormatter.lowercase(try number(input)) == expected)
     }
 
-    @Test("amounts round to the fen and end in 整 unless they reach 分", arguments: [
+    @Test("amounts round to the fen and end in 整 only when whole yuan", arguments: [
         ("0", "零元整"), ("1", "壹元整"), ("100111.11", "壹拾万零壹佰壹拾壹元壹角壹分"),
-        ("0.5", "伍角整"), ("0.05", "伍分"), ("100.05", "壹佰元零伍分"), ("100.5", "壹佰元伍角整"),
+        ("0.5", "伍角"), ("0.05", "伍分"), ("100.05", "壹佰元零伍分"), ("100.5", "壹佰元伍角"),
         ("1234.56", "壹仟贰佰叁拾肆元伍角陆分"), ("0.995", "壹元整"), ("1.004", "壹元整"),
-        ("-3.2", "负叁元贰角整"), ("-0.001", "零元整"),
+        ("-3.2", "负叁元贰角"), ("-0.001", "零元整"),
     ])
     func amounts(input: String, expected: String) throws {
         #expect(ChineseNumberFormatter.amount(try number(input)) == expected)

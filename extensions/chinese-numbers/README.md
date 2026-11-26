@@ -7,7 +7,7 @@ digits.
   rows: lowercase (十万零一百一十一点一一), uppercase financial numerals
   (壹拾万零壹佰壹拾壹点壹壹), and the amount in words for invoices and cheques
   (壹拾万零壹佰壹拾壹元壹角壹分), rounded to the fen, with 整 when it stops at
-  元 or 角. Type Chinese instead, such as 一万二千, 二〇二六, 一万五, or
+  元. Type Chinese instead, such as 一万二千, 二〇二六, 一万五, or
   人民币壹佰元伍角, and it shows the digits. Return pastes the row into the
   app you were in; ⌘⇧C copies it.
 
