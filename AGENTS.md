@@ -86,6 +86,12 @@ it after a minute idle or above 150 MB. Design for that:
   more: `network`, `readHomeFiles`, `keychainRead`, `spawnProcesses`,
   `inspectProcesses`, `hostTasks`. Prism shows them before install and asks
   again when they grow.
+- macOS counts an extension's process as Prism's, so it can use privacy
+  permissions the user gave Prism without being asked. Declare each one the
+  code touches, directly or through a tool it runs: `accessibility`
+  (AXUIElement, posting events), `appleEvents` (AppleScript, `osascript`,
+  scripting another app), `calendars` and `reminders` (EventKit),
+  `microphone`. Review rejects an extension that uses one undeclared.
 - Protected folders (another app's container) go under `folders` with a
   plain `reason`; on a permission error offer a `grantFolder` action instead of
   asking for Full Disk Access (Apple Notes).
