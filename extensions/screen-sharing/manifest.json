@@ -1,0 +1,66 @@
+{
+  "protocol": 1,
+  "id": "prism.screen-sharing",
+  "name": "Screen Sharing",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Connect to Macs on your local network or saved hosts using macOS Screen Sharing.",
+  "icon": { "symbol": "rectangle.inset.filled.and.person.filled", "tint": "blue", "app": "com.apple.ScreenSharing" },
+  "executable": ".build/release/ScreenSharing",
+  "commands": [
+    {
+      "id": "connections",
+      "title": "Search Screen",
+      "subtitle": "Screen Sharing",
+      "mode": "list",
+      "keywords": ["screen sharing", "search screen", "vnc", "rfb", "remote", "remote desktop", "mac", "connect", "screenshare"],
+      "searchesApp": "com.apple.ScreenSharing"
+    }
+  ],
+  "preferences": [
+    {
+      "id": "savedHosts",
+      "type": "text",
+      "title": "Saved Hosts",
+      "caption": "Extra hosts to always list, separated by commas or new lines (for example: Mac Studio = mac-studio.local, 100.64.0.12:5900).",
+      "default": ""
+    }
+  ],
+  "capabilities": ["network"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "屏幕共享",
+      "description": "使用 macOS 屏幕共享快速连接到局域网中的 Mac 或已保存的主机。",
+      "commands": {
+        "connections": {
+          "title": "搜索屏幕",
+          "subtitle": "屏幕共享",
+          "keywords": ["搜索屏幕", "屏幕共享", "远程桌面", "远程控制", "局域网", "连接 Mac", "sousuopingmu", "sspm", "pingmugongxiang", "pmgx", "yuanchengzhuomian", "yczm"]
+        }
+      },
+      "preferences": {
+        "savedHosts": {
+          "title": "已保存的主机",
+          "caption": "始终列出的额外主机，用逗号或换行分隔（例如：Mac Studio = mac-studio.local, 100.64.0.12:5900）。"
+        }
+      }
+    },
+    "zh-Hant": {
+      "name": "螢幕共享",
+      "description": "使用 macOS 螢幕共享快速連線到區域網路中的 Mac 或已儲存的主機。",
+      "commands": {
+        "connections": {
+          "title": "搜尋螢幕",
+          "subtitle": "螢幕共享",
+          "keywords": ["搜尋螢幕", "螢幕共享", "遠端桌面", "遠端控制", "區域網路", "連線 Mac", "souxunyingmu", "sxym", "yingmugongxiang", "ymgx", "yuanduanzhuomian", "ydzm"]
+        }
+      },
+      "preferences": {
+        "savedHosts": {
+          "title": "已儲存的主機",
+          "caption": "一律列出的額外主機，以逗號或換行分隔（例如：Mac Studio = mac-studio.local, 100.64.0.12:5900）。"
+        }
+      }
+    }
+  }
+}
