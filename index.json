@@ -185,7 +185,7 @@
       },
       "publishedAt" : 1793691207,
       "releaseNotes" : "- In Simplified or Traditional Chinese, filters, categories, actions, setup\n  rows, and messages are in Chinese too. Item and vault names stay as they\n  are in 1Password.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/1password"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/1password"
     },
     {
       "manifest" : {
@@ -418,7 +418,7 @@
       },
       "publishedAt" : 1795517473,
       "releaseNotes" : "- Fixed Antigravity quota fetching for current `agy` and Antigravity builds:\n  reads the Google sign-in from the macOS Keychain, refreshes expired sessions\n  automatically, and shows the Gemini quota alongside Claude.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/agent-usage"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/agent-usage"
     },
     {
       "manifest" : {
@@ -551,7 +551,7 @@
       },
       "publishedAt" : 1795522545,
       "releaseNotes" : "- List Antigravity projects and recently connected remote SSH hosts, sorted by recent conversation activity, with multi-folder badges and the current Git branch shown for local repositories.\n- Filter between Local projects and Remote SSH hosts with ⌘P, and open Recent Projects directly from Antigravity’s row in root search with Tab.\n- Open Antigravity for local projects, connect directly to remote SSH hosts with `--ssh-host=`, copy the `agy --project` CLI command, reveal project folders in Finder, copy paths, and optionally target Antigravity Insiders or Dev via **Antigravity App Path**.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/antigravity"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/antigravity"
     },
     {
       "manifest" : {
@@ -662,7 +662,7 @@
       },
       "publishedAt" : 1793885714,
       "releaseNotes" : "- A row's second line starts with when the note last changed (the time\n  today, then Yesterday, then the date, following the 24-hour and date\n  formats in System Settings) and its folder, then the start of its text,\n  so every row has two lines. Notes' default folder isn't named.\n- A title written over several lines, or with tabs, shows in full on one\n  line instead of stopping at the first break.\n- The list has headings only when pinned notes are among the results.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/apple-notes"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/apple-notes"
     },
     {
       "manifest" : {
@@ -876,7 +876,7 @@
       },
       "publishedAt" : 1795535146,
       "releaseNotes" : "- **Search Bear Notes**: search notes by title, tags, content, or pinyin, filter by Pinned, Todo, Untagged, Locked, or Archived (⌘P), preview Markdown in the detail pane, create a note when nothing matches, and open, copy, archive, or trash notes in Bear.\n- **Search Bear Tags**: browse and search active Bear tags with note counts and pinyin, and open them in Bear.\n- **New Note from Clipboard**: create a new Bear note from clipboard text.\n- Tab on Bear’s own row in root search opens Search Bear Notes.\n- Localized in English, Simplified Chinese, and Traditional Chinese.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/bear"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/bear"
     },
     {
       "manifest" : {
@@ -1126,7 +1126,7 @@
       },
       "publishedAt" : 1793691337,
       "releaseNotes" : "- In Simplified or Traditional Chinese, the messages, the status row, and the\n  widget are in Chinese too, coffee jokes included.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/caffeinate"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/caffeinate"
     },
     {
       "manifest" : {
@@ -1233,7 +1233,7 @@
       },
       "publishedAt" : 1795663765,
       "releaseNotes" : "- Amounts ending in 角 no longer append 整 (for example, `12.3` becomes 壹拾贰元叁角); whole-yuan amounts still end in 整.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/chinese-numbers"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/chinese-numbers"
     },
     {
       "manifest" : {
@@ -1424,7 +1424,7 @@
       },
       "publishedAt" : 1793691417,
       "releaseNotes" : "- In Simplified or Traditional Chinese, sections, actions, messages, and the\n  detail pane are in Chinese too. CSS color names and format names stay as\n  they are written in code.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/color-picker"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/color-picker"
     },
     {
       "iconImage" : "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMTIgMGM2LjYzIDAgMTIgNS4yNzYgMTIgMTEuNzktLjAwMSA1LjA2Ny0zLjI5IDkuNTY3LTguMTc1IDExLjE4Ny0uNi4xMTgtLjgyNS0uMjUtLjgyNS0uNTYgMC0uMzk4LjAxNS0xLjY2NS4wMTUtMy4yNDIgMC0xLjEwNS0uMzc1LTEuODEzLS44MS0yLjE4MSAyLjY3LS4yOTUgNS40NzUtMS4yOTcgNS40NzUtNS44MjIgMC0xLjI5Ny0uNDY1LTIuMzQ0LTEuMjMtMy4xNjkuMTItLjI5NS41NC0xLjUwMy0uMTItMy4xMjUgMCAwLTEuMDA1LS4zMjQtMy4zIDEuMjA5YTExLjMyIDExLjMyIDAgMDAtMy0uMzk4Yy0xLjAyIDAtMi4wNC4xMzMtMyAuMzk4LTIuMjk1LTEuNTE4LTMuMy0xLjIwOS0zLjMtMS4yMDktLjY2IDEuNjIyLS4yNCAyLjgzLS4xMiAzLjEyNS0uNzY1LjgyNS0xLjIzIDEuODg3LTEuMjMgMy4xNjkgMCA0LjUxIDIuNzkgNS41MjcgNS40NiA1LjgyMi0uMzQ1LjI5NC0uNjYuODEtLjc2NSAxLjU3Ny0uNjkuMzEtMi40MTUuODEtMy40OTUtLjk3My0uMjI1LS4zNTQtLjktMS4yMjMtMS44NDUtMS4yMDktMS4wMDUuMDE1LS40MDUuNTYuMDE1Ljc4MS41MS4yOCAxLjA5NSAxLjMyNyAxLjIzIDEuNjY2LjI0LjY2MyAxLjAyIDEuOTMgNC4wMzUgMS4zODUgMCAuOTg4LjAxNSAxLjkxNi4wMTUgMi4xOTYgMCAuMzEtLjIyNS42NjQtLjgyNS41NkMzLjMwMyAyMS4zNzQtLjAwMyAxNi44NjcgMCAxMS43OTEgMCA1LjI3NiA1LjM3IDAgMTIgMHoiLz48L3N2Zz4K",
@@ -1672,7 +1672,7 @@
       },
       "publishedAt" : 1793691454,
       "releaseNotes" : "- In Simplified or Traditional Chinese, filters, sections, notification\n  reasons, ages, actions, setup rows, and messages are in Chinese too. PR,\n  Issue, and Token stay as developers say them.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/github"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/github"
     },
     {
       "manifest" : {
@@ -1795,7 +1795,7 @@
       },
       "publishedAt" : 1795350315,
       "releaseNotes" : "- Kill Process lists running apps and processes in a full-width list showing both CPU and memory usage, with ⌘P sorting between CPU Usage and Memory Usage.\n- Groups each app bundle’s helper processes under the app by default, with ⇧⌘G to toggle between grouped apps and individual processes.\n- Kill, Force Kill, Restart, Force Restart, Kill All, and Force Kill All confirm before signalling and verify process identity (PID and start time) so stale rows never hit reused PIDs.\n- Show in Finder and a Copy submenu (path, PID, and `sudo kill` commands for other users’ processes).\n- Full Simplified Chinese and Traditional Chinese translations for the manifest, filters, actions, confirmations, and messages.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/kill-process"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/kill-process"
     },
     {
       "manifest" : {
@@ -1915,7 +1915,7 @@
       },
       "publishedAt" : 1793691499,
       "releaseNotes" : "- In Simplified or Traditional Chinese, rows, actions, messages, and the\n  detail pane are in Chinese too (3 段, 已拷贝 3 句). The generated text is\n  unchanged.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/lorem-ipsum"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/lorem-ipsum"
     },
     {
       "manifest" : {
@@ -2037,7 +2037,7 @@
       },
       "publishedAt" : 1793691553,
       "releaseNotes" : "- In Simplified or Traditional Chinese, filters, actions, confirmations, the\n  detail pane, and messages are in Chinese too.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/port-manager"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/port-manager"
     },
     {
       "manifest" : {
@@ -2231,7 +2231,7 @@
       },
       "publishedAt" : 1795545890,
       "releaseNotes" : "- Added **My Reminders** powered by EventKit to browse, filter (All, Today, Overdue, Scheduled, Completed, and each reminder list), search (including Chinese pinyin), complete, reschedule, reprioritize, move, delete, and open reminders from the launcher or by pressing Tab on Reminders.app.\n- Added **Quick Add Reminder** with live natural-language parsing for English and Chinese dates, times, priorities, `#List` targets, `#tags`, and inline `// notes`.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/apple-reminders"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/apple-reminders"
     },
     {
       "manifest" : {
@@ -2363,7 +2363,7 @@
       },
       "publishedAt" : 1795660389,
       "releaseNotes" : "- Connect to Macs discovered automatically on the local network via Bonjour (`_rfb._tcp.`), with instant cached loading and background refresh.\n- Support direct connection by typing an IP address, hostname, `user@host:port`, or `vnc://` URL in the search field.\n- Pin favorite hosts, track recent connections, configure extra hosts in settings, and open the list directly from Screen Sharing’s row with Tab.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/screen-sharing"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/screen-sharing"
     },
     {
       "manifest" : {
@@ -2718,7 +2718,7 @@
       },
       "publishedAt" : 1795418355,
       "releaseNotes" : "- Added **Shottr Actions**, a searchable list of all 14 Shottr URL-scheme actions that also opens with Tab from Shottr’s own row in root search.\n- Added post-capture actions (`Copy`, `Save`, `Edit`, `Pin`, `Show Thumbnail`), delay presets (`3s`, `5s`, `10s`), and **Copy URL** in the ⌘K action panel.\n- Added direct commands for **Capture Area**, **Capture Fullscreen**, **Capture Window**, **Capture Scrolling**, and **Capture Text (OCR)** with automatic launcher dismissal before capture.\n- Added preferences to control closing Prism before capturing and the default delayed-capture wait time.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/shottr"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/shottr"
     },
     {
       "manifest" : {
@@ -2850,7 +2850,7 @@
       },
       "publishedAt" : 1795506473,
       "releaseNotes" : "- **Recent Projects**: browse and open recently used Xcode projects, workspaces, Swift packages, and playgrounds from Prism or by pressing Tab on Xcode’s row.\n- Filter by project type with ⌘P, reveal in Finder (⌘⇧F), or copy the project or folder path (⌘⇧C / ⌘⇧D).\n- Optional **Xcode App Path** setting to open projects with a specific Xcode installation (such as Xcode Beta).",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/xcode"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/xcode"
     },
     {
       "manifest" : {
@@ -2982,11 +2982,11 @@
       },
       "publishedAt" : 1795510201,
       "releaseNotes" : "- List recently used Zed folders, multi-folder workspaces, files, and remote SSH or container workspaces, sorted newest first, with the current Git branch shown for local repositories.\n- Filter between Local and Remote workspaces with ⌘P, and open Recent Projects directly from Zed’s row in root search with Tab.\n- Open local and SSH workspaces in Zed, show local items in Finder, copy paths, and optionally target Zed Preview, Nightly, or Dev via **Zed App Path**.",
-      "sourceURL" : "https://github.com/natsustan/prism-extensions/tree/main/extensions/zed"
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/zed"
     }
   ],
   "format" : 1,
-  "generatedAt" : 1795663765,
+  "generatedAt" : 1795700579,
   "revoked" : [
 
   ]
