@@ -260,6 +260,8 @@ struct Things: PrismExtension {
             )
         } catch ThingsRepositoryError.appNotInstalled {
             return myTodosList(items: [ThingsRows.appNotInstalledItem], filters: ThingsRows.filters(containers: []))
+        } catch ThingsRepositoryError.appNotRunning {
+            return myTodosList(items: [ThingsRows.appNotRunningItem], filters: ThingsRows.filters(containers: []))
         } catch ThingsRepositoryError.automationDenied {
             return myTodosList(items: [ThingsRows.openAutomationSettingsItem], filters: ThingsRows.filters(containers: []))
         }
@@ -301,7 +303,7 @@ struct Things: PrismExtension {
                     dates: dates,
                     isQuickAddCommand: false
                 )
-                return myTodosList(items: [item], filters: filters, fetchedAt: loadedAt)
+                return myTodosList(items: [item], filters: filters, fetchedAt: data.loadedAt, error: data.staleError)
             }
         }
 
@@ -316,7 +318,8 @@ struct Things: PrismExtension {
             },
             filters: filters,
             emptyMessage: ThingsRows.emptyMessage(for: activeFilter, hasQuery: !search.words.isEmpty),
-            fetchedAt: loadedAt
+            fetchedAt: data.loadedAt,
+            error: data.staleError
         )
     }
 
@@ -324,7 +327,8 @@ struct Things: PrismExtension {
         items: [ExtensionListItem],
         filters: [ExtensionListFilter],
         emptyMessage: ExtensionListMessage? = nil,
-        fetchedAt: Date? = nil
+        fetchedAt: Date? = nil,
+        error: String? = nil
     ) -> ExtensionList {
         ExtensionList(
             items: items,
@@ -333,7 +337,8 @@ struct Things: PrismExtension {
             filters: filters,
             emptyMessage: emptyMessage,
             showsDetail: false,
-            fetchedAt: fetchedAt
+            fetchedAt: fetchedAt,
+            error: error
         )
     }
 

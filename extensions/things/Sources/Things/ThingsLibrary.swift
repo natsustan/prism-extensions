@@ -7,13 +7,13 @@ final class ThingsLibrary: Sendable {
     struct CachedData: Sendable {
         let todos: [ThingsTodo]
         let containers: [ThingsContainer]
+        let loadedAt: Date
+        var staleError: String? = nil
     }
 
     private struct State {
         var active: CachedData?
-        var activeLoadedAt: Date?
         var logbook: CachedData?
-        var logbookLoadedAt: Date?
         var containers: [ThingsContainer]?
         var containersLoadedAt: Date?
     }
@@ -28,9 +28,7 @@ final class ThingsLibrary: Sendable {
     func invalidate() {
         state.withLock {
             $0.active = nil
-            $0.activeLoadedAt = nil
             $0.logbook = nil
-            $0.logbookLoadedAt = nil
             $0.containers = nil
             $0.containersLoadedAt = nil
         }
@@ -45,25 +43,39 @@ final class ThingsLibrary: Sendable {
         directory: URL?,
         logbookLimit: Int = 150
     ) async throws -> CachedData {
-        if !forceRefresh {
-            let cached = state.withLock { state -> CachedData? in
-                if logbook {
-                    guard let data = state.logbook, let loadedAt = state.logbookLoadedAt,
-                          now.timeIntervalSince(loadedAt) < cacheTTL else { return nil }
-                    return data
-                } else {
-                    guard let data = state.active, let loadedAt = state.activeLoadedAt,
-                          now.timeIntervalSince(loadedAt) < cacheTTL else { return nil }
-                    return data
-                }
-            }
-            if let cached { return cached }
+        let previous = state.withLock { state -> CachedData? in
+            logbook ? state.logbook : state.active
+        }
+        if !forceRefresh, let previous, now.timeIntervalSince(previous.loadedAt) < cacheTTL {
+            return previous
         }
 
         try Task.checkCancellation()
-        let snapshot = logbook
-            ? try await repository.fetchLogbook(limit: logbookLimit)
-            : try await repository.fetchActive()
+        let snapshot: ThingsSnapshot
+        do {
+            snapshot = logbook
+                ? try await repository.fetchLogbook(limit: logbookLimit)
+                : try await repository.fetchActive()
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let error as ThingsRepositoryError {
+            switch error {
+            case .appNotInstalled, .appNotRunning, .automationDenied:
+                throw error
+            case .notFound, .scriptFailed:
+                if var stale = previous {
+                    stale.staleError = error.userMessage
+                    return stale
+                }
+                throw error
+            }
+        } catch {
+            if var stale = previous {
+                stale.staleError = error.localizedDescription
+                return stale
+            }
+            throw error
+        }
         try Task.checkCancellation()
 
         let texts = Self.pinyinSourceTexts(for: snapshot.todos)
@@ -74,15 +86,13 @@ final class ThingsLibrary: Sendable {
             return copy
         }
 
-        let data = CachedData(todos: enriched, containers: snapshot.containers)
+        let data = CachedData(todos: enriched, containers: snapshot.containers, loadedAt: now)
         try Task.checkCancellation()
         state.withLock { state in
             if logbook {
                 state.logbook = data
-                state.logbookLoadedAt = now
             } else {
                 state.active = data
-                state.activeLoadedAt = now
             }
             state.containers = snapshot.containers
             state.containersLoadedAt = now

@@ -618,6 +618,40 @@ struct ThingsTests {
         #expect(AppleScriptThingsRepository.mapError(stderr: "Error -10814: Application can't be found.") == .appNotInstalled)
     }
 
+    @Test("Preserves cached to-dos as stale when a refresh fails")
+    func staleFallbackOnRefreshFailure() async throws {
+        final class TestClock: Sendable {
+            private let current: Mutex<Date>
+            init(_ date: Date) { self.current = Mutex(date) }
+            var now: Date { current.withLock { $0 } }
+            func set(_ date: Date) { current.withLock { $0 = date } }
+        }
+
+        let clock = TestClock(fixedNow)
+        let repo = FakeThingsRepository(activeTodos: sampleTodos(), containers: sampleContainers())
+        let ext = Things(
+            repository: repo,
+            openURL: { _, _ in },
+            now: { clock.now },
+            calendar: makeUTCCalendar()
+        )
+        let host = try await PrismTestHost(ext, extensionID: "prism.things")
+
+        let initial = try await host.list(Things.CommandID.myTodos)
+        #expect(initial.items.count == 3)
+        #expect(initial.fetchedAt == fixedNow)
+        #expect(initial.error == nil)
+
+        // Advance clock and simulate a transient Things failure on refresh
+        clock.set(fixedNow.addingTimeInterval(60))
+        repo.setActiveError(.scriptFailed("Things took too long to respond."))
+
+        let stale = try await host.list(Things.CommandID.myTodos)
+        #expect(stale.items.map(\.id) == ["todo-1", "todo-2", "todo-3"])
+        #expect(stale.fetchedAt == fixedNow)
+        #expect(stale.error == "Things took too long to respond.")
+    }
+
     @Test("Localizes runtime UI strings into Simplified Chinese")
     func localizedZhHans() async throws {
         let repo = FakeThingsRepository(activeTodos: sampleTodos(), containers: sampleContainers())
