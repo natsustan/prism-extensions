@@ -190,6 +190,7 @@ enum ThingsFilter: Sendable, Equatable {
 enum ThingsWhen: Sendable, Hashable {
     case today
     case evening
+    case eveningTime(hour: Int, minute: Int)
     case tomorrow
     case anytime
     case someday
@@ -200,6 +201,8 @@ enum ThingsWhen: Sendable, Hashable {
         switch self {
         case .today: "today"
         case .evening: "evening"
+        case let .eveningTime(hour, minute):
+            String(format: "evening@%02d:%02d", hour, minute)
         case .tomorrow: "tomorrow"
         case .anytime: "anytime"
         case .someday: "someday"

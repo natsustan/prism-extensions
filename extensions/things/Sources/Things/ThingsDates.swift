@@ -85,6 +85,12 @@ struct ThingsDates {
             return localized("Today")
         case .evening:
             return localized("This Evening")
+        case let .eveningTime(hour, minute):
+            let todayDate = today()
+            let gregorian = ThingsDate.gregorianCalendar(for: calendar)
+            let parts = DateComponents(year: todayDate.year, month: todayDate.month, day: todayDate.day, hour: hour, minute: minute)
+            let date = gregorian.date(from: parts) ?? now
+            return "\(localized("This Evening")) \(timeOnly.string(from: date))"
         case .tomorrow:
             return localized("Tomorrow")
         case .anytime:

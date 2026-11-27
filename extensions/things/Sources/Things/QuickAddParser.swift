@@ -118,8 +118,12 @@ enum QuickAddParser {
 
         // Combine date + explicit time if present
         if let time = explicitTime {
-            let targetDate = whenDateOnly ?? ThingsDate.today(now: now, calendar: calendar)
-            when = .dateTime(targetDate, hour: time.hour, minute: time.minute)
+            if when == .evening {
+                when = .eveningTime(hour: time.hour, minute: time.minute)
+            } else {
+                let targetDate = whenDateOnly ?? ThingsDate.today(now: now, calendar: calendar)
+                when = .dateTime(targetDate, hour: time.hour, minute: time.minute)
+            }
         } else if when == nil {
             when = defaultWhen
         }

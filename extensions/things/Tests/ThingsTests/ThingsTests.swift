@@ -517,6 +517,26 @@ struct ThingsTests {
         )
         #expect(standaloneAmPm?.title == "I am working on pm notes")
         #expect(standaloneAmPm?.when == nil)
+
+        let eveningWithTime = QuickAddParser.parse(
+            "Buy milk evening 6pm",
+            containers: [],
+            now: fixedNow,
+            calendar: makeUTCCalendar()
+        )
+        #expect(eveningWithTime?.title == "Buy milk")
+        #expect(eveningWithTime?.when == .eveningTime(hour: 18, minute: 0))
+        #expect(eveningWithTime?.when?.urlParameterValue == "evening@18:00")
+
+        let zhEveningWithTime = QuickAddParser.parse(
+            "今晚 晚上8点 买牛奶",
+            containers: [],
+            now: fixedNow,
+            calendar: makeUTCCalendar()
+        )
+        #expect(zhEveningWithTime?.title == "买牛奶")
+        #expect(zhEveningWithTime?.when == .eveningTime(hour: 20, minute: 0))
+        #expect(zhEveningWithTime?.when?.urlParameterValue == "evening@20:00")
     }
 
     @Test("Inline Quick Add in Today filter preserves when=today on perform")

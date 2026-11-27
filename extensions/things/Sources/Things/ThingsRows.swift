@@ -433,11 +433,15 @@ enum ThingsRows {
     ) -> ExtensionListItem {
         var accessories: [ExtensionListAccessory] = []
         if let when = draft.when {
+            let isTodayOrEvening: Bool = switch when {
+            case .today, .evening, .eveningTime: true
+            default: false
+            }
             accessories.append(
                 ExtensionListAccessory(
                     text: dates.whenLabel(for: when),
-                    symbol: when == .today || when == .evening ? "star.fill" : "calendar",
-                    tint: when == .today || when == .evening ? "gold" : "blue"
+                    symbol: isTodayOrEvening ? "star.fill" : "calendar",
+                    tint: isTodayOrEvening ? "gold" : "blue"
                 )
             )
         }
