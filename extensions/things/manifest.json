@@ -1,0 +1,63 @@
+{
+  "protocol": 1,
+  "id": "prism.things",
+  "name": "Things",
+  "version": "1.0.0",
+  "author": "Prism",
+  "description": "Search, complete, organize, and quick-add Things to-dos from the launcher.",
+  "minPrism": "0.12.1",
+  "icon": { "symbol": "checkmark.circle", "tint": "blue", "app": "com.culturedcode.ThingsMac" },
+  "executable": ".build/release/Things",
+  "commands": [
+    {
+      "id": "my-todos",
+      "title": "My To-Dos",
+      "subtitle": "Things",
+      "mode": "list",
+      "keywords": ["things", "things 3", "todo", "to-do", "tasks", "today", "inbox", "待办", "任务"],
+      "searchesApp": "com.culturedcode.ThingsMac"
+    },
+    {
+      "id": "quick-add",
+      "title": "Quick Add To-Do",
+      "subtitle": "Things",
+      "mode": "list",
+      "keywords": ["things", "new todo", "add todo", "create task", "quick add", "新建待办", "添加待办", "快速添加"]
+    }
+  ],
+  "capabilities": ["appleEvents", "spawnProcesses"],
+  "localizations": {
+    "zh-Hans": {
+      "name": "Things",
+      "description": "在启动器中搜索、完成、整理和快速添加 Things 待办。",
+      "commands": {
+        "my-todos": {
+          "title": "我的待办",
+          "subtitle": "Things",
+          "keywords": ["待办", "任务", "今天", "收件箱", "wodedaiban", "wddb", "daiban", "db", "renwu", "rw"]
+        },
+        "quick-add": {
+          "title": "快速添加待办",
+          "subtitle": "Things",
+          "keywords": ["新建待办", "添加待办", "创建任务", "快速添加", "kuaisutianjiadaiban", "kstjdb", "xinjiandaiban", "xjdb"]
+        }
+      }
+    },
+    "zh-Hant": {
+      "name": "Things",
+      "description": "在啟動器中搜尋、完成、整理並快速新增 Things 待辦。",
+      "commands": {
+        "my-todos": {
+          "title": "我的待辦",
+          "subtitle": "Things",
+          "keywords": ["待辦", "任務", "今天", "收件匣", "wodedaiban", "wddb", "daiban", "db", "renwu", "rw"]
+        },
+        "quick-add": {
+          "title": "快速新增待辦",
+          "subtitle": "Things",
+          "keywords": ["新增待辦", "建立任務", "快速新增", "kuaisuxinzengdaiban", "ksxzdb", "xinzengdaiban", "xzdb"]
+        }
+      }
+    }
+  }
+}
