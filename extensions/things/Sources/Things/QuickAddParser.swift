@@ -296,8 +296,10 @@ enum QuickAddParser {
         if lower.hasSuffix("am") || lower.hasSuffix("pm") {
             let isPM = lower.hasSuffix("pm")
             let body = String(lower.dropLast(2))
-            let parts = body.split(separator: ":")
-            guard let rawHour = Int(parts[0]), (1...12).contains(rawHour) else { return nil }
+            guard !body.isEmpty else { return nil }
+            let parts = body.split(separator: ":", omittingEmptySubsequences: false)
+            guard (1...2).contains(parts.count),
+                  let rawHour = Int(parts[0]), (1...12).contains(rawHour) else { return nil }
             let minute = parts.count == 2 ? (Int(parts[1]) ?? -1) : 0
             guard (0...59).contains(minute) else { return nil }
             var hour = rawHour % 12

@@ -505,6 +505,15 @@ struct ThingsTests {
         )
         #expect(invalidDateDraft?.title == "Check 2026-02-31 report")
         #expect(invalidDateDraft?.when == nil)
+
+        let standaloneAmPm = QuickAddParser.parse(
+            "I am working on pm notes",
+            containers: [],
+            now: fixedNow,
+            calendar: makeUTCCalendar()
+        )
+        #expect(standaloneAmPm?.title == "I am working on pm notes")
+        #expect(standaloneAmPm?.when == nil)
     }
 
     @Test("Inline Quick Add in Today filter preserves when=today on perform")

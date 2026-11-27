@@ -113,6 +113,16 @@ struct AppleScriptThingsRepository: ThingsRepository {
 
     // MARK: - Process Execution
 
+    private final class ProcessBox: @unchecked Sendable {
+        let process: Process
+        init(_ process: Process) { self.process = process }
+        func terminateIfRunning() {
+            if process.isRunning {
+                process.terminate()
+            }
+        }
+    }
+
     private func runJXA(_ script: String, arguments: [String]) async throws -> Data {
         guard isInstalled() else {
             throw ThingsRepositoryError.appNotInstalled
@@ -127,6 +137,7 @@ struct AppleScriptThingsRepository: ThingsRepository {
         let stderrPipe = Pipe()
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
+        let box = ProcessBox(process)
 
         // Drain stdout/stderr continuously so large JSON payloads never fill
         // the OS pipe buffer and deadlock `osascript`.
@@ -150,9 +161,7 @@ struct AppleScriptThingsRepository: ThingsRepository {
         let state = Mutex<CheckedContinuation<Data, Error>?>(nil)
         let timeoutTask = Task {
             try await Task.sleep(for: .seconds(Self.defaultTimeoutSeconds))
-            if process.isRunning {
-                process.terminate()
-            }
+            box.terminateIfRunning()
             if let continuation = state.withLock({ cont -> CheckedContinuation<Data, Error>? in
                 defer { cont = nil }
                 return cont
@@ -167,7 +176,7 @@ struct AppleScriptThingsRepository: ThingsRepository {
             try await withCheckedThrowingContinuation { continuation in
                 state.withLock { $0 = continuation }
 
-                process.terminationHandler = { proc in
+                box.process.terminationHandler = { proc in
                     timeoutTask.cancel()
                     stdoutHandle.readabilityHandler = nil
                     stderrHandle.readabilityHandler = nil
@@ -196,7 +205,7 @@ struct AppleScriptThingsRepository: ThingsRepository {
                 }
 
                 do {
-                    try process.run()
+                    try box.process.run()
                 } catch {
                     timeoutTask.cancel()
                     stdoutHandle.readabilityHandler = nil
@@ -213,9 +222,7 @@ struct AppleScriptThingsRepository: ThingsRepository {
             timeoutTask.cancel()
             stdoutHandle.readabilityHandler = nil
             stderrHandle.readabilityHandler = nil
-            if process.isRunning {
-                process.terminate()
-            }
+            box.terminateIfRunning()
             if let cont = state.withLock({ pending -> CheckedContinuation<Data, Error>? in
                 defer { pending = nil }
                 return pending
