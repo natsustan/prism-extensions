@@ -1,7 +1,6 @@
 import AppKit
 import ApplicationServices
 import Foundation
-import Synchronization
 
 struct ThingsSnapshot: Sendable, Equatable {
     let todos: [ThingsTodo]
@@ -113,122 +112,36 @@ struct AppleScriptThingsRepository: ThingsRepository {
 
     // MARK: - Process Execution
 
-    private final class ProcessBox: @unchecked Sendable {
-        let process: Process
-        init(_ process: Process) { self.process = process }
-        func terminateIfRunning() {
-            if process.isRunning {
-                process.terminate()
-            }
-        }
-    }
-
     private func runJXA(_ script: String, arguments: [String]) async throws -> Data {
         guard isInstalled() else {
             throw ThingsRepositoryError.appNotInstalled
         }
         try Task.checkCancellation()
 
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        process.arguments = ["-l", "JavaScript", "-e", script] + arguments
-
-        let stdoutPipe = Pipe()
-        let stderrPipe = Pipe()
-        process.standardOutput = stdoutPipe
-        process.standardError = stderrPipe
-        let box = ProcessBox(process)
-
-        // Drain stdout/stderr continuously so large JSON payloads never fill
-        // the OS pipe buffer and deadlock `osascript`.
-        let stdoutBuffer = Mutex(Data())
-        let stderrBuffer = Mutex(Data())
-        let stdoutHandle = stdoutPipe.fileHandleForReading
-        let stderrHandle = stderrPipe.fileHandleForReading
-        stdoutHandle.readabilityHandler = { handle in
-            let chunk = handle.availableData
-            if !chunk.isEmpty {
-                stdoutBuffer.withLock { $0.append(chunk) }
-            }
-        }
-        stderrHandle.readabilityHandler = { handle in
-            let chunk = handle.availableData
-            if !chunk.isEmpty {
-                stderrBuffer.withLock { $0.append(chunk) }
-            }
-        }
-
-        let state = Mutex<CheckedContinuation<Data, Error>?>(nil)
-        let timeoutTask = Task {
-            try await Task.sleep(for: .seconds(Self.defaultTimeoutSeconds))
-            box.terminateIfRunning()
-            if let continuation = state.withLock({ cont -> CheckedContinuation<Data, Error>? in
-                defer { cont = nil }
-                return cont
-            }) {
-                continuation.resume(throwing: ThingsRepositoryError.scriptFailed(
-                    localized("Things took too long to respond.")
-                ))
-            }
-        }
-
+        let runner = JXAProcessRunner(arguments: ["-l", "JavaScript", "-e", script] + arguments)
         return try await withTaskCancellationHandler {
-            try await withCheckedThrowingContinuation { continuation in
-                state.withLock { $0 = continuation }
-
-                box.process.terminationHandler = { proc in
-                    timeoutTask.cancel()
-                    stdoutHandle.readabilityHandler = nil
-                    stderrHandle.readabilityHandler = nil
-                    let tailOut = stdoutHandle.readDataToEndOfFile()
-                    let tailErr = stderrHandle.readDataToEndOfFile()
-                    let outData = stdoutBuffer.withLock { data -> Data in
-                        data.append(tailOut)
-                        return data
-                    }
-                    let errData = stderrBuffer.withLock { data -> Data in
-                        data.append(tailErr)
-                        return data
-                    }
-                    guard let cont = state.withLock({ pending -> CheckedContinuation<Data, Error>? in
-                        defer { pending = nil }
-                        return pending
-                    }) else { return }
-
-                    if proc.terminationStatus == 0 {
-                        cont.resume(returning: outData)
-                    } else {
-                        let stderr = String(data: errData, encoding: .utf8)?
-                            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                        cont.resume(throwing: Self.mapError(stderr: stderr))
-                    }
+            try await withThrowingTaskGroup(of: Data.self) { group in
+                group.addTask {
+                    try await runner.run()
                 }
-
-                do {
-                    try box.process.run()
-                } catch {
-                    timeoutTask.cancel()
-                    stdoutHandle.readabilityHandler = nil
-                    stderrHandle.readabilityHandler = nil
-                    if let cont = state.withLock({ pending -> CheckedContinuation<Data, Error>? in
-                        defer { pending = nil }
-                        return pending
-                    }) {
-                        cont.resume(throwing: ThingsRepositoryError.scriptFailed(error.localizedDescription))
-                    }
+                group.addTask {
+                    try await Task.sleep(for: .seconds(Self.defaultTimeoutSeconds))
+                    runner.cancel()
+                    throw ThingsRepositoryError.scriptFailed(
+                        localized("Things took too long to respond.")
+                    )
                 }
+                defer {
+                    runner.cancel()
+                    group.cancelAll()
+                }
+                guard let result = try await group.next() else {
+                    throw ThingsRepositoryError.scriptFailed(localized("Things didn’t respond as expected."))
+                }
+                return result
             }
         } onCancel: {
-            timeoutTask.cancel()
-            stdoutHandle.readabilityHandler = nil
-            stderrHandle.readabilityHandler = nil
-            box.terminateIfRunning()
-            if let cont = state.withLock({ pending -> CheckedContinuation<Data, Error>? in
-                defer { pending = nil }
-                return pending
-            }) {
-                cont.resume(throwing: CancellationError())
-            }
+            runner.cancel()
         }
     }
 
@@ -574,4 +487,98 @@ struct AppleScriptThingsRepository: ThingsRepository {
         return "ok";
     }
     """#
+}
+
+/// Runs one `/usr/bin/osascript` invocation, draining stdout and stderr
+/// continuously so large JSON payloads never block the OS pipe buffer.
+private final class JXAProcessRunner: @unchecked Sendable {
+    private let lock = NSLock()
+    private let process = Process()
+    private let stdoutPipe = Pipe()
+    private let stderrPipe = Pipe()
+    private var stdoutData = Data()
+    private var stderrData = Data()
+    private var isCancelled = false
+
+    init(arguments: [String]) {
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        process.arguments = arguments
+        process.standardInput = FileHandle.nullDevice
+        process.standardOutput = stdoutPipe
+        process.standardError = stderrPipe
+    }
+
+    func run() async throws -> Data {
+        let stdoutHandle = stdoutPipe.fileHandleForReading
+        let stderrHandle = stderrPipe.fileHandleForReading
+        stdoutHandle.readabilityHandler = { [weak self] handle in
+            let chunk = handle.availableData
+            guard !chunk.isEmpty, let self else { return }
+            self.lock.lock()
+            self.stdoutData.append(chunk)
+            self.lock.unlock()
+        }
+        stderrHandle.readabilityHandler = { [weak self] handle in
+            let chunk = handle.availableData
+            guard !chunk.isEmpty, let self else { return }
+            self.lock.lock()
+            self.stderrData.append(chunk)
+            self.lock.unlock()
+        }
+
+        let status: Int32? = try await withCheckedThrowingContinuation { continuation in
+            lock.lock()
+            if isCancelled {
+                lock.unlock()
+                stdoutHandle.readabilityHandler = nil
+                stderrHandle.readabilityHandler = nil
+                continuation.resume(throwing: CancellationError())
+                return
+            }
+            process.terminationHandler = { proc in
+                continuation.resume(returning: proc.terminationStatus)
+            }
+            do {
+                try process.run()
+                lock.unlock()
+            } catch {
+                process.terminationHandler = nil
+                lock.unlock()
+                stdoutHandle.readabilityHandler = nil
+                stderrHandle.readabilityHandler = nil
+                continuation.resume(throwing: ThingsRepositoryError.scriptFailed(error.localizedDescription))
+            }
+        }
+
+        stdoutHandle.readabilityHandler = nil
+        stderrHandle.readabilityHandler = nil
+        let tailOut = stdoutHandle.readDataToEndOfFile()
+        let tailErr = stderrHandle.readDataToEndOfFile()
+
+        let (out, err, cancelled) = lock.withLock { () -> (Data, Data, Bool) in
+            stdoutData.append(tailOut)
+            stderrData.append(tailErr)
+            return (stdoutData, stderrData, isCancelled)
+        }
+
+        if cancelled {
+            throw CancellationError()
+        }
+        guard status == 0 else {
+            let stderr = String(data: err, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            throw AppleScriptThingsRepository.mapError(stderr: stderr)
+        }
+        return out
+    }
+
+    func cancel() {
+        lock.lock()
+        isCancelled = true
+        let running = process.isRunning
+        lock.unlock()
+        if running {
+            process.terminate()
+        }
+    }
 }
