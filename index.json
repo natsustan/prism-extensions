@@ -2724,6 +2724,166 @@
       "manifest" : {
         "author" : "Prism",
         "capabilities" : [
+          "appleEvents",
+          "spawnProcesses"
+        ],
+        "commands" : [
+          {
+            "aliases" : [
+
+            ],
+            "id" : "my-todos",
+            "interactive" : false,
+            "keywords" : [
+              "things",
+              "things 3",
+              "todo",
+              "to-do",
+              "tasks",
+              "today",
+              "inbox",
+              "待办",
+              "任务"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "searchesApp" : "com.culturedcode.ThingsMac",
+            "subtitle" : "Things",
+            "title" : "My To-Dos"
+          },
+          {
+            "aliases" : [
+
+            ],
+            "id" : "quick-add",
+            "interactive" : false,
+            "keywords" : [
+              "things",
+              "new todo",
+              "add todo",
+              "create task",
+              "quick add",
+              "新建待办",
+              "添加待办",
+              "快速添加"
+            ],
+            "liveStatus" : false,
+            "mode" : "list",
+            "subtitle" : "Things",
+            "title" : "Quick Add To-Do"
+          }
+        ],
+        "description" : "Search, complete, organize, and quick-add Things to-dos from the launcher.",
+        "executable" : "bin/Things",
+        "folders" : [
+
+        ],
+        "icon" : {
+          "app" : "com.culturedcode.ThingsMac",
+          "symbol" : "checkmark.circle",
+          "tint" : "blue"
+        },
+        "id" : "prism.things",
+        "localizations" : {
+          "zh-Hans" : {
+            "commands" : {
+              "my-todos" : {
+                "keywords" : [
+                  "待办",
+                  "任务",
+                  "今天",
+                  "收件箱",
+                  "wodedaiban",
+                  "wddb",
+                  "daiban",
+                  "db",
+                  "renwu",
+                  "rw"
+                ],
+                "subtitle" : "Things",
+                "title" : "我的待办"
+              },
+              "quick-add" : {
+                "keywords" : [
+                  "新建待办",
+                  "添加待办",
+                  "创建任务",
+                  "快速添加",
+                  "kuaisutianjiadaiban",
+                  "kstjdb",
+                  "xinjiandaiban",
+                  "xjdb"
+                ],
+                "subtitle" : "Things",
+                "title" : "快速添加待办"
+              }
+            },
+            "description" : "在启动器中搜索、完成、整理和快速添加 Things 待办。",
+            "name" : "Things"
+          },
+          "zh-Hant" : {
+            "commands" : {
+              "my-todos" : {
+                "keywords" : [
+                  "待辦",
+                  "任務",
+                  "今天",
+                  "收件匣",
+                  "wodedaiban",
+                  "wddb",
+                  "daiban",
+                  "db",
+                  "renwu",
+                  "rw"
+                ],
+                "subtitle" : "Things",
+                "title" : "我的待辦"
+              },
+              "quick-add" : {
+                "keywords" : [
+                  "新增待辦",
+                  "建立任務",
+                  "快速新增",
+                  "kuaisuxinzengdaiban",
+                  "ksxzdb",
+                  "xinzengdaiban",
+                  "xzdb"
+                ],
+                "subtitle" : "Things",
+                "title" : "快速新增待辦"
+              }
+            },
+            "description" : "在啟動器中搜尋、完成、整理並快速新增 Things 待辦。",
+            "name" : "Things"
+          }
+        },
+        "minPrism" : "0.12.1",
+        "name" : "Things",
+        "preferences" : [
+
+        ],
+        "protocol" : 1,
+        "tasks" : [
+
+        ],
+        "version" : "1.0.0",
+        "widgets" : [
+
+        ]
+      },
+      "package" : {
+        "sha256" : "8401fe204f6d8cf723e26e971e20d4fb3806701be99ffc223a95df1ab0537ca0",
+        "size" : 1452288,
+        "url" : "https://github.com/prismformac/prism-extensions/releases/download/prism.things%401.0.0/prism.things-1.0.0.prismextension"
+      },
+      "publishedAt" : 1795749791,
+      "releaseNotes" : "- **My To-Dos**: search, filter, complete, reopen, cancel, schedule, set deadlines, move, and trash Things to-dos from the launcher, including Tab search from Things’ own row and Chinese pinyin search.\n- **Quick Add To-Do**: add new to-dos in one line with English and Chinese dates, times, deadlines, projects/areas, tags, and inline notes.",
+      "sourceURL" : "https://github.com/prismformac/prism-extensions/tree/main/extensions/things"
+    },
+    {
+      "manifest" : {
+        "author" : "Prism",
+        "capabilities" : [
           "readHomeFiles"
         ],
         "commands" : [
@@ -2986,7 +3146,7 @@
     }
   ],
   "format" : 1,
-  "generatedAt" : 1795709376,
+  "generatedAt" : 1795749791,
   "revoked" : [
 
   ]
