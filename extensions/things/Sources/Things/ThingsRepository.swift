@@ -341,8 +341,7 @@ struct AppleScriptThingsRepository: ThingsRepository {
     }
     function extractFromList(listObj, bucketName, meta, seen, maxCount) {
         var results = [];
-        var ids = [];
-        try { ids = listObj.toDos.id(); } catch (e) { return results; }
+        var ids = listObj.toDos.id();
         if (!ids || ids.length === 0) return results;
         var names = listObj.toDos.name();
         var notes = listObj.toDos.notes();
@@ -395,13 +394,11 @@ struct AppleScriptThingsRepository: ThingsRepository {
             { id: "TMSomedayListSource", bucket: "someday" }
         ];
         for (var i = 0; i < sources.length; i++) {
-            try {
-                var listObj = app.lists.byId(sources[i].id);
-                var batch = extractFromList(listObj, sources[i].bucket, meta, seen, 0);
-                for (var j = 0; j < batch.length; j++) {
-                    todos.push(batch[j]);
-                }
-            } catch (e) {}
+            var listObj = app.lists.byId(sources[i].id);
+            var batch = extractFromList(listObj, sources[i].bucket, meta, seen, 0);
+            for (var j = 0; j < batch.length; j++) {
+                todos.push(batch[j]);
+            }
         }
         return JSON.stringify({ todos: todos, containers: meta.containers });
     }
