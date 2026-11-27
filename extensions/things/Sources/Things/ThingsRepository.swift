@@ -273,7 +273,7 @@ struct AppleScriptThingsRepository: ThingsRepository {
         if (!raw) return [];
         return String(raw).split(",").map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
     }
-    function collectContainers(app) {
+    function collectContainers(app, includeClosedProjectMembers) {
         var containers = [];
         var areaTitleByID = {};
         var projectTitleByID = {};
@@ -304,7 +304,8 @@ struct AppleScriptThingsRepository: ThingsRepository {
             projectIDSet[pid] = true;
             var pstatus = "";
             try { pstatus = p.status(); } catch (e) {}
-            if (pstatus !== "open") continue;
+            var isOpen = (pstatus === "open");
+            if (!isOpen && !includeClosedProjectMembers) continue;
             var ptitle = p.name() || "";
             var paid = null;
             var patitle = null;
@@ -317,7 +318,9 @@ struct AppleScriptThingsRepository: ThingsRepository {
             } catch (e) {}
             projectTitleByID[pid] = ptitle;
             if (paid) projectAreaIDByID[pid] = paid;
-            containers.push({ id: pid, title: ptitle, kind: "project", areaID: paid, areaTitle: patitle });
+            if (isOpen) {
+                containers.push({ id: pid, title: ptitle, kind: "project", areaID: paid, areaTitle: patitle });
+            }
             try {
                 var pTodoIDs = p.toDos.id();
                 for (var m = 0; m < pTodoIDs.length; m++) {
@@ -408,7 +411,7 @@ struct AppleScriptThingsRepository: ThingsRepository {
     function run(argv) {
         var limit = parseInt(argv[0], 10) || 150;
         var app = Application("com.culturedcode.ThingsMac");
-        var meta = collectContainers(app);
+        var meta = collectContainers(app, true);
         var seen = {};
         var listObj = app.lists.byId("TMLogbookListSource");
         var todos = extractFromList(listObj, "logbook", meta, seen, limit);
