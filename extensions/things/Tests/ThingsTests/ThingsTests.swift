@@ -342,6 +342,9 @@ struct ThingsTests {
         #expect(list.items[0].actions.first?.id == Things.ActionID.complete)
         // Attached URL from notes is surfaced as Open Link
         #expect(list.items[0].actions.contains { $0.id == Things.ActionID.openAttachedURL })
+        // Project to-do under Work area can still be moved directly to Work area
+        let moveSubmenu = try #require(list.items[0].actions.first { $0.id == Things.ActionID.moveMenu })
+        #expect(moveSubmenu.actions.contains { $0.id == Things.ActionID.moveAreaPrefix + "area-work" })
 
         // Filters include built-in views plus projects and areas
         let filterIDs = list.filters.map(\.id)

@@ -339,7 +339,7 @@ enum ThingsRows {
                     )
                 )
             }
-            for container in containers where container.kind == .area && container.id != todo.areaID {
+            for container in containers where container.kind == .area && !(todo.projectID == nil && container.id == todo.areaID) {
                 moveActions.append(
                     ExtensionAction(
                         id: Things.ActionID.moveAreaPrefix + container.id,
